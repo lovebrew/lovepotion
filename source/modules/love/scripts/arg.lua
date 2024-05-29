@@ -3,7 +3,7 @@ R"luastring"--(
 -- There is a matching delimiter at the bottom of the file.
 
 --[[
-Copyright (c) 2006-2021 LOVE Development Team
+Copyright (c) 2006-2024 LOVE Development Team
 
 This software is provided 'as-is', without any express or implied
 warranty.  In no event will the authors be held liable for any damages
@@ -45,7 +45,6 @@ end
 
 -- Checks whether a path is absolute or not.
 function love.path.abs(p)
-
     local tmp = love.path.normalslashes(p)
 
     -- Path is absolute if it starts with a "/".
@@ -61,7 +60,6 @@ function love.path.abs(p)
 
     -- Relative.
     return false
-
 end
 
 -- Converts any path into a full path.
@@ -71,7 +69,6 @@ function love.path.getFull(p)
     end
 
     local cwd = love.filesystem.getWorkingDirectory()
-
     cwd = love.path.normalslashes(cwd)
     cwd = love.path.endslash(cwd)
 
@@ -115,7 +112,9 @@ end
 love.arg.options = {
     console = { a = 0 },
     fused = { a = 0 },
-    game = { a = 1 }
+    game = { a = 1 },
+    renderers = { a = 1 },
+    excluderenderers = { a = 1 },
 }
 
 love.arg.optionIndices = {}
@@ -131,11 +130,10 @@ function love.arg.parseOption(m, i)
         end
     end
 
-    table.insert(m.arg, "game")
     return m.a
 end
 
-function love.arg.parseOptions()
+function love.arg.parseOptions(arg)
     local game
     local argc = #arg
 
@@ -147,7 +145,7 @@ function love.arg.parseOptions()
         if m and m ~= "" and love.arg.options[m] and not love.arg.options[m].set then
             love.arg.optionIndices[i] = true
             i = i + love.arg.parseOption(love.arg.options[m], i + 1)
-        elseif m == "" then -- handle '--' as an option
+        elseif m == "" then  -- handle '--' as an option
             love.arg.optionIndices[i] = true
             if not game then -- handle '--' followed by game name
                 game = i + 1

@@ -224,7 +224,7 @@ end
 
 function love.run()
     if love.load then
-        love.load(arg)
+        love.load(love.parsedGameArguments, love.rawGameArguments)
     end
 
     if love.timer then

@@ -28,13 +28,16 @@ DoneAction RunLOVE(int argc, char** argv, int& retval, Variant& restartValue)
             lua_rawseti(L, -2, -2);
         }
 
+        std::vector<const char*> args(argv, argv + argc);
+        args.push_back("game");
+
         lua_pushstring(L, "embedded boot.lua");
         lua_rawseti(L, -2, -1);
 
-        for (int i = 1; i < argc; i++)
+        for (int index = 1; index < (int)args.size(); index++)
         {
-            lua_pushstring(L, argv[i]);
-            lua_rawseti(L, -2, i);
+            lua_pushstring(L, args[index]);
+            lua_rawseti(L, -2, index);
         }
 
         lua_setglobal(L, "arg");

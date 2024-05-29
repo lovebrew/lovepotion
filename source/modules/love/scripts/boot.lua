@@ -35,15 +35,6 @@ local function uridecode(s)
     end)
 end
 
-local function https_setup_certs()
-    local https = require("https")
-
-    if love._os == "Cafe" then
-        return https.setCertificateFile("/sdcard/config/ssl/cacert.pem")
-    end
-    https.setCertificateFile("sdmc/config/ssl/cacert.pem")
-end
-
 local no_game_code = false
 local invalid_game_path = nil
 local main_file = "main.lua"
@@ -56,7 +47,6 @@ function love.boot()
     love.rawGameArguments = arg
 
     local arg0 = love.arg.getLow(love.rawGameArguments)
-
     love.filesystem.init(arg0)
 
     local exepath = love.filesystem.getExecutablePath()
@@ -108,11 +98,10 @@ function love.boot()
             main_file = source_leaf
             custom_main_file = true
             full_source = love.path.getFull(full_source:sub(1, -(#source_leaf + 1)))
-        elseif nouri:match("%.love$") then
-            full_source = nouri
         end
 
         can_has_game = pcall(love.filesystem.setSource, full_source)
+
         if not can_has_game then
             invalid_game_path = full_source
         end
@@ -134,23 +123,17 @@ function love.boot()
     identity = identity:gsub("^([%.]+)", "")    -- strip leading "."'s
     identity = identity:gsub("%.([^%.]+)$", "") -- strip extension
     identity = identity:gsub("%.", "_")         -- replace remaining "."'s with "_"
-    identity = #identity > 0 and identity or "game"
+    identity = #identity > 0 and identity or "lovegame"
 
     -- When conf.lua is initially loaded, the main source should be checked
     -- before the save directory (the identity should be appended.)
     pcall(love.filesystem.setIdentity, identity, true)
 
-    local has_main_file = love.filesystem.getInfo(main_file)
-    local has_conf_file = love.filesystem.getInfo("conf.lua")
-
-    if can_has_game and not (has_main_file or (not custom_main_file and has_conf_file)) then
+    if can_has_game and not (love.filesystem.getInfo(main_file) or (not custom_main_file and love.filesystem.getInfo("conf.lua"))) then
         no_game_code = true
     end
 
-    -- https_setup_certs()
-
     if not can_has_game then
-        invalid_game_path = false
         local nogame = require("love.nogame")
         nogame()
     end
