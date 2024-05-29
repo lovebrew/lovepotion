@@ -295,7 +295,7 @@ namespace love
             auto data               = graphics->requestBatchedDraw(command);
             GlyphVertex* vertexdata = (GlyphVertex*)data.stream;
 
-            std::copy_n(vertexdata, cmd.vertexCount, &vertices[cmd.startVertex]);
+            std::copy_n(&vertices[cmd.startVertex], cmd.vertexCount, vertexdata);
             m.transformXY(vertexdata, &vertices[cmd.startVertex], cmd.vertexCount);
         }
     }
