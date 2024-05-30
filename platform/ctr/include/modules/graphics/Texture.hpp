@@ -30,6 +30,11 @@ namespace love
 
         void generateMipmapsInternal() override;
 
+        void setHandleData(void* data) override
+        {
+            this->texture->data = data;
+        }
+
         // bool validateDimensions(bool throwException) const;
 
         // void validatePixelFormat(Graphics& graphics) const;

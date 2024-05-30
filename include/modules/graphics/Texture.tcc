@@ -305,6 +305,13 @@ namespace love
 
         virtual ptrdiff_t getRenderTargetHandle() const = 0;
 
+        /*
+         * Sets the handle of the texture.
+         * This is ONLY used on 3DS due to memory constraints.
+         * The font textures are already on-device!
+         */
+        virtual void setHandleData(void* data) = 0;
+
         virtual void setSamplerState(const SamplerState& state) = 0;
 
         void replacePixels(ImageDataBase* data, int slice, int mipmap, int x, int y, bool reloadMipmaps);

@@ -29,6 +29,7 @@ namespace love
 
         auto graphics = Module::getInstance<GraphicsBase>(Module::M_GRAPHICS);
 
+        /* the texture and font data are the same size */
         for (size_t index = 0; index < info->nSheets; index++)
         {
             TextureBase::Settings settings {};
@@ -39,9 +40,7 @@ namespace love
             auto* texture = graphics->newTexture(settings, nullptr);
             auto* data    = fontGetGlyphSheetTex(font, index);
 
-            Rect rect { 0, 0, settings.width, settings.height };
-
-            texture->replacePixels(data, info->sheetSize, 0, 0, rect, false);
+            texture->setHandleData(data);
             texture->setSamplerState(this->samplerState);
 
             this->textures.emplace_back(texture, Acquire::NO_RETAIN);

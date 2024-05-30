@@ -185,34 +185,33 @@ namespace love
     }
 
     std::vector<FontBase::DrawCommand> FontBase::generateVertices(const ColoredCodepoints& codepoints,
-                                                                  Range range, const Color& constantcolor,
+                                                                  Range range, const Color& constantColor,
                                                                   std::vector<GlyphVertex>& vertices,
                                                                   float extra_spacing, Vector2 offset,
                                                                   TextShaper::TextInfo* info)
     {
-        std::vector<TextShaper::GlyphPosition> glyphpositions;
+        std::vector<TextShaper::GlyphPosition> glyphPositions {};
         std::vector<IndexedColor> colors;
-        this->shaper->computeGlyphPositions(codepoints, range, offset, extra_spacing, &glyphpositions,
+        this->shaper->computeGlyphPositions(codepoints, range, offset, extra_spacing, &glyphPositions,
                                             &colors, info);
 
         size_t vertexStartSize = vertices.size();
-        vertices.reserve(vertexStartSize + glyphpositions.size() * 4);
+        vertices.reserve(vertexStartSize + glyphPositions.size() * 4);
 
-        Color linearConstantColor = gammaCorrectColor(constantcolor);
-        Color currentColor        = constantcolor;
+        Color linearConstantColor = gammaCorrectColor(constantColor);
+        Color currentColor        = constantColor;
 
-        int curcolori = 0;
-        int ncolors   = (int)colors.size();
+        int currentColorIndex = 0;
+        int numColors         = (int)colors.size();
 
         // Keeps track of when we need to switch textures in our vertex array.
         std::vector<DrawCommand> commands {};
 
-        for (int i = 0; i < (int)glyphpositions.size(); i++)
+        for (int i = 0; i < (int)glyphPositions.size(); i++)
         {
-            const auto& info = glyphpositions[i];
+            const auto& info = glyphPositions[i];
 
-            uint32_t cacheid = textureCacheID;
-
+            uint32_t cacheid   = textureCacheID;
             const Glyph& glyph = findGlyph(info.glyphIndex);
 
             // If findGlyph invalidates the texture cache, restart the loop.
@@ -221,26 +220,26 @@ namespace love
                 i = -1; // The next iteration will increment this to 0.
                 commands.clear();
                 vertices.resize(vertexStartSize);
-                curcolori    = 0;
-                currentColor = constantcolor;
+                currentColorIndex = 0;
+                currentColor      = constantColor;
                 continue;
             }
 
-            if (curcolori < ncolors && colors[curcolori].index == i)
+            if (currentColorIndex < numColors && colors[currentColorIndex].index == i)
             {
-                Color c = colors[curcolori].color;
+                Color c = colors[currentColorIndex].color;
 
-                c.r = std::min(std::max(c.r, 0.0f), 1.0f);
-                c.g = std::min(std::max(c.g, 0.0f), 1.0f);
-                c.b = std::min(std::max(c.b, 0.0f), 1.0f);
-                c.a = std::min(std::max(c.a, 0.0f), 1.0f);
+                c.r = std::clamp(c.r, 0.0f, 1.0f);
+                c.g = std::clamp(c.g, 0.0f, 1.0f);
+                c.b = std::clamp(c.b, 0.0f, 1.0f);
+                c.a = std::clamp(c.a, 0.0f, 1.0f);
 
                 gammaCorrectColor(c);
                 c *= linearConstantColor;
                 unGammaCorrectColor(c);
 
                 currentColor = c;
-                curcolori++;
+                currentColorIndex++;
             }
 
             if (glyph.texture != nullptr)
@@ -272,6 +271,110 @@ namespace love
         std::sort(commands.begin(), commands.end(), sortGlyphs);
 
         return commands;
+    }
+
+    std::vector<FontBase::DrawCommand> FontBase::generateVerticesFormatted(const ColoredCodepoints& text,
+                                                                           const Color& constantcolor,
+                                                                           float wrap, AlignMode align,
+                                                                           std::vector<GlyphVertex>& vertices,
+                                                                           TextShaper::TextInfo* info)
+    {
+        wrap = std::max(wrap, 0.0f);
+
+        uint32_t cacheid = textureCacheID;
+
+        std::vector<DrawCommand> drawcommands;
+        vertices.reserve(text.codepoints.size() * 4);
+
+        std::vector<Range> ranges;
+        std::vector<int> widths;
+        shaper->getWrap(text, wrap, ranges, &widths);
+
+        float y        = 0.0f;
+        float maxwidth = 0.0f;
+
+        for (int i = 0; i < (int)ranges.size(); i++)
+        {
+            const auto& range = ranges[i];
+
+            if (!range.isValid())
+            {
+                y += getHeight() * getLineHeight();
+                continue;
+            }
+
+            float width = (float)widths[i];
+            love::Vector2 offset(0.0f, floorf(y));
+            float extraspacing = 0.0f;
+
+            maxwidth = std::max(width, maxwidth);
+
+            switch (align)
+            {
+                case ALIGN_RIGHT:
+                    offset.x = floorf(wrap - width);
+                    break;
+                case ALIGN_CENTER:
+                    offset.x = floorf((wrap - width) / 2.0f);
+                    break;
+                case ALIGN_JUSTIFY:
+                {
+                    auto start      = text.codepoints.begin() + range.getOffset();
+                    auto end        = start + range.getSize();
+                    float numspaces = std::count(start, end, ' ');
+
+                    if (width < wrap && numspaces >= 1)
+                        extraspacing = (wrap - width) / numspaces;
+                    else
+                        extraspacing = 0.0f;
+
+                    break;
+                }
+                case ALIGN_LEFT:
+                default:
+                    break;
+            }
+
+            auto newcommands = generateVertices(text, range, constantcolor, vertices, extraspacing, offset);
+
+            if (!newcommands.empty())
+            {
+                auto firstcmd = newcommands.begin();
+
+                // If the first draw command in the new list has the same texture
+                // as the last one in the existing list we're building and its
+                // vertices are in-order, we can combine them (saving a draw call.)
+                if (!drawcommands.empty())
+                {
+                    auto prevcmd = drawcommands.back();
+                    if (prevcmd.texture == firstcmd->texture &&
+                        (prevcmd.startVertex + prevcmd.vertexCount) == firstcmd->startVertex)
+                    {
+                        drawcommands.back().vertexCount += firstcmd->vertexCount;
+                        ++firstcmd;
+                    }
+                }
+
+                // Append the new draw commands to the list we're building.
+                drawcommands.insert(drawcommands.end(), firstcmd, newcommands.end());
+            }
+
+            y += getHeight() * getLineHeight();
+        }
+
+        if (info != nullptr)
+        {
+            info->width  = (int)maxwidth;
+            info->height = (int)y;
+        }
+
+        if (cacheid != textureCacheID)
+        {
+            vertices.clear();
+            drawcommands = generateVerticesFormatted(text, constantcolor, wrap, align, vertices);
+        }
+
+        return drawcommands;
     }
 
     void FontBase::printv(GraphicsBase* graphics, const Matrix4& matrix,
@@ -370,5 +473,34 @@ namespace love
     uint32_t FontBase::getTextureCacheID() const
     {
         return this->textureCacheID;
+    }
+
+    void FontBase::setFallbacks(const std::vector<FontBase*>& fallbacks)
+    {
+        std::vector<Rasterizer*> rasterizers {};
+
+        for (const FontBase* font : fallbacks)
+            rasterizers.push_back(font->shaper->getRasterizers()[0]);
+
+        this->shaper->setFallbacks(rasterizers);
+        this->glyphs.clear();
+
+        if constexpr (!Console::is(Console::CTR))
+        {
+            this->textureCacheID++;
+
+            while (this->textures.size() > 1)
+                this->textures.pop_back();
+        }
+    }
+
+    void FontBase::setSamplerState(const SamplerState& state)
+    {
+        this->samplerState.minFilter     = state.minFilter;
+        this->samplerState.magFilter     = state.magFilter;
+        this->samplerState.maxAnisotropy = state.maxAnisotropy;
+
+        for (const auto& texture : this->textures)
+            texture->setSamplerState(state);
     }
 } // namespace love

@@ -101,7 +101,7 @@ namespace love
         this->setMeshCullMode(state.meshCullMode);
         this->setFrontFaceWinding(state.winding);
 
-        // this->setFont(state.font.get());
+        this->setFont(state.font.get());
         // this->setShader(state.shader.get());
         // this->setRenderTargets(state.renderTargets);
 
@@ -151,7 +151,7 @@ namespace love
         if (state.winding != current.winding)
             this->setFrontFaceWinding(state.winding);
 
-        // this->setFont(state.font.get());
+        this->setFont(state.font.get());
         // this->setShader(state.shader.get());
 
         // if (this->stencil != state.stencil)
@@ -409,6 +409,21 @@ namespace love
         font->print(this, string, matrix, this->states.back().color);
     }
 
+    void GraphicsBase::printf(const std::vector<ColoredString>& string, float wrap, FontBase::AlignMode align,
+                              const Matrix4& matrix)
+    {
+        this->checkSetDefaultFont();
+
+        if (this->states.back().font.get() != nullptr)
+            this->printf(string, this->states.back().font.get(), wrap, align, matrix);
+    }
+
+    void GraphicsBase::printf(const std::vector<ColoredString>& string, FontBase* font, float wrap,
+                              FontBase::AlignMode align, const Matrix4& matrix)
+    {
+        font->printf(this, string, wrap, align, matrix, this->states.back().color);
+    }
+
     void GraphicsBase::flushBatchedDraws()
     {
         BatchedDrawState& state = this->batchedDrawState;
@@ -441,9 +456,9 @@ namespace love
 
         // state.flushing = true;
 
-        auto originalColor = this->getColor();
-        if (attributes.isEnabled(ATTRIB_COLOR))
-            this->setColor(Color::WHITE);
+        // auto originalColor = this->getColor();
+        // if (attributes.isEnabled(ATTRIB_COLOR))
+        //     this->setColor(Color::WHITE);
 
         this->pushIdentityTransform();
 
@@ -457,6 +472,7 @@ namespace love
             command.indexType         = INDEX_UINT16;
             command.indexBufferOffset = state.indexBuffer->unmap(usedSizes[1]);
             command.texture           = state.texture;
+            command.isFont            = state.isFont;
             this->draw(command);
 
             state.indexBufferMap = MapInfo<uint16_t>();
@@ -478,10 +494,10 @@ namespace love
         if (usedSizes[1] > 0)
             state.indexBuffer->markUsed(usedSizes[1]);
 
-        this->popTransform();
+        // this->popTransform();
 
-        if (attributes.isEnabled(ATTRIB_COLOR))
-            this->setColor(originalColor);
+        // if (attributes.isEnabled(ATTRIB_COLOR))
+        //     this->setColor(originalColor);
 
         state.lastVertexCount = 0;
         state.lastIndexCount  = 0;

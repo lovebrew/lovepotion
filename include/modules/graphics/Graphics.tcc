@@ -400,6 +400,22 @@ namespace love
             this->states.back().backgroundColor = color;
         }
 
+        Color getBackgroundColor() const
+        {
+            return this->states.back().backgroundColor;
+        }
+
+        void setFont(FontBase* font)
+        {
+            this->states.back().font.set(font);
+        }
+
+        FontBase* getFont()
+        {
+            this->checkSetDefaultFont();
+            return this->states.back().font.get();
+        }
+
         const SamplerState& getDefaultSamplerState() const
         {
             return this->states.back().defaultSamplerState;
@@ -417,11 +433,6 @@ namespace love
         void intersectScissor(const Rect& scissor);
 
         bool getScissor(Rect& scissor) const;
-
-        Color getBackgroundColor() const
-        {
-            return this->states.back().backgroundColor;
-        }
 
         void setMeshCullMode(CullMode mode)
         {

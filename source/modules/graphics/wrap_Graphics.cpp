@@ -138,19 +138,19 @@ int Wrap_Graphics::setColor(lua_State* L)
         for (int index = 1; index <= 4; index++)
             lua_rawgeti(L, 1, index);
 
-        color.r = luaL_checknumber(L, -4);
-        color.g = luaL_checknumber(L, -3);
-        color.b = luaL_checknumber(L, -2);
-        color.a = luaL_optnumber(L, -1, 1.0);
+        color.r = luax_checknumberclamped01(L, -4);
+        color.g = luax_checknumberclamped01(L, -3);
+        color.b = luax_checknumberclamped01(L, -2);
+        color.a = luax_optnumberclamped01(L, -1, 1.0);
 
         lua_pop(L, 4);
     }
     else
     {
-        color.r = luaL_checknumber(L, 1);
-        color.g = luaL_checknumber(L, 2);
-        color.b = luaL_checknumber(L, 3);
-        color.a = luaL_optnumber(L, 4, 1.0);
+        color.r = luax_checknumberclamped01(L, 1);
+        color.g = luax_checknumberclamped01(L, 2);
+        color.b = luax_checknumberclamped01(L, 3);
+        color.a = luax_optnumberclamped01(L, 4, 1.0);
     }
 
     instance()->setColor(color);
@@ -1012,6 +1012,24 @@ int Wrap_Graphics::draw(lua_State* L)
     return 0;
 }
 
+int Wrap_Graphics::setFont(lua_State* L)
+{
+    auto* font = luax_checktype<FontBase>(L, 1);
+    instance()->setFont(font);
+
+    return 0;
+}
+
+int Wrap_Graphics::getFont(lua_State* L)
+{
+    FontBase* font = nullptr;
+    luax_catchexcept(L, [&]() { font = instance()->getFont(); });
+
+    luax_pushtype(L, font);
+
+    return 1;
+}
+
 int Wrap_Graphics::newFont(lua_State* L)
 {
     luax_checkgraphicscreated(L);
@@ -1057,6 +1075,62 @@ int Wrap_Graphics::print(lua_State* L)
         });
     }
     // clang-format on
+
+    return 0;
+}
+
+int Wrap_Graphics::printf(lua_State* L)
+{
+    std::vector<ColoredString> strings {};
+    luax_checkcoloredstring(L, 1, strings);
+
+    FontBase* font = nullptr;
+    int start      = 2;
+
+    if (luax_istype(L, 2, FontBase::type))
+    {
+        font = luax_checkfont(L, start);
+        start++;
+    }
+
+    auto align = FontBase::ALIGN_LEFT;
+    Matrix4 matrix;
+
+    int formatIndex = start + 2;
+
+    if (luax_istype(L, start, Transform::type))
+    {
+        auto* transform = luax_totype<Transform>(L, start);
+        matrix          = transform->getMatrix();
+
+        formatIndex = start + 1;
+    }
+    else
+    {
+        float x = luaL_checknumber(L, start + 0);
+        float y = luaL_checknumber(L, start + 1);
+
+        float angle = luaL_optnumber(L, start + 4, 0.0f);
+        float sx    = luaL_optnumber(L, start + 5, 1.0f);
+        float sy    = luaL_optnumber(L, start + 6, sx);
+        float ox    = luaL_optnumber(L, start + 7, 0.0f);
+        float oy    = luaL_optnumber(L, start + 8, 0.0f);
+        float kx    = luaL_optnumber(L, start + 9, 0.0f);
+        float ky    = luaL_optnumber(L, start + 10, 0.0f);
+
+        matrix = Matrix4(x, y, angle, sx, sy, ox, oy, kx, ky);
+    }
+
+    float wrap = luaL_checknumber(L, formatIndex);
+
+    auto* alignment = lua_isnoneornil(L, formatIndex + 1) ? nullptr : luaL_checkstring(L, formatIndex + 1);
+    if (alignment != nullptr && !FontBase::getConstant(alignment, align))
+        return luax_enumerror(L, "alignment", FontBase::AlignModes, alignment);
+
+    if (font != nullptr)
+        luax_catchexcept(L, [&]() { instance()->printf(strings, font, wrap, align, matrix); });
+    else
+        luax_catchexcept(L, [&]() { instance()->printf(strings, wrap, align, matrix); });
 
     return 0;
 }
@@ -1549,10 +1623,13 @@ static constexpr luaL_Reg functions[] =
     { "newImage",               Wrap_Graphics::newImage              },
 
     { "newFont",                Wrap_Graphics::newFont               },
+    { "setFont",                Wrap_Graphics::setFont               },
+    { "getFont",                Wrap_Graphics::getFont               },
     { "print",                  Wrap_Graphics::print                 },
+    { "printf",                 Wrap_Graphics::printf                },
 
     { "setActiveScreen", Wrap_Graphics::setActiveScreen },
-    { "getScreens",      Wrap_Graphics::getScreens      },
+    { "getScreens",      Wrap_Graphics::getScreens      }
 };
 
 static int open_drawable(lua_State* L)
@@ -1564,7 +1641,8 @@ static constexpr lua_CFunction types[] =
 {
     open_drawable,
     love::open_texture,
-    love::open_quad
+    love::open_quad,
+    love::open_font
 };
 // clang-format on
 

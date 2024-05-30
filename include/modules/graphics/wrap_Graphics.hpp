@@ -167,6 +167,10 @@ namespace Wrap_Graphics
 
     int newCanvas(lua_State* L);
 
+    int setFont(lua_State* L);
+
+    int getFont(lua_State* L);
+
     int polygon(lua_State* L);
 
     int rectangle(lua_State* L);
@@ -184,6 +188,8 @@ namespace Wrap_Graphics
     int newFont(lua_State* L);
 
     int print(lua_State* L);
+
+    int printf(lua_State* L);
 
     int getScreens(lua_State* L);
 
