@@ -1,4 +1,5 @@
 #include "modules/graphics/Graphics.tcc"
+#include "modules/graphics/Polyline.hpp"
 
 #include "common/Console.hpp"
 #include "common/screen.hpp"
@@ -499,7 +500,7 @@ namespace love
         if (usedSizes[1] > 0)
             state.indexBuffer->markUsed(usedSizes[1]);
 
-        // this->popTransform();
+        this->popTransform();
 
         // if (attributes.isEnabled(ATTRIB_COLOR))
         //     this->setColor(originalColor);
@@ -786,7 +787,32 @@ namespace love
     }
 
     void GraphicsBase::polyline(std::span<const Vector2> vertices)
-    {}
+    {
+        float halfWidth     = this->getLineWidth() * 0.5f;
+        LineJoin lineJoin   = this->getLineJoin();
+        LineStyle lineStyle = this->getLineStyle();
+
+        float pixelSize = 1.0f / std::max((float)this->pixelScaleStack.back(), 0.000001f);
+
+        if (lineJoin == LINE_JOIN_NONE)
+        {
+            NoneJoinPolyline line;
+            line.render(vertices.data(), vertices.size(), halfWidth, pixelSize, lineStyle == LINE_SMOOTH);
+            line.draw(this);
+        }
+        else if (lineJoin == LINE_JOIN_BEVEL)
+        {
+            BevelJoinPolyline line;
+            line.render(vertices.data(), vertices.size(), halfWidth, pixelSize, lineStyle == LINE_SMOOTH);
+            line.draw(this);
+        }
+        else if (lineJoin == LINE_JOIN_MITER)
+        {
+            MiterJoinPolyline line;
+            line.render(vertices.data(), vertices.size(), halfWidth, pixelSize, lineStyle == LINE_SMOOTH);
+            line.draw(this);
+        }
+    }
 
     void GraphicsBase::polygon(DrawMode mode, std::span<const Vector2> vertices, bool skipLastFilledVertex)
     {

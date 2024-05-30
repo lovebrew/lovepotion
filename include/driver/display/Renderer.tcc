@@ -19,7 +19,7 @@ namespace love
         RendererBase()
         {}
 
-        virtual void prepareDraw() = 0;
+        virtual void prepareDraw(GraphicsBase* graphics) = 0;
 
         bool isInFrame() const
         {

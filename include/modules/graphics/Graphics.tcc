@@ -13,6 +13,7 @@
 #include "modules/math/MathModule.hpp"
 
 #include "modules/graphics/Font.tcc"
+#include "modules/graphics/Mesh.hpp"
 #include "modules/graphics/Shader.tcc"
 #include "modules/graphics/TextBatch.hpp"
 #include "modules/graphics/Texture.tcc"
@@ -461,6 +462,8 @@ namespace love
         virtual FontBase* newFont(Rasterizer* data) = 0;
 
         virtual FontBase* newDefaultFont(int size, const Rasterizer::Settings& settings) = 0;
+
+        Mesh* newMesh(int vertexCount, PrimitiveType mode);
 
         TextBatch* newTextBatch(FontBase* font, const std::vector<ColoredString>& text = {});
 

@@ -388,6 +388,12 @@ namespace love
         bool operator==(const VertexAttributes& other) const;
     };
 
+    IndexDataType getIndexDataTypeFromMax(size_t maxValue);
+
+    DataFormat getIndexDataFormat(IndexDataType type);
+
+    size_t getIndexDataSize(IndexDataType type);
+
     // clang-format off
     STRINGMAP_DECLARE(PrimitiveTypes, PrimitiveType,
         { "triangles", PRIMITIVE_TRIANGLES      },
@@ -411,6 +417,11 @@ namespace love
         { "VertexPosition", ATTRIB_POS      },
         { "VertexTexCoord", ATTRIB_TEXCOORD },
         { "VertexColor",    ATTRIB_COLOR    }
+    );
+
+    STRINGMAP_DECLARE(IndexDataTypes, IndexDataType,
+        { "uint16", INDEX_UINT16 },
+        { "uint32", INDEX_UINT32 }
     );
     // clang-format on
 } // namespace love

@@ -257,4 +257,27 @@ namespace love
     {
         return dataFormatInfo[format];
     }
+
+    IndexDataType getIndexDataTypeFromMax(size_t maxValue)
+    {
+        return maxValue > LOVE_UINT16_MAX ? INDEX_UINT32 : INDEX_UINT16;
+    }
+
+    DataFormat getIndexDataFormat(IndexDataType type)
+    {
+        return type == INDEX_UINT32 ? DATAFORMAT_UINT32 : DATAFORMAT_UINT16;
+    }
+
+    size_t getIndexDataSize(IndexDataType type)
+    {
+        switch (type)
+        {
+            case INDEX_UINT16:
+                return sizeof(uint16_t);
+            case INDEX_UINT32:
+                return sizeof(uint32_t);
+            default:
+                return 0;
+        }
+    }
 } // namespace love

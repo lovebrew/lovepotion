@@ -156,8 +156,8 @@ namespace love
         multiply(a, b, e);
     }
 
-    Matrix4::Matrix4(float x, float y, float angle, float sx, float sy, float ox, float oy,
-                     float kx, float ky)
+    Matrix4::Matrix4(float x, float y, float angle, float sx, float sy, float ox, float oy, float kx,
+                     float ky)
     {
         setTransformation(x, y, angle, sx, sy, ox, oy, kx, ky);
     }
@@ -203,6 +203,11 @@ namespace love
     Vector4 Matrix4::getColumn(int c) const
     {
         return Vector4(e[c * 4 + 0], e[c * 4 + 1], e[c * 4 + 2], e[c * 4 + 3]);
+    }
+
+    float Matrix4::get(int row, int column) const
+    {
+        return e[column * 4 + row];
     }
 
     void Matrix4::setIdentity()
@@ -260,8 +265,8 @@ namespace love
         e[13]         = y;
     }
 
-    void Matrix4::setTransformation(float x, float y, float angle, float sx, float sy, float ox,
-                                    float oy, float kx, float ky)
+    void Matrix4::setTransformation(float x, float y, float angle, float sx, float sy, float ox, float oy,
+                                    float kx, float ky)
     {
         memset(e, 0, sizeof(float) * 16); // zero out matrix
         float c = cosf(angle), s = sinf(angle);
@@ -318,53 +323,53 @@ namespace love
     {
         Matrix4 inv;
 
-        inv.e[0] = e[5] * e[10] * e[15] - e[5] * e[11] * e[14] - e[9] * e[6] * e[15] +
-                   e[9] * e[7] * e[14] + e[13] * e[6] * e[11] - e[13] * e[7] * e[10];
+        inv.e[0] = e[5] * e[10] * e[15] - e[5] * e[11] * e[14] - e[9] * e[6] * e[15] + e[9] * e[7] * e[14] +
+                   e[13] * e[6] * e[11] - e[13] * e[7] * e[10];
 
-        inv.e[4] = -e[4] * e[10] * e[15] + e[4] * e[11] * e[14] + e[8] * e[6] * e[15] -
-                   e[8] * e[7] * e[14] - e[12] * e[6] * e[11] + e[12] * e[7] * e[10];
+        inv.e[4] = -e[4] * e[10] * e[15] + e[4] * e[11] * e[14] + e[8] * e[6] * e[15] - e[8] * e[7] * e[14] -
+                   e[12] * e[6] * e[11] + e[12] * e[7] * e[10];
 
-        inv.e[8] = e[4] * e[9] * e[15] - e[4] * e[11] * e[13] - e[8] * e[5] * e[15] +
-                   e[8] * e[7] * e[13] + e[12] * e[5] * e[11] - e[12] * e[7] * e[9];
+        inv.e[8] = e[4] * e[9] * e[15] - e[4] * e[11] * e[13] - e[8] * e[5] * e[15] + e[8] * e[7] * e[13] +
+                   e[12] * e[5] * e[11] - e[12] * e[7] * e[9];
 
-        inv.e[12] = -e[4] * e[9] * e[14] + e[4] * e[10] * e[13] + e[8] * e[5] * e[14] -
-                    e[8] * e[6] * e[13] - e[12] * e[5] * e[10] + e[12] * e[6] * e[9];
+        inv.e[12] = -e[4] * e[9] * e[14] + e[4] * e[10] * e[13] + e[8] * e[5] * e[14] - e[8] * e[6] * e[13] -
+                    e[12] * e[5] * e[10] + e[12] * e[6] * e[9];
 
-        inv.e[1] = -e[1] * e[10] * e[15] + e[1] * e[11] * e[14] + e[9] * e[2] * e[15] -
-                   e[9] * e[3] * e[14] - e[13] * e[2] * e[11] + e[13] * e[3] * e[10];
+        inv.e[1] = -e[1] * e[10] * e[15] + e[1] * e[11] * e[14] + e[9] * e[2] * e[15] - e[9] * e[3] * e[14] -
+                   e[13] * e[2] * e[11] + e[13] * e[3] * e[10];
 
-        inv.e[5] = e[0] * e[10] * e[15] - e[0] * e[11] * e[14] - e[8] * e[2] * e[15] +
-                   e[8] * e[3] * e[14] + e[12] * e[2] * e[11] - e[12] * e[3] * e[10];
+        inv.e[5] = e[0] * e[10] * e[15] - e[0] * e[11] * e[14] - e[8] * e[2] * e[15] + e[8] * e[3] * e[14] +
+                   e[12] * e[2] * e[11] - e[12] * e[3] * e[10];
 
-        inv.e[9] = -e[0] * e[9] * e[15] + e[0] * e[11] * e[13] + e[8] * e[1] * e[15] -
-                   e[8] * e[3] * e[13] - e[12] * e[1] * e[11] + e[12] * e[3] * e[9];
+        inv.e[9] = -e[0] * e[9] * e[15] + e[0] * e[11] * e[13] + e[8] * e[1] * e[15] - e[8] * e[3] * e[13] -
+                   e[12] * e[1] * e[11] + e[12] * e[3] * e[9];
 
-        inv.e[13] = e[0] * e[9] * e[14] - e[0] * e[10] * e[13] - e[8] * e[1] * e[14] +
-                    e[8] * e[2] * e[13] + e[12] * e[1] * e[10] - e[12] * e[2] * e[9];
+        inv.e[13] = e[0] * e[9] * e[14] - e[0] * e[10] * e[13] - e[8] * e[1] * e[14] + e[8] * e[2] * e[13] +
+                    e[12] * e[1] * e[10] - e[12] * e[2] * e[9];
 
-        inv.e[2] = e[1] * e[6] * e[15] - e[1] * e[7] * e[14] - e[5] * e[2] * e[15] +
-                   e[5] * e[3] * e[14] + e[13] * e[2] * e[7] - e[13] * e[3] * e[6];
+        inv.e[2] = e[1] * e[6] * e[15] - e[1] * e[7] * e[14] - e[5] * e[2] * e[15] + e[5] * e[3] * e[14] +
+                   e[13] * e[2] * e[7] - e[13] * e[3] * e[6];
 
-        inv.e[6] = -e[0] * e[6] * e[15] + e[0] * e[7] * e[14] + e[4] * e[2] * e[15] -
-                   e[4] * e[3] * e[14] - e[12] * e[2] * e[7] + e[12] * e[3] * e[6];
+        inv.e[6] = -e[0] * e[6] * e[15] + e[0] * e[7] * e[14] + e[4] * e[2] * e[15] - e[4] * e[3] * e[14] -
+                   e[12] * e[2] * e[7] + e[12] * e[3] * e[6];
 
-        inv.e[10] = e[0] * e[5] * e[15] - e[0] * e[7] * e[13] - e[4] * e[1] * e[15] +
-                    e[4] * e[3] * e[13] + e[12] * e[1] * e[7] - e[12] * e[3] * e[5];
+        inv.e[10] = e[0] * e[5] * e[15] - e[0] * e[7] * e[13] - e[4] * e[1] * e[15] + e[4] * e[3] * e[13] +
+                    e[12] * e[1] * e[7] - e[12] * e[3] * e[5];
 
-        inv.e[14] = -e[0] * e[5] * e[14] + e[0] * e[6] * e[13] + e[4] * e[1] * e[14] -
-                    e[4] * e[2] * e[13] - e[12] * e[1] * e[6] + e[12] * e[2] * e[5];
+        inv.e[14] = -e[0] * e[5] * e[14] + e[0] * e[6] * e[13] + e[4] * e[1] * e[14] - e[4] * e[2] * e[13] -
+                    e[12] * e[1] * e[6] + e[12] * e[2] * e[5];
 
-        inv.e[3] = -e[1] * e[6] * e[11] + e[1] * e[7] * e[10] + e[5] * e[2] * e[11] -
-                   e[5] * e[3] * e[10] - e[9] * e[2] * e[7] + e[9] * e[3] * e[6];
+        inv.e[3] = -e[1] * e[6] * e[11] + e[1] * e[7] * e[10] + e[5] * e[2] * e[11] - e[5] * e[3] * e[10] -
+                   e[9] * e[2] * e[7] + e[9] * e[3] * e[6];
 
-        inv.e[7] = e[0] * e[6] * e[11] - e[0] * e[7] * e[10] - e[4] * e[2] * e[11] +
-                   e[4] * e[3] * e[10] + e[8] * e[2] * e[7] - e[8] * e[3] * e[6];
+        inv.e[7] = e[0] * e[6] * e[11] - e[0] * e[7] * e[10] - e[4] * e[2] * e[11] + e[4] * e[3] * e[10] +
+                   e[8] * e[2] * e[7] - e[8] * e[3] * e[6];
 
-        inv.e[11] = -e[0] * e[5] * e[11] + e[0] * e[7] * e[9] + e[4] * e[1] * e[11] -
-                    e[4] * e[3] * e[9] - e[8] * e[1] * e[7] + e[8] * e[3] * e[5];
+        inv.e[11] = -e[0] * e[5] * e[11] + e[0] * e[7] * e[9] + e[4] * e[1] * e[11] - e[4] * e[3] * e[9] -
+                    e[8] * e[1] * e[7] + e[8] * e[3] * e[5];
 
-        inv.e[15] = e[0] * e[5] * e[10] - e[0] * e[6] * e[9] - e[4] * e[1] * e[10] +
-                    e[4] * e[2] * e[9] + e[8] * e[1] * e[6] - e[8] * e[2] * e[5];
+        inv.e[15] = e[0] * e[5] * e[10] - e[0] * e[6] * e[9] - e[4] * e[1] * e[10] + e[4] * e[2] * e[9] +
+                    e[8] * e[1] * e[6] - e[8] * e[2] * e[5];
 
         float det = e[0] * inv.e[0] + e[1] * inv.e[4] + e[2] * inv.e[8] + e[3] * inv.e[12];
 
@@ -438,8 +443,8 @@ namespace love
         e[8] = mat4elems[10];
     }
 
-    Matrix3::Matrix3(float x, float y, float angle, float sx, float sy, float ox, float oy,
-                     float kx, float ky)
+    Matrix3::Matrix3(float x, float y, float angle, float sx, float sy, float ox, float oy, float kx,
+                     float ky)
     {
         setTransformation(x, y, angle, sx, sy, ox, oy, kx, ky);
     }
@@ -509,8 +514,8 @@ namespace love
         return m;
     }
 
-    void Matrix3::setTransformation(float x, float y, float angle, float sx, float sy, float ox,
-                                    float oy, float kx, float ky)
+    void Matrix3::setTransformation(float x, float y, float angle, float sx, float sy, float ox, float oy,
+                                    float kx, float ky)
     {
         float c = cosf(angle), s = sinf(angle);
         // matrix multiplication carried out on paper:

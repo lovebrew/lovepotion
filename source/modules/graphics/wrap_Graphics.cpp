@@ -1030,6 +1030,11 @@ int Wrap_Graphics::getFont(lua_State* L)
     return 1;
 }
 
+int Wrap_Graphics::newMesh(lua_State* L)
+{
+    return 0;
+}
+
 int Wrap_Graphics::newTextBatch(lua_State* L)
 {
     luax_checkgraphicscreated(L);
@@ -1644,6 +1649,8 @@ static constexpr luaL_Reg functions[] =
 
     { "newTexture",             Wrap_Graphics::newTexture            },
     { "newImage",               Wrap_Graphics::newImage              },
+
+    { "newMesh",                Wrap_Graphics::newMesh               },
 
     { "newTextBatch",           Wrap_Graphics::newTextBatch          },
 

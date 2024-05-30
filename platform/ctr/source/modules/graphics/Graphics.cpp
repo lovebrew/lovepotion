@@ -395,7 +395,7 @@ namespace love
 
     void Graphics::draw(const DrawIndexedCommand& command)
     {
-        c3d.prepareDraw();
+        c3d.prepareDraw(this);
         // c3d.setVertexAttributes(*command.attributes, *command.buffers);
         c3d.bindTextureToUnit(command.texture, 0, command.isFont);
 
@@ -412,7 +412,7 @@ namespace love
 
     void Graphics::draw(const DrawCommand& command)
     {
-        c3d.prepareDraw();
+        c3d.prepareDraw(this);
         // c3d.setVertexAttributes(*command.attributes, *command.buffers);
         c3d.bindTextureToUnit(command.texture, 0, command.isFont);
 

@@ -62,10 +62,22 @@ namespace love
         return false;
     }
 
-    void Shader::updateBuiltinUniforms(const C3D_Mtx& mdlvMtx, const C3D_Mtx& projMtx)
+    static void updateTransform(C3D_Mtx& matrix, const Matrix4& transform)
+    {
+        for (int row = 0; row < 4; row++)
+        {
+            for (int column = 0; column < 4; column++)
+                matrix.m[row * 4 + (3 - column)] = transform.get(row, column);
+        }
+    }
+
+    void Shader::updateBuiltinUniforms(GraphicsBase* graphics, C3D_Mtx mdlvMtx, const C3D_Mtx& projMtx)
     {
         if (this->hasUniform("mdlvMtx"))
+        {
+            updateTransform(mdlvMtx, graphics->getTransform());
             C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, this->uniforms[0].location, &mdlvMtx);
+        }
 
         if (this->hasUniform("projMtx"))
             C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, this->uniforms[1].location, &projMtx);

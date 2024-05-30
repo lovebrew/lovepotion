@@ -66,8 +66,7 @@ namespace love
         /**
          * Creates a new matrix set to a transformation.
          **/
-        Matrix4(float x, float y, float angle, float sx, float sy, float ox, float oy, float kx,
-                float ky);
+        Matrix4(float x, float y, float angle, float sx, float sy, float ox, float oy, float kx, float ky);
 
         /**
          * Multiplies this Matrix with another Matrix, changing neither.
@@ -93,6 +92,9 @@ namespace love
 
         void setColumn(int c, const Vector4& v);
         Vector4 getColumn(int c) const;
+
+        float get(int row, int column) const;
+
         /**
          * Resets this Matrix to the identity matrix.
          **/
@@ -160,8 +162,8 @@ namespace love
          * @param kx Shear along x-axis
          * @param ky Shear along y-axis
          **/
-        void setTransformation(float x, float y, float angle, float sx, float sy, float ox,
-                               float oy, float kx, float ky);
+        void setTransformation(float x, float y, float angle, float sx, float sy, float ox, float oy,
+                               float kx, float ky);
 
         /**
          * Multiplies this Matrix with a translation.
@@ -226,8 +228,7 @@ namespace love
         /**
          * Creates a new orthographic projection matrix.
          **/
-        static Matrix4 ortho(float left, float right, float bottom, float top, float near,
-                             float far);
+        static Matrix4 ortho(float left, float right, float bottom, float top, float near, float far);
 
         /**
          * Creates a new perspective projection matrix.
@@ -258,8 +259,7 @@ namespace love
         /**
          * Creates a new matrix set to a transformation.
          **/
-        Matrix3(float x, float y, float angle, float sx, float sy, float ox, float oy, float kx,
-                float ky);
+        Matrix3(float x, float y, float angle, float sx, float sy, float ox, float oy, float kx, float ky);
 
         ~Matrix3();
 
@@ -295,8 +295,8 @@ namespace love
          * @param kx Shear along x-axis
          * @param ky Shear along y-axis
          **/
-        void setTransformation(float x, float y, float angle, float sx, float sy, float ox,
-                               float oy, float kx, float ky);
+        void setTransformation(float x, float y, float angle, float sx, float sy, float ox, float oy,
+                               float kx, float ky);
 
         /**
          * Transforms an array of vertices by this matrix.

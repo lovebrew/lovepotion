@@ -61,7 +61,7 @@ namespace love
 
         void setSamplerState(C3D_Tex* texture, SamplerState state);
 
-        virtual void prepareDraw() override;
+        virtual void prepareDraw(GraphicsBase* graphics) override;
 
         void setVertexAttributes(const VertexAttributes& attributes, const BufferBindings& buffers);
 

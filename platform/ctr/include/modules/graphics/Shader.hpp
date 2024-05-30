@@ -33,7 +33,7 @@ namespace love
 
         bool hasUniform(const std::string& name) const;
 
-        void updateBuiltinUniforms(const C3D_Mtx& mdlvMtx, const C3D_Mtx& projMtx);
+        void updateBuiltinUniforms(GraphicsBase* graphics, C3D_Mtx mdlvMtx, const C3D_Mtx& projMtx);
 
       private:
         bool validate(const char* filepath, std::string& error);

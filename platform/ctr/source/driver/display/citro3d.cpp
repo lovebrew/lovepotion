@@ -305,12 +305,12 @@ namespace love
         C3D_TexSetLodBias(texture, state.lodBias);
     }
 
-    void citro3d::prepareDraw()
+    void citro3d::prepareDraw(GraphicsBase* graphics)
     {
         // clang-format off
         if (Shader::current != nullptr && this->context.dirtyProjection)
         {
-            ((Shader*)Shader::current)->updateBuiltinUniforms(this->context.modelView, this->context.projection);
+            ((Shader*)Shader::current)->updateBuiltinUniforms(graphics, this->context.modelView, this->context.projection);
             this->context.dirtyProjection = false;
         }
         // clang-format on

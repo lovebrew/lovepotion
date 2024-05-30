@@ -366,6 +366,9 @@ source/modules/font/wrap_GlyphData.cpp
 source/modules/graphics/Buffer.cpp
 source/modules/graphics/Graphics.cpp
 source/modules/graphics/Font.cpp
+source/modules/graphics/Mesh.cpp
+source/modules/graphics/Polyline.cpp
+source/modules/graphics/wrap_Mesh.cpp
 source/modules/graphics/TextBatch.cpp
 source/modules/graphics/renderstate.cpp
 source/modules/graphics/samplerstate.cpp
