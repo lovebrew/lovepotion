@@ -406,5 +406,11 @@ namespace love
         { "cw",  WINDING_CW  },
         { "ccw", WINDING_CCW }
     );
+
+    STRINGMAP_DECLARE(BufferAttributes, BuiltinVertexAttribute,
+        { "VertexPosition", ATTRIB_POS      },
+        { "VertexTexCoord", ATTRIB_TEXCOORD },
+        { "VertexColor",    ATTRIB_COLOR    }
+    );
     // clang-format on
 } // namespace love

@@ -1030,6 +1030,29 @@ int Wrap_Graphics::getFont(lua_State* L)
     return 1;
 }
 
+int Wrap_Graphics::newTextBatch(lua_State* L)
+{
+    luax_checkgraphicscreated(L);
+
+    auto* font       = luax_checkfont(L, 1);
+    TextBatch* batch = nullptr;
+
+    if (lua_isnoneornil(L, 2))
+        luax_catchexcept(L, [&]() { batch = instance()->newTextBatch(font); });
+    else
+    {
+        std::vector<ColoredString> text {};
+        luax_checkcoloredstring(L, 2, text);
+
+        luax_catchexcept(L, [&]() { batch = instance()->newTextBatch(font, text); });
+    }
+
+    luax_pushtype(L, batch);
+    batch->release();
+
+    return 1;
+}
+
 int Wrap_Graphics::newFont(lua_State* L)
 {
     luax_checkgraphicscreated(L);
@@ -1621,6 +1644,8 @@ static constexpr luaL_Reg functions[] =
 
     { "newTexture",             Wrap_Graphics::newTexture            },
     { "newImage",               Wrap_Graphics::newImage              },
+
+    { "newTextBatch",           Wrap_Graphics::newTextBatch          },
 
     { "newFont",                Wrap_Graphics::newFont               },
     { "setFont",                Wrap_Graphics::setFont               },

@@ -185,6 +185,8 @@ namespace Wrap_Graphics
 
     int draw(lua_State* L);
 
+    int newTextBatch(lua_State* L);
+
     int newFont(lua_State* L);
 
     int print(lua_State* L);

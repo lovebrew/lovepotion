@@ -25,7 +25,7 @@ namespace love
 {
     class GraphicsBase;
 
-    class Buffer;
+    class BufferBase;
 
     enum TextureType
     {

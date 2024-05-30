@@ -14,6 +14,7 @@
 
 #include "modules/graphics/Font.tcc"
 #include "modules/graphics/Shader.tcc"
+#include "modules/graphics/TextBatch.hpp"
 #include "modules/graphics/Texture.tcc"
 #include "modules/graphics/Volatile.hpp"
 #include "modules/graphics/renderstate.hpp"
@@ -460,6 +461,8 @@ namespace love
         virtual FontBase* newFont(Rasterizer* data) = 0;
 
         virtual FontBase* newDefaultFont(int size, const Rasterizer::Settings& settings) = 0;
+
+        TextBatch* newTextBatch(FontBase* font, const std::vector<ColoredString>& text = {});
 
         void checkSetDefaultFont();
 

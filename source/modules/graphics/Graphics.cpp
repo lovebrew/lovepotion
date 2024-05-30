@@ -382,6 +382,11 @@ namespace love
         return data;
     }
 
+    TextBatch* GraphicsBase::newTextBatch(FontBase* font, const std::vector<ColoredString>& text)
+    {
+        return new TextBatch(font, text);
+    }
+
     void GraphicsBase::checkSetDefaultFont()
     {
         if (this->states.back().font.get() != nullptr)
