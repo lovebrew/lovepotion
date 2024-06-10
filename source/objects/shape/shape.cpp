@@ -304,12 +304,12 @@ int Shape::GetMask(lua_State* L)
 
 uint16_t Shape::GetCategoryBits(lua_State* L) const
 {
-    const auto isTable = lua_istable(L, -1);
-    const auto size    = isTable ? luax::ObjectLength(L, 1) : 1;
+    const auto isTable = lua_istable(L, 1);
+    const auto argc    = isTable ? luax::ObjectLength(L, 1) : lua_gettop(L);
 
     std::bitset<0x10> bits;
 
-    for (int index = 0; index <= size; index++)
+    for (int index = 1; index <= argc; index++)
     {
         size_t position = 0;
 
