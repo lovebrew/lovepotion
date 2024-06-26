@@ -153,7 +153,7 @@ namespace love
         void printv(GraphicsBase* gfx, const Matrix4& t, const std::vector<DrawCommand>& drawcommands,
                     const std::vector<GlyphVertex>& vertices);
 
-        virtual const Glyph& addGlyph(TextShaper::GlyphIndex glyphindex) = 0;
+        virtual const Glyph& addGlyph(TextShaper::GlyphIndex glyphindex);
 
         StrongRef<TextShaper> shaper;
 
@@ -177,6 +177,6 @@ namespace love
 
         static constexpr int TEXTURE_PADDING = 2;
 
-        virtual void createTexture();
+        virtual void createTexture() = 0;
     };
 } // namespace love

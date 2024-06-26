@@ -33,12 +33,15 @@ namespace love
     }
 
     Mesh::Mesh(GraphicsBase* graphics, int vertexCount, PrimitiveType mode, BufferDataUsage usage) :
+        vertexCount((size_t)vertexCount),
+        indexDataType(getIndexDataTypeFromMax(vertexCount)),
         primitiveType(mode)
     {
         if (vertexCount <= 0)
             throw love::Exception("Mesh vertex count cannot be zero.");
 
         this->buffer.resize(vertexCount);
+        this->vertexStride = sizeof(Vertex);
     }
 
     Mesh::~Mesh()
@@ -276,6 +279,11 @@ namespace love
 
         return true;
     }
+
+    // std::vector<BufferBase::DataDeclaration> Mesh::getDefaultVertexFormat()
+    // {
+    //     return BufferBase::getCommonFormatDeclaration(CommonFormat::XYf_STf_RGBAf);
+    // }
 
     void Mesh::draw(GraphicsBase* graphics, const Matrix4& matrix)
     {

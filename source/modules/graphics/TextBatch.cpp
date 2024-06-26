@@ -214,23 +214,19 @@ namespace love
             totalVertices = std::max(command.startVertex + command.vertexCount, totalVertices);
 
         if (this->modifiedVertices.isValid())
-        {
-            size_t offset = this->modifiedVertices.getOffset();
-            size_t size   = this->modifiedVertices.getSize();
-
             this->modifiedVertices.invalidate();
-        }
 
         GraphicsBase::TempTransform transform(graphics, matrix);
 
         for (const FontBase::DrawCommand& cmd : this->drawCommands)
         {
             BatchedDrawCommand command {};
-            command.format      = CommonFormat::XYf_STf_RGBAf;
-            command.indexMode   = TRIANGLEINDEX_QUADS;
-            command.vertexCount = cmd.vertexCount;
-            command.texture     = cmd.texture;
-            command.isFont      = true;
+            command.format        = CommonFormat::XYf_STf_RGBAf;
+            command.indexMode     = TRIANGLEINDEX_QUADS;
+            command.vertexCount   = cmd.vertexCount;
+            command.texture       = cmd.texture;
+            command.isFont        = true;
+            command.pushTransform = false;
 
             auto data                         = graphics->requestBatchedDraw(command);
             FontBase::GlyphVertex* vertexdata = (FontBase::GlyphVertex*)data.stream;

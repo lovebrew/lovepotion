@@ -20,7 +20,8 @@ namespace love
         TextureBase* texture = nullptr;
         int vertexCount      = 0;
 
-        bool isFont = false;
+        bool isFont        = false;
+        bool pushTransform = true;
     };
 
     struct DrawIndexedCommand
@@ -89,7 +90,9 @@ namespace love
         MapInfo<uint16_t> indexBufferMap = MapInfo<uint16_t>();
 
         bool flushing = false;
-        bool isFont   = false;
+
+        bool isFont        = false;
+        bool pushTransform = true;
     };
 
     constexpr size_t INIT_VERTEX_BUFFER_SIZE = sizeof(Vertex) * 4096 * 1;

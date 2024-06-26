@@ -22,6 +22,9 @@ namespace love
 
     void Font::createTexture()
     {
+        auto* graphics = Module::getInstance<GraphicsBase>(Module::M_GRAPHICS);
+        graphics->flushBatchedDraws();
+
         CFNT_s* font     = (CFNT_s*)this->shaper->getRasterizers()[0]->getHandle();
         const auto* info = fontGetGlyphInfo(font);
 

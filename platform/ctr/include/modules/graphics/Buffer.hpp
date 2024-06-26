@@ -5,6 +5,8 @@
 #include "modules/graphics/Buffer.tcc"
 #include "modules/graphics/Volatile.hpp"
 
+#include <citro3d.h>
+
 namespace love
 {
     class Buffer : public BufferBase, public Volatile
@@ -49,5 +51,8 @@ namespace love
         bool ownsMemoryMap = false;
 
         Range mappedRange;
+
+        C3D_BufInfo* buffer;
+        C3D_Tex* texture;
     };
 } // namespace love

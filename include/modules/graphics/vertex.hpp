@@ -235,11 +235,22 @@ namespace love
 
     using Vertex = XYf_STf_RGBAf;
 
+    static constexpr size_t VERTEX_SIZE = sizeof(Vertex);
+
+    static constexpr size_t POSITION_OFFSET = offsetof(Vertex, x);
+    static constexpr size_t TEXCOORD_OFFSET = offsetof(Vertex, s);
+    static constexpr size_t COLOR_OFFSET    = offsetof(Vertex, color);
+
     inline void DEBUG_VERTEX(const Vertex& v)
     {
         std::printf("Position: %.2f, %.2f\n", v.x, v.y);
         std::printf("Texture Coordinates: %f, %f\n", v.s, v.t);
         std::printf("Color: %.2f, %.2f, %.2f, %.2f\n", v.color.r, v.color.g, v.color.b, v.color.a);
+    }
+
+    inline void DEBUG_VERTEX(const Vertex* v)
+    {
+        DEBUG_VERTEX(*v);
     }
 
     inline CommonFormat getSinglePositionFormat(bool is2D)
@@ -422,6 +433,13 @@ namespace love
     STRINGMAP_DECLARE(IndexDataTypes, IndexDataType,
         { "uint16", INDEX_UINT16 },
         { "uint32", INDEX_UINT32 }
+    );
+
+    STRINGMAP_DECLARE(BufferUsages, BufferDataUsage,
+        { "stream",   BUFFERDATAUSAGE_STREAM   },
+        { "dynamic",  BUFFERDATAUSAGE_DYNAMIC  },
+        { "static",   BUFFERDATAUSAGE_STATIC   },
+        { "readback", BUFFERDATAUSAGE_READBACK }
     );
     // clang-format on
 } // namespace love

@@ -19,7 +19,9 @@ class Log
     }
 
     ~Log()
-    {}
+    {
+        std::fclose(file);
+    }
 
     template<typename... Args>
     void write(std::source_location location, std::format_string<Args...> format, Args&&... args)
@@ -34,17 +36,22 @@ class Log
 
         auto buffer = std::format(BUFFER_FORMAT, filename, line, column, output);
 
-        std::fwrite(buffer.c_str(), 1, buffer.size(), stdout);
-        std::fflush(stdout);
+        std::fwrite(buffer.c_str(), 1, buffer.size(), this->file);
+        std::fflush(this->file);
     }
 
   private:
     static constexpr const char* BUFFER_FORMAT = "{:s}({:d}:{:d}): {:s}\n";
+    std::FILE* file;
+
+    Log()
+    {
+        file = std::fopen("debug.log", "w");
+    }
 };
 
 #if __DEBUG__ == 0
     #define LOG(...)
 #else
-    #define LOG(format, ...) \
-        Log::getInstance().write(std::source_location::current(), format, ##__VA_ARGS__);
+    #define LOG(format, ...) Log::getInstance().write(std::source_location::current(), format, ##__VA_ARGS__);
 #endif

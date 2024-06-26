@@ -73,6 +73,8 @@ namespace love
 
         void draw(GraphicsBase* graphics, const Matrix4& matrix, int instanceCount);
 
+        // static std::vector<BufferBase::DataDeclaration> getDefaultVertexFormat();
+
       private:
         friend class SpriteBatch;
 

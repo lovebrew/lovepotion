@@ -45,11 +45,6 @@ namespace love
             return this->bufferSize - this->frameGPUReadOffset;
         }
 
-        /*
-        ** Get the offset of the buffer that the GPU can read from.
-        ** This is the offset of the current frame.
-        ** @return The offset in bytes.
-        */
         size_t getGPUReadOffset() const
         {
             return (this->frameIndex * this->bufferSize) + this->frameGPUReadOffset;
@@ -60,31 +55,29 @@ namespace love
             return (this->frameIndex * this->bufferSize) + this->index;
         }
 
-        /*
-        ** Map the buffer for writing.
-        ** @return A pointer to the buffer.
-        */
-        virtual MapInfo<T> map(size_t) = 0;
+        // MapInfo<T> map(size_t) = 0;
 
-        /*
-        ** Unmap the buffer.
-        ** @return Offset of the buffer that was written to.
-        */
-        virtual size_t unmap(size_t) = 0;
+        virtual size_t unmap(size_t)
+        {
+            return this->index;
+        }
 
-        /*
-        ** Mark the buffer as used.
-        ** @param count The count of T of the buffer that was used.
-        */
-        virtual void markUsed(int count) = 0;
+        void markUsed(int count)
+        {
+            this->index += count;
+            this->frameGPUReadOffset += (count * sizeof(T));
+        }
 
-        void clear()
-        {}
+        void nextFrame()
+        {
+            this->index              = 0;
+            this->frameGPUReadOffset = 0;
+        }
 
         /*
         ** Advance to the next frame.
         */
-        virtual void nextFrame() = 0;
+        // virtual void nextFrame() = 0;
 
       protected:
         StreamBufferBase(BufferUsage usage, size_t size) :

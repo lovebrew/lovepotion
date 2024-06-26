@@ -35,6 +35,7 @@ namespace love
         {
             Hinting hinting = HINTING_NORMAL;
             OptionalFloat dpiScale;
+            bool sdf = false;
         };
 
         enum DataType

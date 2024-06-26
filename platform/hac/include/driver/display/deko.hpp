@@ -10,6 +10,7 @@
 #include "driver/display/deko3d/CCmdVtxRing.h"
 #include "driver/display/deko3d/CDescriptorSet.h"
 
+#include "modules/graphics/Shader.hpp"
 #include "modules/graphics/vertex.hpp"
 
 /* Enforces GLSL std140/std430 alignment rules for glm types */
@@ -23,7 +24,7 @@
 
 namespace love
 {
-    class Renderer : public RendererBase<Renderer>
+    class deko3d : public RendererBase
     {
       public:
         enum MemoryPool
@@ -39,17 +40,19 @@ namespace love
             QUEUE_TYPE_IMAGES
         };
 
-        Renderer();
+        deko3d();
 
         void initialize();
 
-        ~Renderer();
+        ~deko3d();
 
         void clear(const Color& color);
 
         void clearDepthStencil(int stencil, uint8_t mask, double depth);
 
-        void bindFramebuffer();
+        dk::Image& getInternalBackbuffer();
+
+        void bindFramebuffer(dk::Image& target);
 
         void present();
 
@@ -64,6 +67,10 @@ namespace love
         void setColorMask(ColorChannelMask mask);
 
         void setVertexWinding(Winding winding);
+
+        void prepareDraw(GraphicsBase* graphics) override;
+
+        void useProgram(const Shader::Program& program);
 
         void onModeChanged()
         {
@@ -83,6 +90,11 @@ namespace love
                 case MEMORYPOOL_DATA:
                     return data;
             }
+        }
+
+        dk::Device& getDevice()
+        {
+            return this->device;
         }
 
         dk::Queue& getQueue(QueueType type)
@@ -137,8 +149,7 @@ namespace love
         static constexpr int GPU_USE_FLAGS = (DkMemBlockFlags_GpuCached | DkMemBlockFlags_Image);
 
         static constexpr int CPU_POOL_SIZE = 0x100000;
-        static constexpr int CPU_USE_FLAGS =
-            (DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached);
+        static constexpr int CPU_USE_FLAGS = (DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached);
 
         static constexpr int SHADER_POOL_SIZE = 0x20000;
         static constexpr int SHADER_USE_FLAGS =
@@ -161,6 +172,8 @@ namespace love
             dk::RasterizerState rasterizer;
             dk::ColorWriteState colorWrite;
             dk::BlendState blend;
+
+            dk::Image* boundFramebuffer;
         } context;
 
         struct Transform
@@ -171,7 +184,7 @@ namespace love
 
         static constexpr auto TRANSFORM_SIZE = sizeof(Transform);
 
-        CMemPool::Handle unformBuffer;
+        CMemPool::Handle uniformBuffer;
 
         dk::UniqueDevice device;
 
@@ -193,4 +206,6 @@ namespace love
         CCmdMemRing<2> commands;
         std::array<DkImage const*, 2> targets;
     };
+
+    extern deko3d d3d;
 } // namespace love

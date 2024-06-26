@@ -1,6 +1,10 @@
 #include "modules/font/wrap_Font.hpp"
 
-#include "modules/font/Font.hpp"
+#if defined(__3DS__)
+    #include "modules/font/Font.hpp"
+#else
+    #include "modules/font/freetype/Font.hpp"
+#endif
 
 #include "modules/font/wrap_GlyphData.hpp"
 #include "modules/font/wrap_Rasterizer.hpp"

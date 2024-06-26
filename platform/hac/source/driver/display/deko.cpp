@@ -1,8 +1,8 @@
-#include "driver/display/Renderer.hpp"
+#include "driver/display/deko.hpp"
 
 namespace love
 {
-    Renderer::Renderer() :
+    deko3d::deko3d() :
         transform {},
         device(dk::DeviceMaker {}.setFlags(DkDeviceFlags_DepthMinusOneToOne).create()),
         mainQueue(dk::QueueMaker { this->device }.setFlags(DkQueueFlags_Graphics).create()),
@@ -13,14 +13,16 @@ namespace love
         data(CMemPool(this->device, CPU_USE_FLAGS, CPU_POOL_SIZE)),
         code(CMemPool(this->device, SHADER_USE_FLAGS, SHADER_POOL_SIZE)),
         framebufferSlot(-1)
-    {}
+    {
+        std::memset(&this->context, 0, sizeof(this->context));
+    }
 
-    void Renderer::initialize()
+    void deko3d::initialize()
     {
         if (this->initialized)
             return;
 
-        this->unformBuffer        = this->data.allocate(TRANSFORM_SIZE, DK_UNIFORM_BUF_ALIGNMENT);
+        this->uniformBuffer       = this->data.allocate(TRANSFORM_SIZE, DK_UNIFORM_BUF_ALIGNMENT);
         this->transform.modelView = glm::mat4(1.0f);
 
         this->commands.allocate(this->data, COMMAND_SIZE);
@@ -29,13 +31,13 @@ namespace love
         this->initialized = true;
     }
 
-    Renderer::~Renderer()
+    deko3d::~deko3d()
     {
         this->destroyFramebuffers();
-        this->unformBuffer.destroy();
+        this->uniformBuffer.destroy();
     }
 
-    void Renderer::createFramebuffers()
+    void deko3d::createFramebuffers()
     {
         const auto& info = getScreenInfo()[0];
 
@@ -47,8 +49,7 @@ namespace love
             this->targets[index] = &this->framebuffers[index].getImage();
         }
 
-        this->swapchain =
-            dk::SwapchainMaker { this->device, nwindowGetDefault(), this->targets }.create();
+        this->swapchain = dk::SwapchainMaker { this->device, nwindowGetDefault(), this->targets }.create();
 
         this->context.viewport = Rect { 0, 0, info.width, info.height };
         this->context.scissor  = Rect { 0, 0, info.width, info.height };
@@ -57,7 +58,7 @@ namespace love
         this->setScissor(this->context.scissor);
     }
 
-    void Renderer::destroyFramebuffers()
+    void deko3d::destroyFramebuffers()
     {
         if (!this->swapchain)
             return;
@@ -74,7 +75,7 @@ namespace love
         this->depthbuffer.destroy();
     }
 
-    void Renderer::ensureInFrame()
+    void deko3d::ensureInFrame()
     {
         if (!this->inFrame)
         {
@@ -83,33 +84,53 @@ namespace love
         }
     }
 
-    void Renderer::clear(const Color& color)
+    void deko3d::clear(const Color& color)
     {
         this->commandBuffer.clearColor(0, DkColorMask_RGBA, color.r, color.g, color.b, color.a);
     }
 
-    void Renderer::clearDepthStencil(int depth, uint8_t mask, double stencil)
+    void deko3d::clearDepthStencil(int depth, uint8_t mask, double stencil)
     {
         this->commandBuffer.clearDepthStencil(true, depth, mask, stencil);
     }
 
-    void Renderer::bindFramebuffer()
+    dk::Image& deko3d::getInternalBackbuffer()
+    {
+        return this->framebuffers[this->framebufferSlot].getImage();
+    }
+
+    void deko3d::useProgram(const Shader::Program& program)
+    {
+        // clang-format off
+        this->commandBuffer.bindShaders(DkStageFlag_GraphicsMask, { &program.vertex.shader, &program.fragment.shader });
+        this->commandBuffer.bindUniformBuffer(DkStage_Vertex, 0, this->uniformBuffer.getGpuAddr(), this->uniformBuffer.getSize());
+        // clang-format off
+    }
+
+    void deko3d::bindFramebuffer(dk::Image& framebuffer)
     {
         if (!this->swapchain)
             return;
 
         this->ensureInFrame();
+        bool bindingModified = false;
 
-        if (this->framebufferSlot < 0)
-            this->framebufferSlot = this->mainQueue.acquireImage(this->swapchain);
+        if (this->context.boundFramebuffer != &framebuffer)
+        {
+            bindingModified                = true;
+            this->context.boundFramebuffer = &framebuffer;
+        }
 
-        dk::ImageView target { this->framebuffers[this->framebufferSlot].getImage() };
-        dk::ImageView depth { this->depthbuffer.getImage() };
+        if (bindingModified)
+        {
+            dk::ImageView depth { this->depthbuffer.getImage() };
+            dk::ImageView target { framebuffer };
 
-        this->commandBuffer.bindRenderTargets(&target, &depth);
+            this->commandBuffer.bindRenderTargets(&target, &depth);
+        }
     }
 
-    void Renderer::present()
+    void deko3d::present()
     {
         if (!this->swapchain)
             return;
@@ -122,28 +143,28 @@ namespace love
             this->inFrame = false;
         }
 
-        this->framebufferSlot = -1;
+        this->framebufferSlot = this->mainQueue.acquireImage(this->swapchain);
     }
 
-    void Renderer::setVertexWinding(Winding winding)
+    void deko3d::setVertexWinding(Winding winding)
     {
         DkFrontFace face;
-        if (!Renderer::getConstant(winding, face))
+        if (!deko3d::getConstant(winding, face))
             return;
 
         this->context.rasterizer.setFrontFace(face);
     }
 
-    void Renderer::setCullMode(CullMode mode)
+    void deko3d::setCullMode(CullMode mode)
     {
         DkFace cullMode;
-        if (!Renderer::getConstant(mode, cullMode))
+        if (!deko3d::getConstant(mode, cullMode))
             return;
 
         this->context.rasterizer.setCullMode(cullMode);
     }
 
-    void Renderer::setColorMask(ColorChannelMask mask)
+    void deko3d::setColorMask(ColorChannelMask mask)
     {
         const auto red   = (DkColorMask_R * mask.r);
         const auto green = (DkColorMask_G * mask.g);
@@ -153,33 +174,33 @@ namespace love
         this->context.colorWrite.setMask(0, (red + green + blue + alpha));
     }
 
-    void Renderer::setBlendState(const BlendState& state)
+    void deko3d::setBlendState(const BlendState& state)
     {
         if (this->context.blendState == state)
             return;
 
         DkBlendOp operationRGB;
-        if (!Renderer::getConstant(state.operationRGB, operationRGB))
+        if (!deko3d::getConstant(state.operationRGB, operationRGB))
             return;
 
         DkBlendOp operationA;
-        if (!Renderer::getConstant(state.operationA, operationA))
+        if (!deko3d::getConstant(state.operationA, operationA))
             return;
 
         DkBlendFactor sourceColor;
-        if (!Renderer::getConstant(state.srcFactorRGB, sourceColor))
+        if (!deko3d::getConstant(state.srcFactorRGB, sourceColor))
             return;
 
         DkBlendFactor destColor;
-        if (!Renderer::getConstant(state.dstFactorRGB, destColor))
+        if (!deko3d::getConstant(state.dstFactorRGB, destColor))
             return;
 
         DkBlendFactor sourceAlpha;
-        if (!Renderer::getConstant(state.srcFactorA, sourceAlpha))
+        if (!deko3d::getConstant(state.srcFactorA, sourceAlpha))
             return;
 
         DkBlendFactor destAlpha;
-        if (!Renderer::getConstant(state.dstFactorA, destAlpha))
+        if (!deko3d::getConstant(state.dstFactorA, destAlpha))
             return;
 
         this->context.blend.setColorBlendOp(operationRGB);
@@ -205,7 +226,7 @@ namespace love
         return scissor;
     }
 
-    void Renderer::setScissor(const Rect& scissor)
+    void deko3d::setScissor(const Rect& scissor)
     {
         this->ensureInFrame();
         DkScissor _scissor {};
@@ -232,7 +253,7 @@ namespace love
         return viewport;
     }
 
-    void Renderer::setViewport(const Rect& viewport)
+    void deko3d::setViewport(const Rect& viewport)
     {
         this->ensureInFrame();
         DkViewport _viewport {};
@@ -244,4 +265,6 @@ namespace love
 
         this->commandBuffer.setViewports(0, { _viewport });
     }
+
+    deko3d d3d;
 } // namespace love

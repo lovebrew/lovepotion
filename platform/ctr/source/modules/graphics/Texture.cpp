@@ -320,4 +320,9 @@ namespace love
     {
         return (ptrdiff_t)this->target;
     }
+
+    ptrdiff_t Texture::getSamplerHandle() const
+    {
+        return 0;
+    }
 } // namespace love

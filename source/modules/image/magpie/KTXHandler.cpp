@@ -280,7 +280,7 @@ namespace love
         header.numberOfMipmapLevels = std::max<size_t>(header.numberOfMipmapLevels, 1);
         auto convertedFormat        = convertFormat(header.glInternalFormat);
 
-        if (convertedFormat = PIXELFORMAT_UNKNOWN)
+        if (convertedFormat == PIXELFORMAT_UNKNOWN)
             throw love::Exception("Unsupported image format in KTX file.");
 
         if (header.numberOfArrayElements > 0)

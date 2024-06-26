@@ -28,12 +28,7 @@ namespace love
             C3D_SetBufInfo(&this->buffer);
         }
 
-        ~StreamBuffer()
-        {
-            linearFree(this->data);
-        }
-
-        MapInfo<T> map(size_t) override
+        MapInfo<T> map(size_t)
         {
             MapInfo<T> info {};
             info.data = &this->data[this->index];
@@ -42,21 +37,9 @@ namespace love
             return info;
         }
 
-        size_t unmap(size_t) override
+        ~StreamBuffer()
         {
-            return this->index;
-        }
-
-        void markUsed(int count) override
-        {
-            this->index += count;
-            this->frameGPUReadOffset += (count * sizeof(T));
-        }
-
-        void nextFrame() override
-        {
-            this->index              = 0;
-            this->frameGPUReadOffset = 0;
+            linearFree(this->data);
         }
 
         ptrdiff_t getHandle() const override

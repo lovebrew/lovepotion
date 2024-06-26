@@ -305,6 +305,8 @@ namespace love
 
         virtual ptrdiff_t getRenderTargetHandle() const = 0;
 
+        virtual ptrdiff_t getSamplerHandle() const = 0;
+
         /*
          * Sets the handle of the texture.
          * This is ONLY used on 3DS due to memory constraints.

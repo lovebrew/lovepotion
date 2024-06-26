@@ -120,6 +120,14 @@ if (NINTENDO_SWITCH)
         source/modules/image/magpie/PKMHandler.cpp
         source/modules/image/magpie/PNGHandler.cpp
     )
+
+    add_library(ddsparse
+        libraries/ddsparse/ddsparse.cpp
+        libraries/ddsparse/ddsparse.h
+        libraries/ddsparse/ddsinfo.h
+    )
+
+    target_link_libraries(${PROJECT_NAME} PRIVATE ddsparse)
 endif()
 
 if (NINTENDO_WIIU)
@@ -155,7 +163,19 @@ if (NINTENDO_WIIU)
         source/modules/image/magpie/KTXHandler.cpp
         source/modules/image/magpie/PKMHandler.cpp
         source/modules/image/magpie/PNGHandler.cpp
+        source/modules/font/freetype/Font.cpp
+        source/modules/font/freetype/TrueTypeRasterizer.cpp
+        source/modules/graphics/Font.cpp
     )
+
+    add_library(ddsparse
+        libraries/ddsparse/ddsparse.cpp
+        libraries/ddsparse/ddsparse.h
+        libraries/ddsparse/ddsinfo.h
+    )
+
+    find_package(Freetype REQUIRED)
+    target_link_libraries(${PROJECT_NAME} PRIVATE Freetype::Freetype bz2 png turbojpeg ddsparse)
 endif()
 
 add_custom_target(test
@@ -316,6 +336,7 @@ include_directories(
     libraries/physfs
     libraries/wuff
     libraries/utf8
+    libraries/ddsparse
 )
 
 # find source -type f -name \*.cpp | clip
@@ -365,7 +386,7 @@ source/modules/font/wrap_Rasterizer.cpp
 source/modules/font/wrap_GlyphData.cpp
 source/modules/graphics/Buffer.cpp
 source/modules/graphics/Graphics.cpp
-source/modules/graphics/Font.cpp
+source/modules/graphics/FontBase.cpp
 source/modules/graphics/Mesh.cpp
 source/modules/graphics/Polyline.cpp
 source/modules/graphics/wrap_Mesh.cpp

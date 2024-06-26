@@ -1030,9 +1030,106 @@ int Wrap_Graphics::getFont(lua_State* L)
     return 1;
 }
 
+static BufferDataUsage luax_optdatausage(lua_State* L, int idx, BufferDataUsage def)
+{
+    const char* usagestr = lua_isnoneornil(L, idx) ? nullptr : luaL_checkstring(L, idx);
+
+    if (usagestr && !getConstant(usagestr, def))
+        luax_enumerror(L, "usage hint", BufferUsages, usagestr);
+
+    return def;
+}
+
+static PrimitiveType luax_checkmeshdrawmode(lua_State* L, int idx)
+{
+    const char* modestr = luaL_checkstring(L, idx);
+
+    PrimitiveType mode = PRIMITIVE_TRIANGLES;
+    if (!getConstant(modestr, mode))
+        luax_enumerror(L, "mesh draw mode", PrimitiveTypes, modestr);
+
+    return mode;
+}
+
+static Mesh* newStandardMesh(lua_State* L)
+{
+    Mesh* mesh = nullptr;
+
+    PrimitiveType drawMode = luax_checkmeshdrawmode(L, 2);
+    BufferDataUsage usage  = luax_optdatausage(L, 3, BUFFERDATAUSAGE_DYNAMIC);
+
+    // std::vector<BufferBase::DataDeclaration> format = Mesh::getDefaultVertexFormat();
+
+    if (lua_istable(L, 1))
+    {
+        size_t vertexCount = luax_objlen(L, 1);
+
+        std::vector<Vertex> vertices {};
+        vertices.reserve(vertexCount);
+
+        for (size_t index = 0; index <= vertexCount; index++)
+        {
+            lua_rawgeti(L, 1, (int)index + 1);
+
+            if (lua_type(L, -1) != LUA_TTABLE)
+            {
+                luax_typeerror(L, 1, "table of tables");
+                return nullptr;
+            }
+
+            for (int j = 1; j <= 8; j++)
+                lua_rawgeti(L, -j, j);
+
+            Vertex vertex {};
+            vertex.x = luaL_checknumber(L, -8);
+            vertex.y = luaL_checknumber(L, -7);
+            vertex.s = luaL_optnumber(L, -6, 0.0f);
+            vertex.t = luaL_optnumber(L, -5, 0.0f);
+
+            vertex.color.r = luax_optnumberclamped01(L, -4, 1.0f);
+            vertex.color.g = luax_optnumberclamped01(L, -3, 1.0f);
+            vertex.color.b = luax_optnumberclamped01(L, -2, 1.0f);
+            vertex.color.a = luax_optnumberclamped01(L, -1, 1.0f);
+
+            lua_pop(L, 9);
+
+            vertices.push_back(vertex);
+        }
+
+        // luax_catchexcept(L, [&]() { mesh = instance()->newMesh(vertices, drawMode, usage); });
+    }
+    else
+    {
+        int count = (int)luaL_checkinteger(L, 1);
+        // luax_catchexcept(L, [&]() { mesh = instance()->newMesh(format, count, drawMode, usage); });
+    }
+
+    return mesh;
+}
+
 int Wrap_Graphics::newMesh(lua_State* L)
 {
-    return 0;
+    luax_checkgraphicscreated(L);
+
+    int firstArgType = lua_type(L, 1);
+    if (firstArgType != LUA_TTABLE && firstArgType != LUA_TNUMBER)
+        return luax_typeerror(L, 1, "table or number expected.");
+
+    Mesh* mesh = nullptr;
+
+    int secondArgType = lua_type(L, 2);
+
+    if (firstArgType == LUA_TTABLE &&
+        (secondArgType == LUA_TTABLE || secondArgType == LUA_TNUMBER || secondArgType == LUA_TUSERDATA))
+    {
+    }
+    else
+        mesh = newStandardMesh(L);
+
+    luax_pushtype(L, mesh);
+    mesh->release();
+
+    return 1;
 }
 
 int Wrap_Graphics::newTextBatch(lua_State* L)
@@ -1650,7 +1747,7 @@ static constexpr luaL_Reg functions[] =
     { "newTexture",             Wrap_Graphics::newTexture            },
     { "newImage",               Wrap_Graphics::newImage              },
 
-    { "newMesh",                Wrap_Graphics::newMesh               },
+    // { "newMesh",                Wrap_Graphics::newMesh               },
 
     { "newTextBatch",           Wrap_Graphics::newTextBatch          },
 

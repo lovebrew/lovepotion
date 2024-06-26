@@ -4,45 +4,43 @@
 
 namespace love
 {
-    class Graphics : public GraphicsBase<Graphics>
+    class Graphics : public GraphicsBase
     {
       public:
         Graphics();
 
-        void backbufferChanged(int width, int height, int pixelWidth, int pixelHeight,
-                               bool backBufferStencil, bool backBufferDepth, int msaa);
+        void backbufferChanged(int width, int height, int pixelWidth, int pixelHeight, bool backBufferStencil,
+                               bool backBufferDepth, int msaa);
 
         void backbufferChanged(int width, int height, int pixelWidth, int pixelHeight)
         {
-            this->backbufferChanged(width, height, pixelWidth, pixelHeight,
-                                    this->backBufferHasStencil, this->backBufferHasDepth,
-                                    this->requestedBackbufferMSAA);
+            this->backbufferChanged(width, height, pixelWidth, pixelHeight, this->backBufferHasStencil,
+                                    this->backBufferHasDepth, this->requestedBackbufferMSAA);
         }
 
-        void clearImpl(OptionalColor color, OptionalInt depth, OptionalDouble stencil);
+        virtual void clear(OptionalColor color, OptionalInt stencil, OptionalDouble depth) override;
 
-        using GraphicsBase<Graphics>::clear;
+        virtual void clear(const std::vector<OptionalColor>& colors, OptionalInt stencil,
+                           OptionalDouble depth) override;
 
-        void presentImpl();
+        void present(void* screenshotCallbackData) override;
 
-        void setScissorImpl(const Rect& scissor);
+        void setScissor(const Rect& scissor) override;
 
-        void setScissorImpl();
+        void setScissor() override;
 
-        void setFrontFaceWindingImpl(Winding winding);
+        void setFrontFaceWinding(Winding winding) override;
 
-        void setColorMaskImpl(ColorChannelMask mask);
+        void setColorMask(ColorChannelMask mask) override;
 
-        void setBlendStateImpl(const BlendState& state);
+        void setBlendState(const BlendState& state) override;
 
-        void getRendererInfoImpl(RendererInfo& info) const;
-
-        bool setModeImpl(int width, int height, int pixelWidth, int pixelHeight,
-                         bool backBufferStencil, bool backBufferDepth, int msaa);
+        bool setMode(int width, int height, int pixelWidth, int pixelHeight, bool backBufferStencil,
+                     bool backBufferDepth, int msaa) override;
 
         bool isActive() const;
 
-        void unsetModeImpl();
+        void unsetMode() override;
 
       private:
         bool backBufferHasStencil;

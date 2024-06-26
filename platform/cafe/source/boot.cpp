@@ -25,14 +25,14 @@
 namespace love
 {
     // clang-format off
-    static constexpr std::array<const Service, 6> services =
+    static constexpr std::array<const Service, 5> services =
     {{
         { "procUI", BIND(ProcUIInit, OSSavesDone_ReadyToRelease), &ProcUIShutdown },
         { "vpad",   BIND(VPADInit),                               &VPADShutdown   },
         { "kpad",   BIND(KPADInit),                               &KPADShutdown   },
         { "ac",     BIND(ACInitialize),                           &ACFinalize     },
         { "fs",     BIND(FSInit),                                 &FSShutdown     },
-        { "bsp",    BIND(bspInitializeShimInterface),             []() { }        }
+        // { "bsp",    BIND(bspInitializeShimInterface),             []() { }        }
     }};
     // clang-format on
 
@@ -62,14 +62,14 @@ namespace love
             }
         }
 
-        return std::string {};
+        return "fs:/vol/external01/lovepotion.wuhb";
     }
 
     int preInit()
     {
         /* we aren't running Aroma */
-        if (getApplicationPath().empty())
-            return -1;
+        // if (getApplicationPath().empty())
+        //     return -1;
 
         for (const auto& service : services)
         {

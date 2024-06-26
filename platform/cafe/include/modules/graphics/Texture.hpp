@@ -3,7 +3,8 @@
 #include "modules/graphics/Texture.tcc"
 #include "modules/graphics/Volatile.hpp"
 
-#include <citro3d.h>
+#include <gx2/sampler.h>
+#include <gx2/texture.h>
 
 namespace love
 {
@@ -24,8 +25,6 @@ namespace love
 
         ptrdiff_t getSamplerHandle() const override;
 
-        void updateQuad(Quad* quad);
-
         void setSamplerState(const SamplerState& state) override;
 
         void uploadByteData(const void* data, size_t size, int slice, int mipmap, const Rect& rect) override;
@@ -33,20 +32,15 @@ namespace love
         void generateMipmapsInternal() override;
 
         void setHandleData(void* data) override
-        {
-            this->texture->data = data;
-        }
-
-        // bool validateDimensions(bool throwException) const;
-
-        // void validatePixelFormat(Graphics& graphics) const;
+        {}
 
       private:
         void createTexture();
 
         Slices slices;
 
-        C3D_Tex* texture         = nullptr;
-        C3D_RenderTarget* target = nullptr;
+        GX2Texture* texture    = nullptr;
+        GX2ColorBuffer* target = nullptr;
+        GX2Sampler* sampler    = nullptr;
     };
 } // namespace love

@@ -17,8 +17,32 @@ namespace love
         TrueTypeRasterizer(FT_Library library, Data* data, int size, const Settings& settings,
                            float defaultDPIScale);
 
-        virtual ~TrueTypeRasterizer()
-        {}
+        virtual ~TrueTypeRasterizer();
+
+        int getLineHeight() const override;
+
+        int getGlyphSpacing(uint32_t glyph) const override;
+
+        int getGlyphIndex(uint32_t glyph) const override;
+
+        GlyphData* getGlyphDataForIndex(int index) const override;
+
+        int getGlyphCount() const override;
+
+        bool hasGlyph(uint32_t glyph) const override;
+
+        float getKerning(uint32_t left, uint32_t right) const override;
+
+        DataType getDataType() const override;
+
+        TextShaper* newTextShaper() override;
+
+        ptrdiff_t getHandle() const override
+        {
+            return (ptrdiff_t)this->face;
+        }
+
+        static bool accepts(FT_Library library, Data* data);
 
         // clang-format off
         STRINGMAP_DECLARE(Hintings, Hinting,
@@ -28,5 +52,12 @@ namespace love
             { "none",   HINTING_NONE   }
         );
         // clang-format on
+
+      private:
+        static FT_UInt hintingToLoadOption(Hinting hint);
+
+        FT_Face face;
+        Hinting hinting;
+        bool sdf;
     };
 } // namespace love

@@ -326,6 +326,7 @@ namespace love
             state.texture       = command.texture;
             state.shaderType    = command.shaderType;
             state.isFont        = command.isFont;
+            state.pushTransform = command.pushTransform;
         }
 
         if (state.vertexCount == 0)
@@ -466,7 +467,8 @@ namespace love
         // if (attributes.isEnabled(ATTRIB_COLOR))
         //     this->setColor(Color::WHITE);
 
-        this->pushIdentityTransform();
+        if (state.pushTransform)
+            this->pushIdentityTransform();
 
         if (state.indexCount > 0)
         {
@@ -500,7 +502,8 @@ namespace love
         if (usedSizes[1] > 0)
             state.indexBuffer->markUsed(usedSizes[1]);
 
-        this->popTransform();
+        if (state.pushTransform)
+            this->popTransform();
 
         // if (attributes.isEnabled(ATTRIB_COLOR))
         //     this->setColor(originalColor);
