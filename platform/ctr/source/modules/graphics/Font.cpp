@@ -30,8 +30,6 @@ namespace love
 
         this->textures.reserve(info->nSheets);
 
-        auto graphics = Module::getInstance<GraphicsBase>(Module::M_GRAPHICS);
-
         /* the texture and font data are the same size */
         for (size_t index = 0; index < info->nSheets; index++)
         {
