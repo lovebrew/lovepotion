@@ -25,7 +25,7 @@ namespace love
 
         ptrdiff_t getHandle() const override;
 
-        void updateBuiltinUniforms(GraphicsBase* graphics);
+        void updateBuiltinUniforms(GraphicsBase* graphics, Uniform* uniform);
 
         uint32_t getPixelSamplerLocation(int index);
 

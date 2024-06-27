@@ -32,6 +32,8 @@ namespace love
 
         GX2Shutdown();
 
+        delete this->uniform;
+
         free(this->state);
         this->state = nullptr;
 
@@ -137,7 +139,8 @@ namespace love
         this->context.depthWrite  = false;
         this->context.compareMode = GX2_COMPARE_FUNC_ALWAYS;
 
-        uniform = (Uniform*)std::aligned_alloc(0x100, sizeof(Uniform));
+        this->uniform = new (std::align_val_t(0x100)) Uniform();
+
         this->bindFramebuffer(&this->targets[0].get());
 
         this->initialized = true;
@@ -257,7 +260,7 @@ namespace love
         if ((Shader*)ShaderBase::current != nullptr)
         {
             auto* shader = (Shader*)ShaderBase::current;
-            shader->updateBuiltinUniforms(graphics);
+            shader->updateBuiltinUniforms(graphics, this->uniform);
         }
     }
 
@@ -324,7 +327,7 @@ namespace love
         GX2SetViewport(x, y, width, height, Framebuffer::Z_NEAR, Framebuffer::Z_FAR);
 
         auto ortho = glm::ortho(x, width, height, y, (int)Framebuffer::Z_NEAR, (int)Framebuffer::Z_FAR);
-        updateGlmMatrix(love::uniform->projection, ortho);
+        this->uniform->projection = updateMatrix(ortho);
 
         this->context.viewport = viewport;
     }

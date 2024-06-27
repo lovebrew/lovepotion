@@ -70,13 +70,13 @@ namespace love
         return this->program.pixelShader->samplerVars[index].location;
     }
 
-    void Shader::updateBuiltinUniforms(GraphicsBase* graphics)
+    void Shader::updateBuiltinUniforms(GraphicsBase* graphics, Uniform* uniform)
     {
         if (current != this)
             return;
 
-        GX2Invalidate(INVALIDATE_UNIFORM_BLOCK, (void*)&love::uniform, sizeof(Uniform));
-        GX2SetVertexUniformBlock(1, sizeof(Uniform), (const void*)&love::uniform);
+        GX2Invalidate(INVALIDATE_UNIFORM_BLOCK, (void*)uniform, sizeof(Uniform));
+        GX2SetVertexUniformBlock(1, sizeof(Uniform), (const void*)uniform);
     }
 
     ptrdiff_t Shader::getHandle() const

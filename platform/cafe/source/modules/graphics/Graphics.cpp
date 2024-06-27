@@ -10,6 +10,8 @@
 #include <gx2/draw.h>
 #include <gx2r/draw.h>
 
+#include "utility/logfile.hpp"
+
 namespace love
 {
     Graphics::Graphics() : GraphicsBase("love.graphics.gx2")
@@ -273,7 +275,6 @@ namespace love
         else
             gx2.bindFramebuffer((GX2ColorBuffer*)targets.getFirstTarget().texture->getRenderTargetHandle());
 
-        bool tilt = isWindow ? true : false;
         gx2.setViewport({ 0, 0, pixelWidth, pixelHeight });
 
         if (state.scissor)
@@ -379,8 +380,8 @@ namespace love
 
         const auto mode      = GX2::getPrimitiveType(command.primitiveType);
         const auto indexType = GX2::getIndexType(command.indexType);
-
-        GX2DrawIndexedEx(mode, command.indexCount, indexType, buffer, offset, command.instanceCount);
+        LOG("{:d}", (int)indexType);
+        GX2DrawIndexedEx(mode, command.indexCount, indexType, &buffer[offset], 0, command.instanceCount);
 
         ++this->drawCalls;
     }

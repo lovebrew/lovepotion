@@ -48,7 +48,7 @@ namespace love
             else
                 info.data = &this->data[this->index];
 
-            info.size = this->bufferSize;
+            info.size = this->bufferSize - this->frameGPUReadOffset;
             return info;
         }
 
