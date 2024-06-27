@@ -22,7 +22,7 @@ namespace love
 {
 #define Keyboard() (Module::getInstance<Keyboard>(Module::M_KEYBOARD))
 
-    GX2::GX2() : context {}, inForeground(false), commandBuffer(nullptr), state(nullptr), targets {}
+    GX2::GX2() : context {}, inForeground(false), commandBuffer(nullptr), targets {}, state(nullptr)
     {}
 
     GX2::~GX2()
@@ -137,9 +137,7 @@ namespace love
         this->context.depthWrite  = false;
         this->context.compareMode = GX2_COMPARE_FUNC_ALWAYS;
 
-        this->context.transform = (Uniform*)memalign(0x100, sizeof(Uniform));
-        updateGlmMatrix(this->context.transform->modelView, glm::mat4(1.0f));
-
+        uniform = (Uniform*)std::aligned_alloc(0x100, sizeof(Uniform));
         this->bindFramebuffer(&this->targets[0].get());
 
         this->initialized = true;
@@ -213,7 +211,9 @@ namespace love
         if (bindingModified)
         {
             GX2SetColorBuffer(target, GX2_RENDER_TARGET_0);
-            this->setViewport({ 0, 0, target->surface.width, target->surface.height });
+
+            this->setViewport(Rect::EMPTY);
+            this->setScissor(Rect::EMPTY);
         }
     }
 
@@ -257,7 +257,7 @@ namespace love
         if ((Shader*)ShaderBase::current != nullptr)
         {
             auto* shader = (Shader*)ShaderBase::current;
-            shader->updateBuiltinUniforms(graphics, this->context.transform);
+            shader->updateBuiltinUniforms(graphics);
         }
     }
 
@@ -281,7 +281,7 @@ namespace love
         auto* shader  = (Shader*)ShaderBase::current;
         auto location = shader->getPixelSamplerLocation(0);
 
-        GX2SetPixelTexture(texture, location);
+        GX2SetPixelTexture(texture, unit);
         GX2SetPixelSampler(sampler, location);
     }
 
@@ -315,16 +315,16 @@ namespace love
     {
         bool isEmptyViewport = viewport == Rect::EMPTY;
 
-        const int width  = isEmptyViewport ? this->context.boundFramebuffer->surface.width : viewport.w;
-        const int height = isEmptyViewport ? this->context.boundFramebuffer->surface.height : viewport.h;
-
         const int x = isEmptyViewport ? 0 : viewport.x;
         const int y = isEmptyViewport ? 0 : viewport.y;
+
+        const int width  = isEmptyViewport ? this->context.boundFramebuffer->surface.width : viewport.w;
+        const int height = isEmptyViewport ? this->context.boundFramebuffer->surface.height : viewport.h;
 
         GX2SetViewport(x, y, width, height, Framebuffer::Z_NEAR, Framebuffer::Z_FAR);
 
         auto ortho = glm::ortho(x, width, height, y, (int)Framebuffer::Z_NEAR, (int)Framebuffer::Z_FAR);
-        updateGlmMatrix(this->context.transform->projection, ortho);
+        updateGlmMatrix(love::uniform->projection, ortho);
 
         this->context.viewport = viewport;
     }
@@ -360,8 +360,7 @@ namespace love
         if (!GX2::getConstant(winding, windingMode))
             return;
 
-        GX2SetCullOnlyControl(this->context.winding, this->context.cullBack, this->context.cullFront);
-
+        GX2SetCullOnlyControl(windingMode, this->context.cullBack, this->context.cullFront);
         this->context.winding = windingMode;
     }
 

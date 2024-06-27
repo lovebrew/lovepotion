@@ -14,6 +14,8 @@
 #include "modules/image/wrap_Image.hpp"
 #include "modules/image/wrap_ImageData.hpp"
 
+#include "utility/logfile.hpp"
+
 using namespace love;
 
 #define instance() (Module::getInstance<Graphics>(Module::M_GRAPHICS))
@@ -1606,7 +1608,7 @@ int Wrap_Graphics::getScreens(lua_State* L)
 {
     auto screens = love::getScreenInfo();
     lua_createtable(L, screens.size(), 0);
-
+    LOG("Found {:d} screens", screens.size());
     for (size_t i = 0; i < screens.size(); i++)
     {
         luax_pushstring(L, screens[i].name);

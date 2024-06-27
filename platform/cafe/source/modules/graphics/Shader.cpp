@@ -12,8 +12,6 @@
 #define DEFAULT_TEXTURE_SHADER   (SHADERS_DIR "texture.gsh")
 // #define DEFAULT_VIDEO_SHADER     (SHADERS_DIR "video.gsh")
 
-#include "utility/logfile.hpp"
-
 namespace love
 {
     Shader::Shader(StandardShader type)
@@ -72,13 +70,13 @@ namespace love
         return this->program.pixelShader->samplerVars[index].location;
     }
 
-    void Shader::updateBuiltinUniforms(GraphicsBase* graphics, Uniform* transform)
+    void Shader::updateBuiltinUniforms(GraphicsBase* graphics)
     {
         if (current != this)
             return;
 
-        GX2Invalidate(INVALIDATE_UNIFORM_BLOCK, (void*)transform, sizeof(Uniform));
-        GX2SetVertexUniformBlock(1, sizeof(Uniform), (const void*)transform);
+        GX2Invalidate(INVALIDATE_UNIFORM_BLOCK, (void*)&love::uniform, sizeof(Uniform));
+        GX2SetVertexUniformBlock(1, sizeof(Uniform), (const void*)&love::uniform);
     }
 
     ptrdiff_t Shader::getHandle() const

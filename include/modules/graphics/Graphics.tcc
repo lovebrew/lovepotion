@@ -350,7 +350,7 @@ namespace love
             Winding winding       = WINDING_CCW;
 
             StrongRef<FontBase> font;
-            // StrongRef<Shader> shader;
+            StrongRef<ShaderBase> shader;
 
             RenderTargetsStrongRef renderTargets;
 
@@ -431,6 +431,10 @@ namespace love
         virtual void setScissor(const Rect& scissor) = 0;
 
         virtual void setScissor() = 0;
+
+        void setShader();
+
+        void setShader(ShaderBase* shader);
 
         void intersectScissor(const Rect& scissor);
 

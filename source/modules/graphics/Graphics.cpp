@@ -103,7 +103,7 @@ namespace love
         this->setFrontFaceWinding(state.winding);
 
         this->setFont(state.font.get());
-        // this->setShader(state.shader.get());
+        this->setShader(state.shader.get());
         // this->setRenderTargets(state.renderTargets);
 
         // this->setStencilState(state.stencil);
@@ -153,7 +153,7 @@ namespace love
             this->setFrontFaceWinding(state.winding);
 
         this->setFont(state.font.get());
-        // this->setShader(state.shader.get());
+        this->setShader(state.shader.get());
 
         // if (this->stencil != state.stencil)
         //     this->setStencilState(state.stencil);
@@ -194,6 +194,21 @@ namespace love
             this->flushBatchedDraws();
 
         this->states.back().scissor = false;
+    }
+
+    void GraphicsBase::setShader(ShaderBase* shader)
+    {
+        if (shader == nullptr)
+            return this->setShader();
+
+        shader->attach();
+        this->states.back().shader.set(shader);
+    }
+
+    void GraphicsBase::setShader()
+    {
+        ShaderBase::attachDefault(ShaderBase::STANDARD_DEFAULT);
+        this->states.back().shader.set(nullptr);
     }
 
     GraphicsBase::Stats GraphicsBase::getStats() const

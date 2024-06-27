@@ -5,7 +5,6 @@
 
 #include "driver/display/Framebuffer.hpp"
 #include "driver/display/Renderer.tcc"
-#include "driver/display/Uniform.hpp"
 
 #include "modules/graphics/vertex.hpp"
 
@@ -150,9 +149,9 @@ namespace love
             {
                 default:
                 case INDEX_UINT16:
-                    return GX2_INDEX_TYPE_U16;
+                    return GX2_INDEX_TYPE_U16_LE;
                 case INDEX_UINT32:
-                    return GX2_INDEX_TYPE_U32;
+                    return GX2_INDEX_TYPE_U32_LE;
             }
         }
         // clang-format on
@@ -168,8 +167,6 @@ namespace love
 
         struct Context : public ContextBase
         {
-            Uniform* transform;
-
             bool cullBack;
             bool cullFront;
 

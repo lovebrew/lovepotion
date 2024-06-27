@@ -13,12 +13,6 @@ namespace love
     class Shader final : public ShaderBase, public Volatile
     {
       public:
-        struct UniformInfo
-        {
-            GX2UniformBlock* block;
-            std::string name;
-        };
-
         Shader(StandardShader shader);
 
         virtual ~Shader();
@@ -31,7 +25,7 @@ namespace love
 
         ptrdiff_t getHandle() const override;
 
-        void updateBuiltinUniforms(GraphicsBase* graphics, Uniform* transform);
+        void updateBuiltinUniforms(GraphicsBase* graphics);
 
         uint32_t getPixelSamplerLocation(int index);
 
