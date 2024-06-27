@@ -149,9 +149,9 @@ namespace love
             {
                 default:
                 case INDEX_UINT16:
-                    return GX2_INDEX_TYPE_U16_LE;
+                    return GX2_INDEX_TYPE_U16;
                 case INDEX_UINT32:
-                    return GX2_INDEX_TYPE_U32_LE;
+                    return GX2_INDEX_TYPE_U32;
             }
         }
         // clang-format on

@@ -36,8 +36,6 @@ namespace love
 
                 if (!GX2RCreateBuffer(this->buffer))
                     throw love::Exception("Failed to create StreamBuffer");
-
-                GX2RSetAttributeBuffer(this->buffer, 0, sizeof(T), 0);
             }
         }
 
@@ -57,7 +55,10 @@ namespace love
         size_t unmap(size_t)
         {
             if (this->usage == BufferUsage::BUFFERUSAGE_VERTEX)
+            {
                 GX2RUnlockBufferEx(this->buffer, GX2R_RESOURCE_BIND_NONE);
+                GX2RSetAttributeBuffer(this->buffer, 0, sizeof(T), 0);
+            }
 
             return this->index;
         }
