@@ -35,5 +35,7 @@ namespace love
 
         bool validate(const char* filepath, std::string& error);
         WHBGfxShaderGroup program;
+
+        uint32_t uniformLocation;
     };
 } // namespace love

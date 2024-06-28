@@ -4,6 +4,8 @@
 #include "common/Console.hpp"
 #include "common/screen.hpp"
 
+#include "utility/logfile.hpp"
+
 namespace love
 {
     GraphicsBase::GraphicsBase(const char* name) :
@@ -656,7 +658,7 @@ namespace love
     int GraphicsBase::getHeight() const
     {
         auto& info = love::getScreenInfo(currentScreen);
-        return info.width;
+        return info.height;
     }
 
     GraphicsBase::RendererInfo GraphicsBase::getRendererInfo() const
@@ -884,6 +886,9 @@ namespace love
 
             if (is2D)
                 transform.transformXY(stream, vertices.data(), command.vertexCount);
+
+            for (int index = 0; index < command.vertexCount; index++)
+                LOG("Vertex {:d}: ({:.2f}, {:.2f})", index, stream[index].x, stream[index].y);
         }
     }
 

@@ -28,11 +28,5 @@ namespace love
     {
         glm::mat4 modelView;
         glm::mat4 projection;
-
-      public:
-        Uniform()
-        {
-            this->modelView = updateMatrix(glm::mat4(1.0f));
-        }
     };
 } // namespace love

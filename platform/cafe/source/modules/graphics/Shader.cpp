@@ -10,7 +10,7 @@
 
 #define DEFAULT_PRIMITIVE_SHADER (SHADERS_DIR "color.gsh")
 #define DEFAULT_TEXTURE_SHADER   (SHADERS_DIR "texture.gsh")
-// #define DEFAULT_VIDEO_SHADER     (SHADERS_DIR "video.gsh")
+#define DEFAULT_VIDEO_SHADER     (SHADERS_DIR "video.gsh")
 
 namespace love
 {
@@ -34,6 +34,13 @@ namespace love
 
                 break;
             }
+            case STANDARD_VIDEO:
+            {
+                if (!this->validate(DEFAULT_VIDEO_SHADER, error))
+                    throw love::Exception("Failed to load video shader: {:s}", error);
+
+                break;
+            }
         }
 
         // clang-format off
@@ -41,6 +48,17 @@ namespace love
         WHBGfxInitShaderAttribute(&this->program, "inTexCoord", 0, TEXCOORD_OFFSET, GX2_ATTRIB_FORMAT_FLOAT_32_32);
         WHBGfxInitShaderAttribute(&this->program, "inColor",    0, COLOR_OFFSET,    GX2_ATTRIB_FORMAT_FLOAT_32_32_32_32);
         // clang-format on
+
+        const int count = this->program.vertexShader->uniformBlockCount;
+
+        for (int i = 0; i < count; i++)
+        {
+            if (std::strcmp(this->program.vertexShader->uniformBlocks[i].name, "Transformation") == 0)
+            {
+                this->uniformLocation = this->program.vertexShader->uniformBlocks[i].offset;
+                break;
+            }
+        }
 
         WHBGfxInitFetchShader(&this->program);
     }
@@ -75,8 +93,11 @@ namespace love
         if (current != this)
             return;
 
+        auto transform = graphics->getTransform();
+        // we will update the uniform block with the new transformation matrix
+
         GX2Invalidate(INVALIDATE_UNIFORM_BLOCK, (void*)uniform, sizeof(Uniform));
-        GX2SetVertexUniformBlock(1, sizeof(Uniform), (const void*)uniform);
+        GX2SetVertexUniformBlock(this->uniformLocation, sizeof(Uniform), (const void*)uniform);
     }
 
     ptrdiff_t Shader::getHandle() const

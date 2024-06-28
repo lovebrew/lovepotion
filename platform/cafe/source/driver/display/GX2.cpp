@@ -139,7 +139,8 @@ namespace love
         this->context.depthWrite  = false;
         this->context.compareMode = GX2_COMPARE_FUNC_ALWAYS;
 
-        this->uniform = new (std::align_val_t(0x100)) Uniform();
+        this->uniform            = (Uniform*)memalign(0x100, sizeof(Uniform));
+        this->uniform->modelView = updateMatrix(glm::mat4(1.0f));
 
         this->bindFramebuffer(&this->targets[0].get());
 
