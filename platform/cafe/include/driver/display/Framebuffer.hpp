@@ -3,14 +3,13 @@
 #include "common/screen.hpp"
 
 #include "driver/display/Framebuffer.tcc"
+#include "driver/display/Uniform.hpp"
 
 #include <coreinit/memfrmheap.h>
 
 #include <gx2/context.h>
 #include <gx2/mem.h>
 #include <gx2/registers.h>
-
-#include <glm/mat4x4.hpp>
 
 namespace love
 {
@@ -37,14 +36,9 @@ namespace love
             return this->depth;
         }
 
-        glm::mat4& getModelView()
+        Uniform* getUniform()
         {
-            return this->modelView;
-        }
-
-        glm::mat4& getProjection()
-        {
-            return this->projection;
+            return this->uniform;
         }
 
         bool allocateScanBuffer(MEMHeapHandle handle);
@@ -67,8 +61,7 @@ namespace love
         uint8_t mode;
         uint8_t id;
 
-        glm::mat4 modelView;
-        glm::mat4 projection;
+        Uniform* uniform;
 
         void* scanBuffer;
         uint32_t scanBufferSize;

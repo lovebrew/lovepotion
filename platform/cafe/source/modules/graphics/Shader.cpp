@@ -20,6 +20,7 @@ namespace love
 
         switch (type)
         {
+            default:
             case STANDARD_DEFAULT:
             {
                 if (!this->validate(DEFAULT_PRIMITIVE_SHADER, error))
@@ -49,18 +50,11 @@ namespace love
         WHBGfxInitShaderAttribute(&this->program, "inColor",    0, COLOR_OFFSET,    GX2_ATTRIB_FORMAT_FLOAT_32_32_32_32);
         // clang-format on
 
-        const int count = this->program.vertexShader->uniformBlockCount;
+        this->modelViewLocation  = GX2GetVertexUniformVar(this->program.vertexShader, "mdlvMtx")->offset;
+        this->projectionLocation = GX2GetVertexUniformVar(this->program.vertexShader, "projMtx")->offset;
 
-        for (int i = 0; i < count; i++)
-        {
-            if (std::strcmp(this->program.vertexShader->uniformBlocks[i].name, "Transformation") == 0)
-            {
-                this->uniformLocation = this->program.vertexShader->uniformBlocks[i].offset;
-                break;
-            }
-        }
-
-        WHBGfxInitFetchShader(&this->program);
+        if (!WHBGfxInitFetchShader(&this->program))
+            throw love::Exception("Failed to initialize Fetch Shader");
     }
 
     Shader::~Shader()
@@ -96,8 +90,8 @@ namespace love
         auto transform = graphics->getTransform();
         // we will update the uniform block with the new transformation matrix
 
-        GX2Invalidate(INVALIDATE_UNIFORM_BLOCK, (void*)uniform, sizeof(Uniform));
-        GX2SetVertexUniformBlock(this->uniformLocation, sizeof(Uniform), (const void*)uniform);
+        GX2SetVertexUniformReg(this->modelViewLocation, 16, (const void*)&uniform->modelView);
+        GX2SetVertexUniformReg(this->projectionLocation, 16, (const void*)&uniform->projection);
     }
 
     ptrdiff_t Shader::getHandle() const
@@ -111,7 +105,7 @@ namespace love
         {
             Graphics::flushBatchedDrawsGlobal();
 
-            GX2SetShaderMode(GX2_SHADER_MODE_UNIFORM_BLOCK);
+            GX2SetShaderMode(GX2_SHADER_MODE_UNIFORM_REGISTER);
 
             GX2SetFetchShader(&this->program.fetchShader);
             GX2SetVertexShader(this->program.vertexShader);
@@ -123,7 +117,7 @@ namespace love
 
     bool Shader::validate(const char* filepath, std::string& error)
     {
-        FILE* file = std::fopen(filepath, "r");
+        FILE* file = std::fopen(filepath, "rb");
 
         if (!file)
         {

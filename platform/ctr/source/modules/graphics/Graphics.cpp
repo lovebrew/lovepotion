@@ -75,6 +75,9 @@ namespace love
         this->capabilities.textureTypes[TEXTURE_2D_ARRAY] = false;
     }
 
+    void Graphics::captureScreenshot(const ScreenshotInfo& info)
+    {}
+
     void Graphics::setActiveScreen()
     {
         c3d.ensureInFrame();

@@ -14,8 +14,6 @@
 #include "modules/image/wrap_Image.hpp"
 #include "modules/image/wrap_ImageData.hpp"
 
-#include "utility/logfile.hpp"
-
 using namespace love;
 
 #define instance() (Module::getInstance<Graphics>(Module::M_GRAPHICS))
@@ -1624,7 +1622,6 @@ int Wrap_Graphics::setActiveScreen(lua_State* L)
     Screen screen    = love::getScreenId(name);
 
     love::currentScreen = screen;
-
     instance()->setActiveScreen();
 
     return 0;

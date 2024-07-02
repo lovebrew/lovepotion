@@ -186,6 +186,7 @@ namespace love
 
         void* commandBuffer;
         GX2ContextState* state;
+        bool dirtyProjection;
     };
 
     extern GX2 gx2;

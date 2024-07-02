@@ -10,8 +10,6 @@
 #include <gx2/draw.h>
 #include <gx2r/draw.h>
 
-#include "utility/logfile.hpp"
-
 namespace love
 {
     Graphics::Graphics() : GraphicsBase("love.graphics.gx2")
@@ -34,6 +32,9 @@ namespace love
     }
 
     Graphics::~Graphics()
+    {}
+
+    void Graphics::captureScreenshot(const ScreenshotInfo& info)
     {}
 
     void Graphics::initCapabilities()
@@ -178,9 +179,6 @@ namespace love
 
         this->drawCalls        = 0;
         this->drawCallsBatched = 0;
-
-        // this->cpuProcessingTime = C3D_GetProcessingTime();
-        // this->gpuDrawingTime    = C3D_GetDrawingTime();
     }
 
     void Graphics::setScissor(const Rect& scissor)
@@ -375,14 +373,13 @@ namespace love
         gx2.prepareDraw(this);
         gx2.bindTextureToUnit(command.texture, 0);
 
-        auto* buffer        = (uint16_t*)command.indexBuffer->getHandle();
+        auto* buffer        = (GX2RBuffer*)command.indexBuffer->getHandle();
         const size_t offset = command.indexBufferOffset;
 
         const auto mode      = GX2::getPrimitiveType(command.primitiveType);
         const auto indexType = GX2::getIndexType(command.indexType);
-        LOG("{:d}", (int)indexType);
-        GX2DrawIndexedEx(mode, command.indexCount, indexType, &buffer[offset], 0, command.instanceCount);
 
+        GX2RDrawIndexed(mode, buffer, indexType, command.indexCount, offset, 0, command.instanceCount);
         ++this->drawCalls;
     }
 

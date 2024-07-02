@@ -22,7 +22,13 @@ namespace love
 {
 #define Keyboard() (Module::getInstance<Keyboard>(Module::M_KEYBOARD))
 
-    GX2::GX2() : context {}, inForeground(false), commandBuffer(nullptr), targets {}, state(nullptr)
+    GX2::GX2() :
+        targets {},
+        context {},
+        inForeground(false),
+        commandBuffer(nullptr),
+        state(nullptr),
+        dirtyProjection(false)
     {}
 
     GX2::~GX2()
@@ -139,8 +145,8 @@ namespace love
         this->context.depthWrite  = false;
         this->context.compareMode = GX2_COMPARE_FUNC_ALWAYS;
 
-        this->uniform            = (Uniform*)memalign(0x100, sizeof(Uniform));
-        this->uniform->modelView = updateMatrix(glm::mat4(1.0f));
+        this->uniform            = (Uniform*)malloc(sizeof(Uniform));
+        this->uniform->modelView = glm::mat4(1.0f);
 
         this->bindFramebuffer(&this->targets[0].get());
 
@@ -192,6 +198,9 @@ namespace love
 
     void GX2::clear(const Color& color)
     {
+        if (!this->inFrame)
+            return;
+
         GX2ClearColor(this->getFramebuffer(), color.r, color.g, color.b, color.a);
         GX2SetContextState(this->state);
     }
@@ -258,10 +267,11 @@ namespace love
 
     void GX2::prepareDraw(GraphicsBase* graphics)
     {
-        if ((Shader*)ShaderBase::current != nullptr)
+        if (Shader::current != nullptr && this->dirtyProjection)
         {
             auto* shader = (Shader*)ShaderBase::current;
             shader->updateBuiltinUniforms(graphics, this->uniform);
+            this->dirtyProjection = false;
         }
     }
 
@@ -317,6 +327,9 @@ namespace love
 
     void GX2::setViewport(const Rect& viewport)
     {
+        if (!this->inFrame)
+            return;
+
         bool isEmptyViewport = viewport == Rect::EMPTY;
 
         const int x = isEmptyViewport ? 0 : viewport.x;
@@ -326,15 +339,20 @@ namespace love
         const int height = isEmptyViewport ? this->context.boundFramebuffer->surface.height : viewport.h;
 
         GX2SetViewport(x, y, width, height, Framebuffer::Z_NEAR, Framebuffer::Z_FAR);
-
-        auto ortho = glm::ortho(x, width, height, y, (int)Framebuffer::Z_NEAR, (int)Framebuffer::Z_FAR);
-        this->uniform->projection = updateMatrix(ortho);
-
         this->context.viewport = viewport;
+
+        // clang-format off
+        auto ortho = glm::ortho(0.0f, (float)width, (float)height, 0.0f, Framebuffer::Z_NEAR, Framebuffer::Z_FAR);
+        this->uniform->projection = ortho;
+        this->dirtyProjection = true;
+        // clang-format on
     }
 
     void GX2::setScissor(const Rect& scissor)
     {
+        if (!this->inFrame)
+            return;
+
         bool isEmptyScissor = scissor == Rect::EMPTY;
 
         const int x = isEmptyScissor ? 0 : scissor.x;

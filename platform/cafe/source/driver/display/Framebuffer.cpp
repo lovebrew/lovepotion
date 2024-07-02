@@ -3,19 +3,20 @@
 
 #include <gx2/swap.h>
 
+#include <malloc.h>
+
 namespace love
 {
-    Framebuffer::Framebuffer() :
-        target {},
-        depth {},
-        modelView(1.0f),
-        projection(1.0f),
-        scanBuffer(nullptr),
-        scanBufferSize(0)
-    {}
+    Framebuffer::Framebuffer() : target {}, depth {}, scanBuffer(nullptr), scanBufferSize(0)
+    {
+        this->uniform            = (Uniform*)malloc(sizeof(Uniform));
+        this->uniform->modelView = glm::mat4(1.0f);
+    }
 
     void Framebuffer::destroy()
-    {}
+    {
+        std::free(this->uniform);
+    }
 
     bool Framebuffer::allocateScanBuffer(MEMHeapHandle handle)
     {
@@ -115,6 +116,9 @@ namespace love
 
         this->viewport = { 0, 0, info.width, info.height };
         this->scissor  = { 0, 0, info.width, info.height };
+
+        this->uniform->projection =
+            glm::ortho(0.0f, (float)info.width, (float)info.height, 0.0f, Z_NEAR, Z_FAR);
     }
 
     void Framebuffer::setScissor(const Rect& scissor)
@@ -134,7 +138,6 @@ namespace love
         else
             this->viewport = viewport;
 
-        GX2SetViewport(this->viewport.x, this->viewport.y, this->viewport.w, this->viewport.h,
-                       Z_NEAR, Z_FAR);
+        GX2SetViewport(this->viewport.x, this->viewport.y, this->viewport.w, this->viewport.h, Z_NEAR, Z_FAR);
     }
 } // namespace love

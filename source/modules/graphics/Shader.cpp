@@ -1,3 +1,5 @@
+#include "common/Console.hpp"
+
 #include "modules/graphics/Shader.tcc"
 
 namespace love
@@ -29,7 +31,12 @@ namespace love
             return;
         }
 
-        if (current != defaultShader)
+        if constexpr (!Console::is(Console::CAFE))
+        {
+            if (current != defaultShader)
+                defaultShader->attach();
+        }
+        else
             defaultShader->attach();
     }
 

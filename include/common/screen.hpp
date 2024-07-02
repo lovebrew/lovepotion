@@ -48,6 +48,15 @@ namespace love
         return INVALID_SCREEN;
     }
 
+    inline void setScreen(Screen id)
+    {
+        const auto& info = getScreenInfo();
+
+        id = (Screen)std::clamp<int8_t>(id, 0, info.size() - 1);
+
+        currentScreen = id;
+    }
+
     inline void nextScreen()
     {
         const auto& info = getScreenInfo();

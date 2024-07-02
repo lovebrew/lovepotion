@@ -4,8 +4,6 @@
 #include "common/Console.hpp"
 #include "common/screen.hpp"
 
-#include "utility/logfile.hpp"
-
 namespace love
 {
     GraphicsBase::GraphicsBase(const char* name) :
@@ -886,9 +884,6 @@ namespace love
 
             if (is2D)
                 transform.transformXY(stream, vertices.data(), command.vertexCount);
-
-            for (int index = 0; index < command.vertexCount; index++)
-                LOG("Vertex {:d}: ({:.2f}, {:.2f})", index, stream[index].x, stream[index].y);
         }
     }
 
@@ -1151,8 +1146,8 @@ namespace love
         drawable->draw(this, matrix);
     }
 
-    void GraphicsBase::draw(TextureBase* texture, Quad* quad, const Matrix4& matrix)
+    void GraphicsBase::draw(TextureBase* texture, Quad* q, const Matrix4& matrix)
     {
-        texture->draw(this, quad, matrix);
+        texture->draw(this, q, matrix);
     }
 } // namespace love
