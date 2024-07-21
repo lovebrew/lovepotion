@@ -613,7 +613,7 @@ namespace love
 
         if (decoded > 0)
         {
-            DigitalSound::getInstance().setLooping(buffer, this->looping);
+            // DigitalSound::getInstance().setLooping(buffer, this->looping);
 
             const int samples = int((decoded / this->channels) / (this->bitDepth / 8));
             DigitalSound::getInstance().prepare(buffer, decoder->getBuffer(), decoded, samples);

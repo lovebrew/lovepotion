@@ -107,6 +107,12 @@ namespace love
                 float value = joystick->getAxis(Joystick::GamepadAxis(input));
                 this->sendGamepadAxisEvent(0, input, value);
             }
+
+            Joystick::HidAxisType value;
+            Joystick::getConstant(Joystick::GamepadAxis(input), value);
+
+            if (hidKeysUp() & value)
+                this->sendGamepadAxisEvent(0, input, 0.0f);
         }
 
         for (int input = 0; input < Sensor::SENSOR_MAX_ENUM; input++)
