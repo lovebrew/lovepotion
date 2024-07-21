@@ -24,8 +24,8 @@ jobs:
         with:
           name: Nintendo Switch-${{ steps.commit.outputs.short }}
           path: |
-            build/**.elf
-            build/**.nro
+            build/**/*.elf
+            build/**/*.nro
 
   Switch-Debug:
     runs-on: ubuntu-latest
@@ -48,5 +48,5 @@ jobs:
         with:
           name: Nintendo Switch (Debug)-${{ steps.commit.outputs.short }}
           path: |
-            build/**.elf
-            build/**.nro
+            build/**/*.elf
+            build/**/*.nro

@@ -13,6 +13,12 @@ namespace love
     class Shader final : public ShaderBase, public Volatile
     {
       public:
+        struct UniformInfo
+        {
+            uint32_t location;
+            std::string name;
+        };
+
         Shader(StandardShader shader);
 
         virtual ~Shader();
@@ -25,6 +31,10 @@ namespace love
 
         ptrdiff_t getHandle() const override;
 
+        const UniformInfo getUniform(const std::string& name) const;
+
+        bool hasUniform(const std::string& name) const;
+
         void updateBuiltinUniforms(GraphicsBase* graphics, Uniform* uniform);
 
         uint32_t getPixelSamplerLocation(int index);
@@ -36,7 +46,6 @@ namespace love
         bool validate(const char* filepath, std::string& error);
         WHBGfxShaderGroup program;
 
-        uint32_t modelViewLocation;
-        uint32_t projectionLocation;
+        UniformInfo uniform;
     };
 } // namespace love

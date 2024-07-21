@@ -49,6 +49,11 @@ namespace love
 
         void copyScanBuffer();
 
+        void useState()
+        {
+            GX2SetContextState(this->state);
+        }
+
       private:
         static constexpr auto FORMAT      = GX2_SURFACE_FORMAT_UNORM_R8_G8_B8_A8;
         static constexpr auto BUFFER_MODE = GX2_BUFFERING_MODE_DOUBLE;
@@ -65,5 +70,7 @@ namespace love
 
         void* scanBuffer;
         uint32_t scanBufferSize;
+
+        GX2ContextState* state;
     };
 } // namespace love

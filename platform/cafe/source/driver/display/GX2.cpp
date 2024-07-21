@@ -140,14 +140,15 @@ namespace love
             Keyboard()->initialize();
 
         this->context.winding     = GX2_FRONT_FACE_CCW;
-        this->context.cullBack    = true;
+        this->context.cullBack    = false;
+        this->context.cullFront   = false;
         this->context.depthTest   = false;
-        this->context.depthWrite  = false;
+        this->context.depthWrite  = true;
         this->context.compareMode = GX2_COMPARE_FUNC_ALWAYS;
 
-        this->uniform            = (Uniform*)malloc(sizeof(Uniform));
-        this->uniform->modelView = glm::mat4(1.0f);
+        this->uniform = (Uniform*)memalign(GX2_UNIFORM_BLOCK_ALIGNMENT, sizeof(Uniform));
 
+        love::currentScreen = (Screen)0;
         this->bindFramebuffer(&this->targets[0].get());
 
         this->initialized = true;
@@ -203,6 +204,12 @@ namespace love
 
         GX2ClearColor(this->getFramebuffer(), color.r, color.g, color.b, color.a);
         GX2SetContextState(this->state);
+
+        if (ShaderBase::current != nullptr)
+        {
+            auto* shader = (Shader*)ShaderBase::current;
+            shader->attach();
+        }
     }
 
     void GX2::clearDepthStencil(int depth, uint8_t mask, double stencil)
@@ -224,10 +231,17 @@ namespace love
         if (bindingModified)
         {
             GX2SetColorBuffer(target, GX2_RENDER_TARGET_0);
-
-            this->setViewport(Rect::EMPTY);
-            this->setScissor(Rect::EMPTY);
+            this->setMode(target->surface.width, target->surface.height);
         }
+    }
+
+    void GX2::setMode(int width, int height)
+    {
+        this->setViewport({ 0, 0, width, height });
+        this->setScissor({ 0, 0, width, height });
+
+        auto* newUniform = this->targets[love::currentScreen].getUniform();
+        std::memcpy(this->uniform, newUniform, sizeof(Uniform));
     }
 
     void GX2::setSamplerState(TextureBase* texture, const SamplerState& state)
@@ -267,11 +281,10 @@ namespace love
 
     void GX2::prepareDraw(GraphicsBase* graphics)
     {
-        if (Shader::current != nullptr && this->dirtyProjection)
+        if (Shader::current != nullptr)
         {
             auto* shader = (Shader*)ShaderBase::current;
             shader->updateBuiltinUniforms(graphics, this->uniform);
-            this->dirtyProjection = false;
         }
     }
 
@@ -325,43 +338,23 @@ namespace love
         GX2WaitForFlip();
     }
 
-    void GX2::setViewport(const Rect& viewport)
+    void GX2::setViewport(const Rect& rect)
     {
-        if (!this->inFrame)
-            return;
+        Rect view = rect;
+        if (rect == Rect::EMPTY)
+            view = this->targets[love::currentScreen].getViewport();
 
-        bool isEmptyViewport = viewport == Rect::EMPTY;
-
-        const int x = isEmptyViewport ? 0 : viewport.x;
-        const int y = isEmptyViewport ? 0 : viewport.y;
-
-        const int width  = isEmptyViewport ? this->context.boundFramebuffer->surface.width : viewport.w;
-        const int height = isEmptyViewport ? this->context.boundFramebuffer->surface.height : viewport.h;
-
-        GX2SetViewport(x, y, width, height, Framebuffer::Z_NEAR, Framebuffer::Z_FAR);
-        this->context.viewport = viewport;
-
-        // clang-format off
-        auto ortho = glm::ortho(0.0f, (float)width, (float)height, 0.0f, Framebuffer::Z_NEAR, Framebuffer::Z_FAR);
-        this->uniform->projection = ortho;
-        this->dirtyProjection = true;
-        // clang-format on
+        GX2SetViewport(view.x, view.y, view.w, view.h, Framebuffer::Z_NEAR, Framebuffer::Z_FAR);
+        this->context.viewport = view;
     }
 
-    void GX2::setScissor(const Rect& scissor)
+    void GX2::setScissor(const Rect& rect)
     {
-        if (!this->inFrame)
-            return;
+        Rect scissor = rect;
+        if (rect == Rect::EMPTY)
+            scissor = this->targets[love::currentScreen].getScissor();
 
-        bool isEmptyScissor = scissor == Rect::EMPTY;
-
-        const int x = isEmptyScissor ? 0 : scissor.x;
-        const int y = isEmptyScissor ? 0 : scissor.y;
-
-        const int width  = isEmptyScissor ? this->context.boundFramebuffer->surface.width : scissor.w;
-        const int height = isEmptyScissor ? this->context.boundFramebuffer->surface.height : scissor.h;
-
-        GX2SetScissor(x, y, width, height);
+        GX2SetScissor(scissor.x, scissor.y, scissor.w, scissor.h);
         this->context.scissor = scissor;
     }
 

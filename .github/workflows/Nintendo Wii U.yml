@@ -24,8 +24,8 @@ jobs:
         with:
           name: Nintendo Wii U-${{ steps.commit.outputs.short }}
           path: |
-            build/**.elf
-            build/**.wuhb
+            build/**/*.elf
+            build/**/*.wuhb
 
   WiiU-Debug:
     runs-on: ubuntu-latest
@@ -48,5 +48,5 @@ jobs:
         with:
           name: Nintendo Wii U (Debug)-${{ steps.commit.outputs.short }}
           path: |
-            build/**.elf
-            build/**.wuhb
+            build/**/*.elf
+            build/**/*.wuhb

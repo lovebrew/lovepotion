@@ -72,6 +72,8 @@ namespace love
 
         void bindTextureToUnit(GX2Texture* texture, GX2Sampler* sampler, int unit);
 
+        void setMode(int width, int height);
+
         // clang-format off
         ENUMMAP_DECLARE(PixelFormats, PixelFormat, GX2SurfaceFormat,
             { PIXELFORMAT_R8_UNORM,         GX2_SURFACE_FORMAT_UNORM_R8          },

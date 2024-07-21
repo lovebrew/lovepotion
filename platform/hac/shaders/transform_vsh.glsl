@@ -15,7 +15,7 @@ layout (std140, binding = 0) uniform Transformation
 
 void main()
 {
-    vec4 pos = u.mdlvMtx * vec4(inPos, 1.0);
+    vec4 pos = u.mdlvMtx * vec4(inPos, 0.0, 1.0);
     gl_Position = u.projMtx * pos;
 
     outColor = inColor;

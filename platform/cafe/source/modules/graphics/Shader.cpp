@@ -14,7 +14,7 @@
 
 namespace love
 {
-    Shader::Shader(StandardShader type)
+    Shader::Shader(StandardShader type) : uniform {}
     {
         std::string error;
 
@@ -50,8 +50,7 @@ namespace love
         WHBGfxInitShaderAttribute(&this->program, "inColor",    0, COLOR_OFFSET,    GX2_ATTRIB_FORMAT_FLOAT_32_32_32_32);
         // clang-format on
 
-        this->modelViewLocation  = GX2GetVertexUniformVar(this->program.vertexShader, "mdlvMtx")->offset;
-        this->projectionLocation = GX2GetVertexUniformVar(this->program.vertexShader, "projMtx")->offset;
+        this->uniform = this->getUniform("Transformation");
 
         if (!WHBGfxInitFetchShader(&this->program))
             throw love::Exception("Failed to initialize Fetch Shader");
@@ -82,16 +81,35 @@ namespace love
         return this->program.pixelShader->samplerVars[index].location;
     }
 
+    const Shader::UniformInfo Shader::getUniform(const std::string& name) const
+    {
+        const auto count = this->program.vertexShader->uniformBlockCount;
+
+        for (size_t index = 0; index < count; index++)
+        {
+            const auto uniform = this->program.vertexShader->uniformBlocks[index];
+
+            if (uniform.name == name)
+                return UniformInfo { uniform.offset, name };
+        }
+
+        return {};
+    }
+
+    bool Shader::hasUniform(const std::string& name) const
+    {
+        return this->uniform.name == name;
+    }
+
     void Shader::updateBuiltinUniforms(GraphicsBase* graphics, Uniform* uniform)
     {
         if (current != this)
             return;
 
         auto transform = graphics->getTransform();
-        // we will update the uniform block with the new transformation matrix
 
-        GX2SetVertexUniformReg(this->modelViewLocation, 16, (const void*)&uniform->modelView);
-        GX2SetVertexUniformReg(this->projectionLocation, 16, (const void*)&uniform->projection);
+        GX2Invalidate(INVALIDATE_UNIFORM_BLOCK, uniform, sizeof(Uniform));
+        GX2SetVertexUniformBlock(this->uniform.location, sizeof(Uniform), uniform);
     }
 
     ptrdiff_t Shader::getHandle() const
@@ -105,7 +123,7 @@ namespace love
         {
             Graphics::flushBatchedDrawsGlobal();
 
-            GX2SetShaderMode(GX2_SHADER_MODE_UNIFORM_REGISTER);
+            GX2SetShaderMode(GX2_SHADER_MODE_UNIFORM_BLOCK);
 
             GX2SetFetchShader(&this->program.fetchShader);
             GX2SetVertexShader(this->program.vertexShader);

@@ -5,12 +5,16 @@
 
 #include <malloc.h>
 
+#include "utility/logfile.hpp"
+
 namespace love
 {
     Framebuffer::Framebuffer() : target {}, depth {}, scanBuffer(nullptr), scanBufferSize(0)
     {
-        this->uniform            = (Uniform*)malloc(sizeof(Uniform));
-        this->uniform->modelView = glm::mat4(1.0f);
+        this->uniform = (Uniform*)memalign(GX2_UNIFORM_BLOCK_ALIGNMENT, sizeof(Uniform));
+
+        this->uniform->modelView  = glm::mat4(1.0f);
+        this->uniform->projection = glm::mat4(1.0f);
     }
 
     void Framebuffer::destroy()
@@ -74,7 +78,7 @@ namespace love
 
     void Framebuffer::copyScanBuffer()
     {
-        GX2CopyColorBufferToScanBuffer(&this->target, (GX2ScanTarget)this->mode);
+        GX2CopyColorBufferToScanBuffer(&this->target, (GX2ScanTarget)this->id);
     }
 
     void Framebuffer::create(const ScreenInfo& info)
@@ -96,7 +100,6 @@ namespace love
 
             GX2CalcTVSize(mode, FORMAT, BUFFER_MODE, &this->scanBufferSize, &unknown);
             GX2SetTVScale(info.width, info.height);
-
             this->mode = mode;
         }
         else
@@ -106,19 +109,31 @@ namespace love
 
             GX2CalcDRCSize(mode, FORMAT, BUFFER_MODE, &this->scanBufferSize, &unknown);
             GX2SetDRCScale(info.width, info.height);
-
             this->mode = mode;
         }
 
+        this->id     = info.id;
         this->width  = info.width;
         this->height = info.height;
-        this->id     = info.id;
 
         this->viewport = { 0, 0, info.width, info.height };
         this->scissor  = { 0, 0, info.width, info.height };
 
-        this->uniform->projection =
-            glm::ortho(0.0f, (float)info.width, (float)info.height, 0.0f, Z_NEAR, Z_FAR);
+        auto ortho = glm::ortho(0.0f, (float)info.width, (float)info.height, 0.0f, Z_NEAR, Z_FAR);
+
+        /* glm::value_ptr lets us access the data linearly rather than an XxY matrix */
+        uint32_t* dstModel = (uint32_t*)glm::value_ptr(this->uniform->modelView);
+        uint32_t* dstProj  = (uint32_t*)glm::value_ptr(this->uniform->projection);
+
+        const size_t count = sizeof(glm::mat4) / sizeof(uint32_t);
+
+        uint32_t* model = (uint32_t*)glm::value_ptr(glm::mat4(1.0f));
+        for (size_t index = 0; index < count; index++)
+            dstModel[index] = __builtin_bswap32(model[index]);
+
+        uint32_t* projection = (uint32_t*)glm::value_ptr(ortho);
+        for (size_t index = 0; index < count; index++)
+            dstProj[index] = __builtin_bswap32(projection[index]);
     }
 
     void Framebuffer::setScissor(const Rect& scissor)
