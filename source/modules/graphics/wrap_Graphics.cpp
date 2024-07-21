@@ -1556,6 +1556,56 @@ int Wrap_Graphics::points(lua_State* L)
     return 0;
 }
 
+int Wrap_Graphics::line(lua_State* L)
+{
+    int argc     = lua_gettop(L);
+    int arg1Type = lua_type(L, 1);
+    bool isTable = false;
+
+    if (argc == 1 && arg1Type == LUA_TTABLE)
+    {
+        argc    = (int)luax_objlen(L, 1);
+        isTable = true;
+    }
+
+    if (arg1Type != LUA_TTABLE && arg1Type != LUA_TNUMBER)
+        return luax_typeerror(L, 1, "table or number");
+    else if (argc % 2 != 0)
+        return luaL_error(L, "Number of vertex components must be a multiple of two.");
+    else if (argc < 4)
+        return luaL_error(L, "Need at least two vertices to draw a line.");
+
+    int numVertices = argc / 2;
+
+    auto* coords = instance()->getScratchBuffer<Vector2>(numVertices);
+
+    if (isTable)
+    {
+        for (int index = 0; index < numVertices; ++index)
+        {
+            lua_rawgeti(L, 1, (index * 2) + 1);
+            lua_rawgeti(L, 1, (index * 2) + 2);
+
+            coords[index].x = luax_checkfloat(L, -2);
+            coords[index].y = luax_checkfloat(L, -1);
+
+            lua_pop(L, 2);
+        }
+    }
+    else
+    {
+        for (int index = 0; index < numVertices; ++index)
+        {
+            coords[index].x = luax_checkfloat(L, (index * 2) + 1);
+            coords[index].y = luax_checkfloat(L, (index * 2) + 2);
+        }
+    }
+
+    luax_catchexcept(L, [&]() { instance()->polyline(std::span(coords, numVertices)); });
+
+    return 0;
+}
+
 int Wrap_Graphics::getWidth(lua_State* L)
 {
     lua_pushinteger(L, instance()->getWidth());
@@ -1742,6 +1792,7 @@ static constexpr luaL_Reg functions[] =
     { "ellipse",                Wrap_Graphics::ellipse               },
     { "arc",                    Wrap_Graphics::arc                   },
     { "points",                 Wrap_Graphics::points                },
+    { "line",                   Wrap_Graphics::line                  },
 
     { "newTexture",             Wrap_Graphics::newTexture            },
     { "newImage",               Wrap_Graphics::newImage              },

@@ -183,6 +183,8 @@ namespace Wrap_Graphics
 
     int points(lua_State* L);
 
+    int line(lua_State* L);
+
     int draw(lua_State* L);
 
     int newMesh(lua_State* L);

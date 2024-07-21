@@ -364,7 +364,14 @@ namespace love
         for (int index = 0; index < count; index++)
         {
             const auto& position = positions[index];
-            auto& color          = colors[index];
+
+            if (!colors)
+            {
+                this->circle(DRAW_FILL, position.x, position.y, pointSize);
+                return;
+            }
+
+            auto& color = colors[index];
 
             gammaCorrectColor(this->getColor());
 
