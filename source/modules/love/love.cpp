@@ -145,6 +145,22 @@ static int love_setDeprecationOutput(lua_State* L)
     return 0;
 }
 
+static constexpr const char* ERROR_PANIC = "PANIC: unprotected error in call to Lua API (%s)";
+
+/*
+ * If an error happens outside any protected environment, Lua calls a panic function and then calls
+ * exit(EXIT_FAILURE), thus exiting the host application. We want to inform the user of the error.
+ * However, this will only be informative via the console.
+ */
+static int love_atpanic(lua_State* L)
+{
+    char message[0x80] {};
+    snprintf(message, sizeof(message), ERROR_PANIC, lua_tostring(L, -1));
+
+    printf("%s\n", message);
+    return 0;
+}
+
 static void luax_addcompatibilityalias(lua_State* L, const char* module, const char* name, const char* alias)
 {
     lua_getglobal(L, module);
@@ -228,6 +244,8 @@ int love_initialize(lua_State* L)
     // love::luasocket::preload(L);
     love::luax_preload(L, luaopen_luautf8, "utf8");
     love::luax_preload(L, luaopen_https, "https");
+
+    lua_atpanic(L, love_atpanic);
 
     return 1;
 }

@@ -533,7 +533,7 @@ namespace love
 
     void Source::setLooping(bool looping)
     {
-        if (this->sourceType == TYPE_STREAM)
+        if (this->sourceType == TYPE_QUEUE)
             throw QueueLoopingException();
 
         if (this->valid && this->sourceType == TYPE_STATIC)
