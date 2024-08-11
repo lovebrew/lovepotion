@@ -299,6 +299,8 @@ namespace love
 
     lua_Number luax_checknumberclamped01(lua_State* L, int index);
 
+    Reference* luax_refif(lua_State* L, int type);
+
     // #endregion
 
     // #region Registry

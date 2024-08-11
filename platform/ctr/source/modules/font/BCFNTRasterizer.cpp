@@ -74,6 +74,11 @@ namespace love
         return result;
     }
 
+    CFNT_s* BCFNTRasterizer::getUserdata(Data* data) const
+    {
+        return (this->userdata == nullptr) ? (CFNT_s*)data->getData() : this->userdata;
+    }
+
     BCFNTRasterizer::BCFNTRasterizer(Data* data, int size)
     {
         this->dpiScale = 1.0f;
@@ -82,11 +87,21 @@ namespace love
         if (this->size == 0)
             throw love::Exception("Invalid font size: {:d}", this->size);
 
-        /* if we already have this data loaded, fixing this (again) is a bad time™ */
-        if ((uintptr_t)fontGetInfo((CFNT_s*)data->getData())->tglp < (uintptr_t)data->getData())
-            fontFixPointers((CFNT_s*)data->getData());
+        if (linearGetSize(data->getData()) == 0)
+        {
+            this->userdata = (CFNT_s*)linearAlloc(data->getSize());
 
-        auto* fontInfo  = fontGetInfo((CFNT_s*)data->getData());
+            if (this->userdata == nullptr)
+                throw love::Exception(E_OUT_OF_MEMORY);
+
+            std::memcpy(this->userdata, data->getData(), data->getSize());
+        }
+
+        /* if we already have this data loaded, fixing this (again) is a bad time™ */
+        if ((uintptr_t)fontGetInfo(this->getUserdata(data))->tglp < (uintptr_t)this->getUserdata(data))
+            fontFixPointers(this->getUserdata(data));
+
+        auto* fontInfo  = fontGetInfo(this->getUserdata(data));
         auto* sheetInfo = fontInfo->tglp;
 
         this->scale = std::floor(this->size * this->dpiScale + 0.5f) / sheetInfo->cellHeight;
@@ -104,7 +119,10 @@ namespace love
     }
 
     BCFNTRasterizer::~BCFNTRasterizer()
-    {}
+    {
+        if (this->userdata)
+            linearFree(this->userdata);
+    }
 
     TextShaper* BCFNTRasterizer::newTextShaper()
     {
@@ -114,7 +132,7 @@ namespace love
     bool BCFNTRasterizer::hasGlyph(uint32_t codepoint) const
     {
         const int index  = this->getGlyphIndex(codepoint);
-        const auto* info = fontGetInfo((CFNT_s*)this->data->getData());
+        const auto* info = fontGetInfo(this->getUserdata(this->data));
 
         return index != info->alterCharIndex && codepoint != '\t';
     }
@@ -125,7 +143,7 @@ namespace love
         const auto flag = GLYPH_POS_CALC_VTXCOORD;
 
         fontGlyphPos_s result {};
-        fontCalcGlyphPos(&result, (CFNT_s*)this->data->getData(), index, flag, this->scale, this->scale);
+        fontCalcGlyphPos(&result, this->getUserdata(this->data), index, flag, this->scale, this->scale);
 
         return result.xAdvance;
     }
@@ -135,7 +153,7 @@ namespace love
         fontGlyphPos_s result {};
         const auto flag = GLYPH_POS_CALC_VTXCOORD;
 
-        fontCalcGlyphPos(&result, (CFNT_s*)this->data->getData(), index, flag, this->scale, this->scale);
+        fontCalcGlyphPos(&result, this->getUserdata(this->data), index, flag, this->scale, this->scale);
 
         GlyphMetrics metrics {};
         metrics.height   = this->metrics.height;
@@ -151,7 +169,7 @@ namespace love
         sheet.right  = result.texcoord.right;
         sheet.bottom = result.texcoord.bottom;
 
-        const auto* info = fontGetGlyphInfo((CFNT_s*)this->data->getData());
+        const auto* info = fontGetGlyphInfo(this->getUserdata(this->data));
 
         PixelFormat format;
         if (!citro3d::getConstant((GPU_TEXCOLOR)info->sheetFmt, format))
@@ -162,7 +180,7 @@ namespace love
 
     int BCFNTRasterizer::getGlyphIndex(uint32_t codepoint) const
     {
-        return love::fontGlyphIndexFromCodePoint((CFNT_s*)this->data->getData(), codepoint);
+        return love::fontGlyphIndexFromCodePoint(this->getUserdata(this->data), codepoint);
     }
 
     int BCFNTRasterizer::getGlyphCount() const
@@ -172,6 +190,6 @@ namespace love
 
     ptrdiff_t BCFNTRasterizer::getHandle() const
     {
-        return (ptrdiff_t)this->data->getData();
+        return (ptrdiff_t)this->getUserdata(this->data);
     }
 } // namespace love

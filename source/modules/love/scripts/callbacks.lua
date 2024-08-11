@@ -207,7 +207,7 @@ end
 -- local is_wii_u = love._os == "Cafe"
 
 local function get3DDepth(screen)
-    if love._console ~= "3ds" then
+    if love._console ~= "3DS" then
         return nil
     end
 

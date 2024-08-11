@@ -4,12 +4,16 @@
 
 #include <3ds.h>
 
+using SystemFontType = CFG_Region;
+
 namespace love
 {
     class FontModule : public FontModuleBase
     {
       public:
         FontModule();
+
+        static SystemFont* loadSystemFontByType(CFG_Region region);
 
         static CFNT_s* loadSystemFont(CFG_Region region, size_t& size);
 
@@ -19,6 +23,15 @@ namespace love
                                           const Rasterizer::Settings& settings) const override;
 
         using FontModuleBase::newTrueTypeRasterizer;
+
+        // clang-format off
+        STRINGMAP_DECLARE(SystemFonts, CFG_Region,
+          { "standard",  CFG_REGION_USA },
+          { "chinese",   CFG_REGION_CHN },
+          { "korean",    CFG_REGION_KOR },
+          { "taiwanese", CFG_REGION_TWN }
+        );
+        // clang-format on
 
       private:
         static constexpr auto FONT_ARCHIVE_TITLE = 0x0004009B00014002ULL;

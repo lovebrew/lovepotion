@@ -27,6 +27,8 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 set(APP_TITLE  "LÖVE Potion")
 set(APP_AUTHOR "LÖVEBrew Team")
 
+file(COPY libraries/luasocket DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(APP_TITLE "LÖVE Potion (${COMMIT_HASH})")
     target_compile_definitions(${PROJECT_NAME} PRIVATE __DEBUG__=1)
@@ -79,6 +81,8 @@ if(NINTENDO_3DS)
     target_sources(${PROJECT_NAME} PRIVATE
         source/modules/image/magpie/T3XHandler.cpp
     )
+
+    execute_process(COMMAND patch -d ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket -N -i ${PROJECT_SOURCE_DIR}/platform/ctr/libraries/luasocket.patch)
 endif()
 
 if (NINTENDO_SWITCH)
@@ -212,6 +216,47 @@ add_library(lua53
 )
 target_link_libraries(lua53 PRIVATE PkgConfig::lua51)
 
+add_library(luasocket
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/luasocket.hpp
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/luasocket.cpp
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/auxiliar.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/auxiliar.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/buffer.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/buffer.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/compat.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/compat.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/except.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/except.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/inet.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/inet.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/io.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/io.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/ltn12.lua
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/luasocket.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/luasocket.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/mime.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/mime.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/options.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/options.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/pierror.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/select.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/select.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/smtp.lua
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/socket.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/tcp.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/tcp.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/timeout.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/timeout.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/udp.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/udp.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/usocket.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/usocket.h
+)
+target_link_libraries(luasocket PRIVATE PkgConfig::lua51)
+target_include_directories(luasocket PRIVATE
+    libraries/lua53
+)
+
 FetchContent_Declare(lua-https
     GIT_REPOSITORY https://github.com/love2d/lua-https
     GIT_TAG        main
@@ -323,7 +368,7 @@ endif()
 
 # link everything else
 target_link_libraries(${PROJECT_NAME} PRIVATE
-    ${APP_LIBS} z luabit lua53 ogg modplug lua-https
+    ${APP_LIBS} z luabit lua53 ogg modplug lua-https luasocket
 )
 
 
@@ -333,6 +378,7 @@ include_directories(
     libraries/dr
     libraries/lua53
     libraries/noise1234
+    libraries/luasocket
     libraries/physfs
     libraries/wuff
     libraries/utf8
@@ -351,6 +397,7 @@ source/common/Message.cpp
 source/common/Module.cpp
 source/common/Object.cpp
 source/common/pixelformat.cpp
+source/common/Reference.cpp
 source/common/Stream.cpp
 source/common/types.cpp
 source/common/Variant.cpp

@@ -1,3 +1,5 @@
+#include "common/Reference.hpp"
+
 #include "modules/keyboard/wrap_Keyboard.hpp"
 
 using namespace love;
@@ -53,6 +55,43 @@ int Wrap_Keyboard::isModifierActive(lua_State* L)
     return 1;
 }
 
+static Keyboard::KeyboardResult textInputValidationCallback(const Keyboard::KeyboardValidationInfo* info,
+                                                            const char* text, Keyboard::ValidationError error)
+{
+    lua_State* L    = (lua_State*)info->luaState;
+    auto* reference = (Reference*)info->data;
+
+    if (reference == nullptr)
+        luaL_error(L, "Internal error in text input validation callback.");
+
+    reference->push(L);
+    delete reference;
+
+    luax_pushstring(L, text);
+    lua_call(L, 1, 2);
+
+    const char* result = lua_tostring(L, -2);
+
+    Keyboard::KeyboardResult out;
+    if (!Keyboard::getConstant(result, out))
+        luax_enumerror(L, "keyboard result", Keyboard::KeyboardResults, result);
+
+    const char* message = lua_tostring(L, -1);
+
+    if (message != nullptr)
+    {
+#if defined(__3DS__)
+        *error = message;
+#elif defined(__SWITCH__)
+        std::memcpy(error, message, std::strlen(message));
+#endif
+    }
+
+    lua_pop(L, 2);
+
+    return out;
+}
+
 int Wrap_Keyboard::setTextInput(lua_State* L)
 {
     // clang-format off
@@ -63,7 +102,8 @@ int Wrap_Keyboard::setTextInput(lua_State* L)
         type : Keyboard::TYPE_NORMAL,
         password : false,
         hint : "",
-        maxLength : Keyboard::DEFAULT_INPUT_LENGTH
+        maxLength : Keyboard::DEFAULT_INPUT_LENGTH,
+        callback : nullptr
     };
 
     lua_getfield(L, 1, Keyboard::getConstant(Keyboard::OPTION_TYPE));
@@ -92,6 +132,22 @@ int Wrap_Keyboard::setTextInput(lua_State* L)
     lua_getfield(L, 1, Keyboard::getConstant(Keyboard::OPTION_MAX_LENGTH));
     if (!lua_isnoneornil(L, -1))
         options.maxLength = luaL_checkinteger(L, -1);
+    lua_pop(L, 1);
+
+    lua_getfield(L, 1, Keyboard::getConstant(Keyboard::OPTION_CALLBACK));
+    if (!lua_isnoneornil(L, -1))
+    {
+        Keyboard::KeyboardValidationInfo info {};
+
+        luaL_checktype(L, -1, LUA_TFUNCTION);
+        lua_pushvalue(L, -1);
+
+        info.data = luax_refif(L, LUA_TFUNCTION);
+        lua_pop(L, 1);
+        info.callback = textInputValidationCallback;
+
+        options.callback = info;
+    }
     lua_pop(L, 1);
 
     instance()->setTextInput(options);

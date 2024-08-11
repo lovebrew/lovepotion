@@ -3,6 +3,17 @@
 
 namespace love
 {
+    static SwkbdCallbackResult inputCallback(void* udata, const char** msg, const char* text, size_t length)
+    {
+        auto luaCallback = (KeyboardBase::KeyboardValidationInfo*)udata;
+        auto result      = luaCallback->callback(luaCallback, text, msg);
+
+        SwkbdCallbackResult out;
+        Keyboard::getConstant(result, out);
+
+        return out;
+    }
+
     Keyboard::Keyboard() : KeyboardBase(), state {}
     {}
 
@@ -24,6 +35,7 @@ namespace love
         swkbdInit(&this->state, type, 2, length);
         swkbdSetInitialText(&this->state, this->text.get());
         swkbdSetHintText(&this->state, options.hint.data());
+        swkbdSetFilterCallback(&this->state, inputCallback, (void*)&options.callback);
 
         if (options.password)
             swkbdSetPasswordMode(&this->state, SWKBD_PASSWORD_HIDE_DELAY);

@@ -19,6 +19,11 @@ namespace love
     }
     // #endregion
 
+    SystemFont* FontModule::loadSystemFontByType(SystemFontType type)
+    {
+        return new SystemFont(type);
+    }
+
     static CFNT_s* loadFromArchive(uint64_t title, const char* path, size_t& outSize)
     {
         std::unique_ptr<uint8_t[]> data;
@@ -103,7 +108,7 @@ namespace love
 
     FontModule::FontModule() : FontModuleBase("love.font.ctr")
     {
-        this->defaultFontData.set(new SystemFont(CFG_REGION_USA));
+        this->defaultFontData.set(new SystemFont(CFG_REGION_USA), Acquire::NO_RETAIN);
     }
 
     Rasterizer* FontModule::newRasterizer(FileData* data) const

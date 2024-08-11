@@ -190,7 +190,7 @@ static constexpr luaL_Reg functions[] =
     { "getFont",        Wrap_TextBatch::getFont       },
     { "getWidth",       Wrap_TextBatch::getWidth      },
     { "getHeight",      Wrap_TextBatch::getHeight     },
-    { "getDimensions",  Wrap_TextBatch::getDimensions },
+    { "getDimensions",  Wrap_TextBatch::getDimensions }
 };
 // clang-format on
 

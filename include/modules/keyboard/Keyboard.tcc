@@ -5,12 +5,39 @@
 #include "common/Result.hpp"
 
 #include <memory>
+#include <string_view>
 
 namespace love
 {
     class KeyboardBase : public Module
     {
       public:
+        enum KeyboardResult
+        {
+            RESULT_OK,       //< Input accepted
+            RESULT_CANCEL,   //< Input cancelled
+            RESULT_CONTINUE, //< Input validation callback should continue
+            RESULT_MAX_ENUM
+        };
+
+        struct KeyboardValidationInfo;
+
+#if defined(__3DS__)
+        using ValidationError = const char**;
+#elif defined(__SWITCH__)
+        using ValidationError = char*;
+#endif
+
+        typedef KeyboardResult (*KeyboardValidationCallback)(const KeyboardValidationInfo* info,
+                                                             const char* text, ValidationError error);
+
+        struct KeyboardValidationInfo
+        {
+            KeyboardValidationCallback callback = nullptr;
+            void* data                          = nullptr;
+            void* luaState                      = nullptr;
+        };
+
         enum KeyboardType
         {
             TYPE_NORMAL,
@@ -20,10 +47,11 @@ namespace love
 
         struct KeyboardOptions
         {
-            uint8_t type;
-            bool password;
-            std::string_view hint;
-            uint32_t maxLength;
+            uint8_t type;                    // KeyboardType
+            bool password;                   // Whether the input should be hidden
+            std::string_view hint;           // Hint text
+            uint32_t maxLength;              // Maximum length of the input
+            KeyboardValidationInfo callback; // Callback function
         };
 
         enum KeyboardOption
@@ -32,6 +60,7 @@ namespace love
             OPTION_PASSCODE,
             OPTION_HINT,
             OPTION_MAX_LENGTH,
+            OPTION_CALLBACK,
             OPTION_MAX_ENUM
         };
 
@@ -46,11 +75,7 @@ namespace love
         static constexpr uint32_t MULTIPLIER       = 3;
 #endif
 
-        KeyboardBase() :
-            Module(M_KEYBOARD, "love.keyboard"),
-            keyRepeat(false),
-            showing(false),
-            text(nullptr)
+        KeyboardBase() : Module(M_KEYBOARD, "love.keyboard"), keyRepeat(false), showing(false), text(nullptr)
         {}
 
         virtual ~KeyboardBase()
@@ -86,13 +111,20 @@ namespace love
             { "type",      OPTION_TYPE       },
             { "password",  OPTION_PASSCODE   },
             { "hint",      OPTION_HINT       },
-            { "maxLength", OPTION_MAX_LENGTH }
+            { "maxLength", OPTION_MAX_LENGTH },
+            { "callback",  OPTION_CALLBACK   }
         );
 
         STRINGMAP_DECLARE(KeyboardTypes, KeyboardType,
             { "normal", TYPE_NORMAL },
             { "qwerty", TYPE_QWERTY },
             { "numpad", TYPE_NUMPAD }
+        );
+
+        STRINGMAP_DECLARE(KeyboardResults, KeyboardResult,
+            { "ok",       RESULT_OK       },
+            { "cancel",   RESULT_CANCEL   },
+            { "continue", RESULT_CONTINUE }
         );
         // clang-format on
 

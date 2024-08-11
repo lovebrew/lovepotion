@@ -6,6 +6,7 @@
 
 #include "modules/graphics/wrap_Font.hpp"
 #include "modules/graphics/wrap_Quad.hpp"
+#include "modules/graphics/wrap_TextBatch.hpp"
 #include "modules/graphics/wrap_Texture.hpp"
 
 #include "modules/image/Image.hpp"
@@ -1821,7 +1822,8 @@ static constexpr lua_CFunction types[] =
     open_drawable,
     love::open_texture,
     love::open_quad,
-    love::open_font
+    love::open_font,
+    love::open_textbatch
 };
 // clang-format on
 

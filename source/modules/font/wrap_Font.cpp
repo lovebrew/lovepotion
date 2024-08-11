@@ -75,6 +75,25 @@ static Rasterizer::Settings luax_checktruetypesettings(lua_State* L, int index)
     return settings;
 }
 
+/*
+** This is a simplified version(?) from 3.0 to make it suck less.
+** We check the system font type *first*, but if it fails, we just get the file data via filename.
+** Getting the data by filename will automatically propagate the error if the file doesn't exist.
+**
+** On Nintendo 3DS, we return a Data object wrapped through SystemFont because of linear memory.
+*/
+static Data* luax_checkfilename(lua_State* L, int index)
+{
+    // CFG_REGION_USA, PlSharedFontType_Standard, OS_SHAREDDATATYPE_FONT_STANDARD
+    auto systemFontType = SystemFontType(0);
+    const char* name    = luaL_checkstring(L, index);
+
+    if (!FontModule::getConstant(name, systemFontType))
+        return luax_getfiledata(L, index);
+
+    return FontModule::loadSystemFontByType(systemFontType);
+}
+
 int Wrap_FontModule::newTrueTypeRasterizer(lua_State* L)
 {
     Rasterizer* rasterizer = nullptr;
@@ -88,6 +107,31 @@ int Wrap_FontModule::newTrueTypeRasterizer(lua_State* L)
             settings = luax_checktruetypesettings(L, 2);
 
         luax_catchexcept(L, [&] { rasterizer = instance()->newTrueTypeRasterizer(size, settings); });
+    }
+    else
+    {
+        int size = luaL_optinteger(L, 2, 12);
+
+        Rasterizer::Settings settings {};
+        if (!lua_isnoneornil(L, 3))
+            settings = luax_checktruetypesettings(L, 3);
+
+        Data* data = nullptr;
+
+        if (luax_istype(L, 1, Data::type))
+        {
+            data = luax_checkdata(L, 1);
+            data->retain();
+        }
+        else
+            data = luax_checkfilename(L, 1);
+
+        // clang-format off
+        luax_catchexcept(
+            L, [&] { rasterizer = instance()->newTrueTypeRasterizer(data, size, settings); },
+            [&](bool) { data->release(); }
+        );
+        // clang-format on
     }
 
     luax_pushtype(L, rasterizer);

@@ -1,6 +1,8 @@
 #include "common/luax.hpp"
 #include "common/version.hpp"
 
+#include <luasocket.hpp>
+
 #include "modules/love/love.hpp"
 
 #include "modules/audio/wrap_Audio.hpp"
@@ -240,6 +242,9 @@ int love_initialize(lua_State* L)
     lua_pushstring(L, __OS__);
     lua_setfield(L, -2, "_os");
 
+    lua_pushstring(L, __CONSOLE__);
+    lua_setfield(L, -2, "_console");
+
     lua_pushcfunction(L, love_setDeprecationOutput);
     lua_setfield(L, -2, "setDeprecationOutput");
 
@@ -254,7 +259,7 @@ int love_initialize(lua_State* L)
     luax_addcompatibilityalias(L, "string", "gmatch", "gfind");
 #endif
 
-    // love::luasocket::preload(L);
+    love::luasocket::preload(L);
     love::luax_preload(L, luaopen_luautf8, "utf8");
     love::luax_preload(L, luaopen_https, "https");
 

@@ -991,8 +991,8 @@ namespace love
 
         for (int index = 0; index < points; ++index, phi += shift)
         {
-            coords[index].x = x + a * std::cos(phi);
-            coords[index].y = y + b * std::sin(phi);
+            coords[index].x = x + a * std::cosf(phi);
+            coords[index].y = y + b * std::sinf(phi);
         }
 
         coords[points] = coords[0];

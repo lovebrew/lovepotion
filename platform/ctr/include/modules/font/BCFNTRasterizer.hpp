@@ -49,7 +49,11 @@ namespace love
         ptrdiff_t getHandle() const override;
 
       private:
+        CFNT_s* getUserdata(Data* data) const;
+
         int glyphCount;
         float scale;
+
+        CFNT_s* userdata;
     };
 } // namespace love
