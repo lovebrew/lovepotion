@@ -3,8 +3,6 @@
 #include <padscore/kpad.h>
 #include <vpad/input.h>
 
-#include "utility/logfile.hpp"
-
 namespace love::joystick
 {
     int getJoystickCount()

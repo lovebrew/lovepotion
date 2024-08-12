@@ -1,7 +1,5 @@
 #include "modules/joystick/Joystick.hpp"
 
-#include "utility/logfile.hpp"
-
 namespace love
 {
     Joystick::Joystick(int id) : JoystickBase(id)
@@ -208,8 +206,7 @@ namespace love
         return false;
     }
 
-    static bool isProControllerDown(const KPADStatus& status,
-                                    std::span<Joystick::GamepadButton> buttons)
+    static bool isProControllerDown(const KPADStatus& status, std::span<Joystick::GamepadButton> buttons)
     {
         WPADProButton result;
 

@@ -79,8 +79,6 @@ static constexpr std::array<const luaL_Reg, 21> modules =
 }};
 // clang-format on
 
-#include "utility/logfile.hpp"
-
 const char* love_getVersion()
 {
     return __LOVE_VERSION__;
@@ -163,6 +161,7 @@ static int love_atpanic(lua_State* L)
     return 0;
 }
 
+#if __DEBUG__
 static void love_atcpanic()
 {
     try
@@ -175,6 +174,7 @@ static void love_atcpanic()
         std::exit(EXIT_FAILURE);
     }
 }
+#endif
 
 static void luax_addcompatibilityalias(lua_State* L, const char* module, const char* name, const char* alias)
 {
@@ -276,7 +276,7 @@ int love_initialize(lua_State* L)
  * @brief Initializes the console output.
  *
  * Users will need to use telnet on Windows or netcat on Linux/macOS:
- * `telnet/netcat 192.168.x.x 8000`
+ * `telnet/nc 192.168.x.x 8000`
  */
 
 #define SEND(sockfd, s) send(sockfd, s, strlen(s), 0)

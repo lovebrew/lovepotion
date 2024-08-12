@@ -6,8 +6,6 @@
 
 #include "modules/data/wrap_DataModule.hpp"
 
-#include <utility/logfile.hpp>
-
 using namespace love;
 
 int Wrap_File::getSize(lua_State* L)

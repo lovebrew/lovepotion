@@ -16,8 +16,6 @@
 
 #include <malloc.h>
 
-#include "utility/logfile.hpp"
-
 namespace love
 {
 #define Keyboard() (Module::getInstance<Keyboard>(Module::M_KEYBOARD))

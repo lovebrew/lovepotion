@@ -4,8 +4,6 @@
 #include "driver/audio/DigitalSound.hpp"
 #include "driver/audio/DigitalSoundMix.hpp"
 
-#include "utility/logfile.hpp"
-
 namespace love
 {
     SoundChannel::SoundChannel() :

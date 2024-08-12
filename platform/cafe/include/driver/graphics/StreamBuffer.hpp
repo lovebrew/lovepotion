@@ -7,8 +7,6 @@
 #include <gx2r/buffer.h>
 #include <gx2r/draw.h>
 
-#include "utility/logfile.hpp"
-
 namespace love
 {
     template<typename T>

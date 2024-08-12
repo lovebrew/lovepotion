@@ -1,8 +1,6 @@
 #include "modules/graphics/Font.hpp"
 #include "modules/graphics/Graphics.tcc"
 
-#include "utility/logfile.hpp"
-
 namespace love
 {
     Font::Font(Rasterizer* rasterizer, const SamplerState& samplerState) : FontBase(rasterizer, samplerState)

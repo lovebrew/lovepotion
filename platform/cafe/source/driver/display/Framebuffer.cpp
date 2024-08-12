@@ -5,8 +5,6 @@
 
 #include <malloc.h>
 
-#include "utility/logfile.hpp"
-
 namespace love
 {
     Framebuffer::Framebuffer() : target {}, depth {}, scanBuffer(nullptr), scanBufferSize(0)

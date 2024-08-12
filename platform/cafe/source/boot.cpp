@@ -20,8 +20,6 @@
 
 #include <sysapp/launch.h>
 
-#include "utility/logfile.hpp"
-
 namespace love
 {
     // clang-format off
