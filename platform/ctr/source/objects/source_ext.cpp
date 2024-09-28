@@ -334,7 +334,7 @@ double Source<Console::CTR>::Tell(Unit unit)
     }
 
     if (unit == UNIT_SECONDS)
-        return offset / (double)sampleRate / this->channels;
+        return offset / (double)sampleRate;
 
     return offset;
 }
