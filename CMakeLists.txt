@@ -22,7 +22,7 @@ endif()
 include(FetchContent)
 
 set(LOVE_VERSION "12.0")
-set(APP_VERSION  "3.0.0")
+set(APP_VERSION  "3.0.2")
 
 set(APP_TITLE  "LÖVE Potion")
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")

@@ -279,7 +279,7 @@ static constexpr luaL_Reg functions[] =
     { "clone",              Wrap_Source::Clone              },
     { "play",               Wrap_Source::Play               },
     { "pause",              Wrap_Source::Pause              },
-    { "stop",               Wrap_Source::Pause              },
+    { "stop",               Wrap_Source::Stop               },
     { "setVolume",          Wrap_Source::SetVolume          },
     { "getVolume",          Wrap_Source::GetVolume          },
     { "seek",               Wrap_Source::Seek               },

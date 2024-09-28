@@ -98,6 +98,8 @@ function love.boot()
             main_file = source_leaf
             custom_main_file = true
             full_source = love.path.getFull(full_source:sub(1, -(#source_leaf + 1)))
+        elseif nouri:match("%.love$") then
+            full_source = nouri
         end
 
         can_has_game = pcall(love.filesystem.setSource, full_source)
