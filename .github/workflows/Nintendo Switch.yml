@@ -23,7 +23,7 @@ jobs:
       - id: commit
         uses: pr-mpt/actions-commit-hash@v1
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: Nintendo Switch-${{ steps.commit.outputs.short }}
           path: |
@@ -50,7 +50,7 @@ jobs:
       - id: commit
         uses: pr-mpt/actions-commit-hash@v1
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: Nintendo Switch (Debug)-${{ steps.commit.outputs.short }}
           path: |
