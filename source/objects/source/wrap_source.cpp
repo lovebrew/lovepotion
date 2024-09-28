@@ -94,12 +94,13 @@ int Wrap_Source::Seek(lua_State* L)
     if (offset < 0)
         return luaL_argerror(L, 2, "Can't seek to a negative position!");
 
+    auto unit        = std::optional(::Source::UNIT_SECONDS);
     const char* type = lua_isnoneornil(L, 3) ? 0 : lua_tostring(L, 3);
 
-    if (auto found = ::Source::unitTypes.Find(type))
-        self->Seek(offset, *found);
-    else
+    if (type && !(unit = ::Source::unitTypes.Find(type)))
         return luax::EnumError(L, "time unit", ::Source::unitTypes, type);
+
+    self->Seek(offset, *unit);
 
     return 0;
 }
@@ -108,12 +109,13 @@ int Wrap_Source::Tell(lua_State* L)
 {
     auto* self = Wrap_Source::CheckSource(L, 1);
 
+    auto unit        = std::optional(::Source::UNIT_SECONDS);
     const char* type = lua_isnoneornil(L, 2) ? 0 : lua_tostring(L, 2);
 
-    if (auto found = ::Source::unitTypes.Find(type))
-        lua_pushnumber(L, self->Tell(*found));
-    else
+    if (type && !(unit = ::Source::unitTypes.Find(type)))
         return luax::EnumError(L, "time unit", ::Source::unitTypes, type);
+
+    lua_pushnumber(L, self->Tell(*unit));
 
     return 1;
 }
