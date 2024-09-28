@@ -124,12 +124,13 @@ int Wrap_Source::GetDuration(lua_State* L)
 {
     auto* self = Wrap_Source::CheckSource(L, 1);
 
+    auto unit        = std::optional(::Source::UNIT_SECONDS);
     const char* type = lua_isnoneornil(L, 2) ? 0 : lua_tostring(L, 2);
 
-    if (auto found = ::Source::unitTypes.Find(type))
-        lua_pushnumber(L, self->GetDuration(*found));
-    else
+    if (type && !(unit = ::Source::unitTypes.Find(type)))
         return luax::EnumError(L, "time unit", ::Source::unitTypes, type);
+
+    lua_pushnumber(L, self->GetDuration(*unit));
 
     return 1;
 }
