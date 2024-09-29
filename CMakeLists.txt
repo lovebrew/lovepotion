@@ -180,6 +180,8 @@ if (NINTENDO_WIIU)
 
     find_package(Freetype REQUIRED)
     target_link_libraries(${PROJECT_NAME} PRIVATE Freetype::Freetype bz2 png turbojpeg ddsparse)
+
+    execute_process(COMMAND patch -d ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket -N -i ${PROJECT_SOURCE_DIR}/platform/cafe/libraries/luasocket.patch)
 endif()
 
 add_custom_target(test

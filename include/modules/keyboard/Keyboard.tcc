@@ -26,6 +26,8 @@ namespace love
         using ValidationError = const char**;
 #elif defined(__SWITCH__)
         using ValidationError = char*;
+#else
+        using ValidationError = void*;
 #endif
 
         typedef KeyboardResult (*KeyboardValidationCallback)(const KeyboardValidationInfo* info,

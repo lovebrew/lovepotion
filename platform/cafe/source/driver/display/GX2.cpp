@@ -112,8 +112,6 @@ namespace love
 
         GX2Init(attributes);
 
-        this->createFramebuffers();
-
         this->state = (GX2ContextState*)memalign(GX2_CONTEXT_STATE_ALIGNMENT, sizeof(GX2ContextState));
 
         if (!this->state)
@@ -122,8 +120,10 @@ namespace love
         GX2SetupContextStateEx(this->state, false);
         GX2SetContextState(this->state);
 
+        this->createFramebuffers();
+
         GX2SetDepthOnlyControl(false, false, GX2_COMPARE_FUNC_ALWAYS);
-        GX2SetAlphaTest(false, GX2_COMPARE_FUNC_ALWAYS, 0.0f);
+        // GX2SetAlphaTest(false, GX2_COMPARE_FUNC_ALWAYS, 0.0f);
 
         GX2SetColorControl(GX2_LOGIC_OP_COPY, 0xFF, false, true);
         GX2SetSwapInterval(1);
@@ -157,12 +157,7 @@ namespace love
         const auto& info = love::getScreenInfo();
 
         for (size_t index = 0; index < info.size(); ++index)
-        {
-            Framebuffer framebuffer {};
-            framebuffer.create(info[index]);
-
-            this->targets[index] = std::move(framebuffer);
-        }
+            this->targets[index].create(info[index]);
     }
 
     GX2ColorBuffer& GX2::getInternalBackbuffer()
@@ -190,7 +185,7 @@ namespace love
     {
         if (!this->inFrame)
         {
-            GX2SetContextState(this->state);
+            // GX2SetContextState(this->state);
             this->inFrame = true;
         }
     }
@@ -228,6 +223,7 @@ namespace love
 
         if (bindingModified)
         {
+            // this->targets[love::currentScreen].useState();
             GX2SetColorBuffer(target, GX2_RENDER_TARGET_0);
             this->setMode(target->surface.width, target->surface.height);
         }
@@ -323,10 +319,7 @@ namespace love
         }
 
         if (Keyboard()->hasTextInput())
-        {
             nn::swkbd::DrawDRC();
-            GX2SetContextState(this->state);
-        }
 
         for (auto& target : this->targets)
             target.copyScanBuffer();

@@ -4,6 +4,8 @@
 #include "common/Console.hpp"
 #include "common/screen.hpp"
 
+#include <cmath>
+
 namespace love
 {
     GraphicsBase::GraphicsBase(const char* name) :
@@ -991,8 +993,8 @@ namespace love
 
         for (int index = 0; index < points; ++index, phi += shift)
         {
-            coords[index].x = x + a * std::cosf(phi);
-            coords[index].y = y + b * std::sinf(phi);
+            coords[index].x = x + a * cosf(phi);
+            coords[index].y = y + b * sinf(phi);
         }
 
         coords[points] = coords[0];

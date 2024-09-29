@@ -373,13 +373,14 @@ namespace love
         gx2.prepareDraw(this);
         gx2.bindTextureToUnit(command.texture, 0);
 
-        auto* buffer        = (GX2RBuffer*)command.indexBuffer->getHandle();
-        const size_t offset = command.indexBufferOffset;
+        const auto mode              = GX2::getPrimitiveType(command.primitiveType);
+        auto* buffer                 = (GX2RBuffer*)command.indexBuffer->getHandle();
+        const auto indexType         = GX2::getIndexType(command.indexType);
+        const uint32_t count         = (uint32_t)command.indexCount;
+        const uint32_t offset        = (uint32_t)command.indexBufferOffset;
+        const uint32_t instanceCount = (uint32_t)command.instanceCount;
 
-        const auto mode      = GX2::getPrimitiveType(command.primitiveType);
-        const auto indexType = GX2::getIndexType(command.indexType);
-
-        GX2RDrawIndexed(mode, buffer, indexType, command.indexCount, offset, 0, command.instanceCount);
+        GX2RDrawIndexed(mode, buffer, indexType, count, offset, 0, instanceCount);
         ++this->drawCalls;
     }
 

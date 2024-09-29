@@ -872,7 +872,7 @@ static void luax_checktexturesettings(lua_State* L, int index, bool optional, bo
             lua_rawgeti(L, -1, index);
             const char* formatName = luaL_checkstring(L, -1);
 
-            PixelFormat format;
+            PixelFormat format = PIXELFORMAT_UNKNOWN;
             if (!love::getConstant(formatName, format))
                 luax_enumerror(L, "pixel format", formatName);
 
