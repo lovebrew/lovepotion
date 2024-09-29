@@ -108,7 +108,7 @@ namespace love
 
         auto transform = graphics->getTransform();
 
-        GX2Invalidate(GX2_INVALIDATE_MODE_UNIFORM_BLOCK, uniform, sizeof(Uniform));
+        GX2Invalidate(INVALIDATE_UNIFORM_BLOCK, uniform, sizeof(Uniform));
         GX2SetVertexUniformBlock(this->uniform.location, sizeof(Uniform), uniform);
     }
 
@@ -119,18 +119,18 @@ namespace love
 
     void Shader::attach()
     {
-        // if (current != this)
-        // {
-        Graphics::flushBatchedDrawsGlobal();
+        if (current != this)
+        {
+            Graphics::flushBatchedDrawsGlobal();
 
-        GX2SetShaderMode(GX2_SHADER_MODE_UNIFORM_BLOCK);
+            GX2SetShaderMode(GX2_SHADER_MODE_UNIFORM_BLOCK);
 
-        GX2SetFetchShader(&this->program.fetchShader);
-        GX2SetVertexShader(this->program.vertexShader);
-        GX2SetPixelShader(this->program.pixelShader);
+            GX2SetFetchShader(&this->program.fetchShader);
+            GX2SetVertexShader(this->program.vertexShader);
+            GX2SetPixelShader(this->program.pixelShader);
 
-        current = this;
-        // }
+            current = this;
+        }
     }
 
     bool Shader::validate(const char* filepath, std::string& error)

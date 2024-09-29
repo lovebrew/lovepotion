@@ -185,7 +185,7 @@ namespace love
     {
         if (!this->inFrame)
         {
-            // GX2SetContextState(this->state);
+            GX2SetContextState(this->state);
             this->inFrame = true;
         }
     }
@@ -223,7 +223,6 @@ namespace love
 
         if (bindingModified)
         {
-            // this->targets[love::currentScreen].useState();
             GX2SetColorBuffer(target, GX2_RENDER_TARGET_0);
             this->setMode(target->surface.width, target->surface.height);
         }
@@ -318,8 +317,8 @@ namespace love
             this->inFrame = false;
         }
 
-        if (Keyboard()->hasTextInput())
-            nn::swkbd::DrawDRC();
+        // if (Keyboard()->hasTextInput())
+        //     nn::swkbd::DrawDRC();
 
         for (auto& target : this->targets)
             target.copyScanBuffer();

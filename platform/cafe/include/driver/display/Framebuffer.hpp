@@ -56,15 +56,15 @@ namespace love
 
       private:
         static constexpr auto FORMAT      = GX2_SURFACE_FORMAT_UNORM_R8_G8_B8_A8;
-        static constexpr auto BUFFER_MODE = GX2_BUFFERING_MODE_DOUBLE;
+        static constexpr auto BUFFER_MODE = GX2_BUFFERING_MODE_SINGLE;
         static constexpr auto INVALIDATE_COLOR_BUFFER =
             GX2_INVALIDATE_MODE_CPU | GX2_INVALIDATE_MODE_COLOR_BUFFER;
 
         GX2ColorBuffer target;
         GX2DepthBuffer depth;
 
-        uint8_t mode;
-        uint8_t id;
+        uint8_t renderMode;
+        GX2ScanTarget id;
 
         Uniform* uniform;
 

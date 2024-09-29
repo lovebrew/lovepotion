@@ -32,12 +32,12 @@ namespace love
 
         if (this->id == GX2_SCAN_TARGET_TV)
         {
-            const auto mode = (GX2TVRenderMode)this->mode;
+            const auto mode = (GX2TVRenderMode)this->renderMode;
             GX2SetTVBuffer(this->scanBuffer, this->scanBufferSize, mode, FORMAT, BUFFER_MODE);
         }
         else
         {
-            const auto mode = (GX2DrcRenderMode)this->mode;
+            const auto mode = (GX2DrcRenderMode)this->renderMode;
             GX2SetDRCBuffer(this->scanBuffer, this->scanBufferSize, mode, FORMAT, BUFFER_MODE);
         }
 
@@ -98,7 +98,7 @@ namespace love
 
             GX2CalcTVSize(mode, FORMAT, BUFFER_MODE, &this->scanBufferSize, &unknown);
             GX2SetTVScale(info.width, info.height);
-            this->mode = mode;
+            this->renderMode = mode;
         }
         else
         {
@@ -107,10 +107,10 @@ namespace love
 
             GX2CalcDRCSize(mode, FORMAT, BUFFER_MODE, &this->scanBufferSize, &unknown);
             GX2SetDRCScale(info.width, info.height);
-            this->mode = mode;
+            this->renderMode = mode;
         }
 
-        this->id     = info.id;
+        this->id     = (GX2ScanTarget)info.id;
         this->width  = info.width;
         this->height = info.height;
 
