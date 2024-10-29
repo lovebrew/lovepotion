@@ -381,7 +381,7 @@ static constexpr luaL_Reg functions[] =
     { "getAxisCount",         Wrap_Joystick::GetAxisCount         },
     { "getButtonCount",       Wrap_Joystick::GetButtonCount       },
     { "getHatCount",          Wrap_Joystick::GetHatCount          },
-    { "getAxis",              Wrap_Joystick::GetAxes              },
+    { "getAxis",              Wrap_Joystick::GetAxis              },
     { "getAxes",              Wrap_Joystick::GetAxes              },
     { "getHat",               Wrap_Joystick::GetHat               },
     { "isDown",               Wrap_Joystick::IsDown               },

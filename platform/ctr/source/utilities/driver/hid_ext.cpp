@@ -119,7 +119,7 @@ void HID<Console::CTR>::_Poll()
             this->SendGamepadPress(false, joystick->GetID(), input.button, input.buttonNumber);
 
         /* handle trigger and stick inputs */
-        for (size_t index = 1; index < Joystick<>::GAMEPAD_AXIS_MAX_ENUM; index++)
+        for (size_t index = 0; index < Joystick<>::GAMEPAD_AXIS_MAX_ENUM; index++)
         {
             const auto axis = (Joystick<>::GamepadAxis)index;
 

@@ -93,6 +93,7 @@ namespace love
         {
             uint64_t pressed;
             uint64_t released;
+            uint64_t held;
         } buttonStates;
 
         ::Vibration vibration;

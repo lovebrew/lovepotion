@@ -24,7 +24,7 @@ namespace love
 
         enum GamepadAxis
         {
-            GAMEPAD_AXIS_INVALID,
+            GAMEPAD_AXIS_INVALID = -1,
             GAMEPAD_AXIS_LEFTX,
             GAMEPAD_AXIS_LEFTY,
             GAMEPAD_AXIS_RIGHTX,
@@ -36,7 +36,7 @@ namespace love
 
         enum GamepadButton
         {
-            GAMEPAD_BUTTON_INVALID,
+            GAMEPAD_BUTTON_INVALID = -1,
             GAMEPAD_BUTTON_A,
             GAMEPAD_BUTTON_B,
             GAMEPAD_BUTTON_X,

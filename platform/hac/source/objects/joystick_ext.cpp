@@ -27,6 +27,15 @@ constexpr BidirectionalMap buttons = {
     Joystick<>::GAMEPAD_BUTTON_DPAD_RIGHT,    HidNpadButton_Right,
     Joystick<>::GAMEPAD_BUTTON_DPAD_LEFT,     HidNpadButton_Left
 };
+
+constexpr BidirectionalMap axes = {
+    Joystick<>::GAMEPAD_AXIS_LEFTX, HidNpadButton_StickLLeft  | HidNpadButton_StickLRight,
+    Joystick<>::GAMEPAD_AXIS_LEFTY, HidNpadButton_StickLUp    | HidNpadButton_StickLDown,
+    Joystick<>::GAMEPAD_AXIS_RIGHTX, HidNpadButton_StickRLeft | HidNpadButton_StickRRight,
+    Joystick<>::GAMEPAD_AXIS_RIGHTY, HidNpadButton_StickRUp   | HidNpadButton_StickRDown,
+    Joystick<>::GAMEPAD_AXIS_TRIGGERLEFT, HidNpadButton_ZL,
+    Joystick<>::GAMEPAD_AXIS_TRIGGERRIGHT, HidNpadButton_ZR
+};
 // clang-format on
 
 Joystick<Console::HAC>::Joystick(int id) : state {}, buttonStates {}
@@ -125,6 +134,7 @@ void Joystick<Console::HAC>::Update()
 
     this->buttonStates.pressed  = padGetButtonsDown(&this->state);
     this->buttonStates.released = padGetButtonsUp(&this->state);
+    this->buttonStates.held     = padGetButtons(&this->state);
 }
 
 bool Joystick<Console::HAC>::IsDown(JoystickInput& result)
@@ -194,13 +204,14 @@ bool Joystick<Console::HAC>::IsUp(JoystickInput& result)
 }
 
 /* helper functionality */
+static constexpr float MAX_AXIS_VALUE = 32768.0f;
 
 static float getStickPosition(PadState& state, bool horizontal, bool isLeft)
 {
-    auto stickState = padGetStickPos(&state, isLeft);
+    auto stickState = padGetStickPos(&state, isLeft ? 0 : 1);
 
     float value = (horizontal) ? stickState.x : stickState.y;
-    return std::clamp<float>(value / Joystick<>::JoystickMax, -1.0f, 1.0f);
+    return std::clamp<float>(value / MAX_AXIS_VALUE, -1.0f, 1.0f);
 }
 
 static float getTrigger(uint64_t held, HidNpadButton trigger)
@@ -209,6 +220,25 @@ static float getTrigger(uint64_t held, HidNpadButton trigger)
         return 1.0f;
 
     return 0.0f;
+}
+
+bool Joystick<Console::HAC>::IsAxisChanged(GamepadAxis axis)
+{
+    auto hacAxis = *axes.Find(axis);
+
+    if (hacAxis & this->buttonStates.held)
+    {
+        this->buttonStates.held ^= hacAxis;
+        return true;
+    }
+
+    if (hacAxis & this->buttonStates.released)
+    {
+        this->buttonStates.released ^= hacAxis;
+        return true;
+    }
+
+    return false;
 }
 
 float Joystick<Console::HAC>::GetAxis(int index)
@@ -242,13 +272,30 @@ float Joystick<Console::HAC>::GetAxis(int index)
             }
             default:
             {
-                if (index / 4 == 0)
-                    return getStickPosition(this->state, index % 2, (index / 2) == 0);
-                else
-                    return getTrigger(padGetButtons(&this->state),
-                                      (index % 2) ? HidNpadButton_ZR : HidNpadButton_ZL);
+                if (index == 0 || index == 1)
+                {
+                    if (index == 0)
+                        return getStickPosition(this->state, true, true);
 
-                break;
+                    return getStickPosition(this->state, false, true);
+                }
+                else if (index == 2 || index == 3)
+                {
+                    if (index == 2)
+                        return getStickPosition(this->state, true, false);
+
+                    return getStickPosition(this->state, false, false);
+                }
+                else if (index == 4)
+                {
+                    const auto held = padGetButtons(&this->state);
+                    return getTrigger(held, HidNpadButton_ZL);
+                }
+                else if (index == 5)
+                {
+                    const auto held = padGetButtons(&this->state);
+                    return getTrigger(held, HidNpadButton_ZR);
+                }
             }
         }
     }
