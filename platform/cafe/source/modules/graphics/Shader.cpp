@@ -1,5 +1,7 @@
 #include "modules/graphics/Shader.hpp"
 
+#include "common/screen.hpp"
+
 #include <gfd.h>
 #include <gx2/mem.h>
 #include <whb/gfx.h>
@@ -14,7 +16,7 @@
 
 namespace love
 {
-    Shader::Shader(StandardShader type) : uniform {}
+    Shader::Shader(StandardShader type) : ShaderBase(type), uniform {}
     {
         std::string error;
 
@@ -73,6 +75,9 @@ namespace love
 
     uint32_t Shader::getPixelSamplerLocation(int index)
     {
+        if (this->shaderType != Shader::STANDARD_TEXTURE)
+            throw love::Exception("Invalid shader set!");
+
         size_t count = this->program.pixelShader->samplerVarCount;
 
         if (index > count)
@@ -106,7 +111,8 @@ namespace love
         if (current != this)
             return;
 
-        auto transform = graphics->getTransform();
+        auto& transform = graphics->getTransform();
+        // uniform->update(transform);
 
         GX2Invalidate(INVALIDATE_UNIFORM_BLOCK, uniform, sizeof(Uniform));
         GX2SetVertexUniformBlock(this->uniform.location, sizeof(Uniform), uniform);
@@ -130,6 +136,7 @@ namespace love
             GX2SetPixelShader(this->program.pixelShader);
 
             current = this;
+            shaderSwitches++;
         }
     }
 

@@ -62,6 +62,8 @@ namespace love
 
         GX2ColorBuffer getInternalBackbuffer() const;
 
+        void copyCurrentScanBuffer();
+
         // clang-format off
         virtual TextureBase* newTexture(const TextureBase::Settings& settings, const TextureBase::Slices* data = nullptr) override;
         // clang-format on

@@ -75,7 +75,7 @@ namespace love
         // for when Wii U handles are dealt with (WPADHandle, VPADHandle classes)
         if (!joystick)
         {
-            joystick = new Joystick(this->joysticks.size());
+            joystick = love::joystick::openJoystick(this->joysticks.size());
             this->joysticks.push_back(joystick);
         }
 

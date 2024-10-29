@@ -31,6 +31,8 @@ namespace love
         static ShaderBase* current;
         static ShaderBase* standardShaders[STANDARD_MAX_ENUM];
 
+        ShaderBase(StandardShader type);
+
         virtual ~ShaderBase();
 
         virtual void attach() = 0;
@@ -38,5 +40,7 @@ namespace love
         static void attachDefault(StandardShader type);
 
         static bool isDefaultActive();
+
+        StandardShader shaderType;
     };
 } // namespace love

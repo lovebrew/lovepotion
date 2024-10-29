@@ -1,5 +1,7 @@
-#include "modules/graphics/TextBatch.hpp"
+#include "common/Console.hpp"
+
 #include "modules/graphics/Graphics.tcc"
+#include "modules/graphics/TextBatch.hpp"
 
 #include <algorithm>
 
@@ -192,6 +194,9 @@ namespace love
         return this->textData[index].textInfo.height;
     }
 
+    static constexpr auto shaderType =
+        Console::is(Console::CTR) ? ShaderBase::STANDARD_DEFAULT : ShaderBase::STANDARD_TEXTURE;
+
     void TextBatch::draw(GraphicsBase* graphics, const Matrix4& matrix)
     {
         if (this->buffer.empty() || this->drawCommands.empty())
@@ -225,6 +230,7 @@ namespace love
             command.indexMode     = TRIANGLEINDEX_QUADS;
             command.vertexCount   = cmd.vertexCount;
             command.texture       = cmd.texture;
+            command.shaderType    = shaderType;
             command.isFont        = true;
             command.pushTransform = false;
 

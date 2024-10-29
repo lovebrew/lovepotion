@@ -160,6 +160,19 @@ namespace love
                         "Cannot upload font glyphs to texture atlas: unexpected format conversion.");
 
                 const uint8_t* source = (const uint8_t*)gd->getData();
+                size_t destSize       = getPixelFormatSliceSize(this->pixelFormat, width, height);
+                std::vector<uint8_t> destination(destSize, 0);
+                uint8_t* destData = destination.data();
+
+                for (int pixel = 0; pixel < width * height; pixel++)
+                {
+                    destData[pixel * 4 + 0] = source[pixel * 2 + 0];
+                    destData[pixel * 4 + 1] = source[pixel * 2 + 0];
+                    destData[pixel * 4 + 2] = source[pixel * 2 + 0];
+                    destData[pixel * 4 + 3] = source[pixel * 2 + 1];
+                }
+
+                texture->replacePixels(destData, destSize, 0, 0, rect, false);
             }
             else
                 texture->replacePixels(gd->getData(), gd->getSize(), 0, 0, rect, false);
@@ -184,7 +197,7 @@ namespace love
             {
                 glyph.vertices[i] = vertices[i];
                 glyph.vertices[i].x += gd->getBearingX();
-                glyph.vertices[i].y += gd->getBearingY();
+                glyph.vertices[i].y -= gd->getBearingY();
             }
 
             this->textureX += width + TEXTURE_PADDING;
@@ -440,6 +453,9 @@ namespace love
         return drawcommands;
     }
 
+    static constexpr auto shaderType =
+        (Console::is(Console::CTR)) ? ShaderBase::STANDARD_DEFAULT : ShaderBase::STANDARD_TEXTURE;
+
     void FontBase::printv(GraphicsBase* graphics, const Matrix4& matrix,
                           const std::vector<DrawCommand>& drawcommands,
                           const std::vector<GlyphVertex>& vertices)
@@ -457,6 +473,7 @@ namespace love
             command.vertexCount = cmd.vertexCount;
             command.texture     = cmd.texture;
             command.isFont      = true;
+            command.shaderType  = shaderType;
 
             auto data               = graphics->requestBatchedDraw(command);
             GlyphVertex* vertexdata = (GlyphVertex*)data.stream;

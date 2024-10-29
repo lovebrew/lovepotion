@@ -74,6 +74,8 @@ namespace love
 
         void setMode(int width, int height);
 
+        void copyCurrentScanBuffer();
+
         // clang-format off
         ENUMMAP_DECLARE(PixelFormats, PixelFormat, GX2SurfaceFormat,
             { PIXELFORMAT_R8_UNORM,         GX2_SURFACE_FORMAT_UNORM_R8          },

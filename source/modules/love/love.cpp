@@ -25,13 +25,16 @@
 
 #include "boot.hpp"
 
+// #region DEBUG CONSOLE
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
+#include <sys/select.h>
 #include <sys/socket.h>
 
 #if defined(__WIIU__)
     #include <unistd.h>
 #endif
+// #endregion
 
 #include <stdio.h>
 #include <string.h>
@@ -308,6 +311,31 @@ int love_openConsole(lua_State* L)
 
     if (listen(lsockfd, 5) < 0)
     {
+        love::luax_pushboolean(L, false);
+        close(lsockfd);
+        return 1;
+    }
+
+    fd_set set;
+    FD_ZERO(&set);
+    FD_SET(lsockfd, &set);
+
+    struct timeval timeout;
+    timeout.tv_sec  = 10;
+    timeout.tv_usec = 0;
+
+    const auto result = select(lsockfd + 1, &set, NULL, NULL, &timeout);
+
+    if (result == -1)
+    {
+        // select(...) failed
+        love::luax_pushboolean(L, false);
+        close(lsockfd);
+        return 1;
+    }
+    else if (result == 0)
+    {
+        // timeout occurred
         love::luax_pushboolean(L, false);
         close(lsockfd);
         return 1;

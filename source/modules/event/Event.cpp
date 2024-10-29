@@ -175,7 +175,7 @@ namespace love
             }
             case SUBTYPE_GAMEPADAXIS:
             {
-                if (!Joystick::getConstant((Joystick::GamepadAxis)event.gamepadAxis.axis, name))
+                if (!JoystickBase::getConstant((JoystickBase::GamepadAxis)event.gamepadAxis.axis, name))
                     break;
 
                 joystick = module->getJoystickFromID(event.gamepadAxis.which);
@@ -194,7 +194,7 @@ namespace love
             case SUBTYPE_GAMEPADUP:
             {
                 // clang-format off
-                if (!Joystick::getConstant((Joystick::GamepadButton)event.gamepadButton.button, name))
+                if (!JoystickBase::getConstant((JoystickBase::GamepadButton)event.gamepadButton.button, name))
                     break;
                 // clang-format on
 

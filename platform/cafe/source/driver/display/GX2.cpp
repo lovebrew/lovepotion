@@ -74,6 +74,8 @@ namespace love
 
     int GX2::onForegroundReleased()
     {
+        GX2DrawDone();
+
         auto foregroundHeap = MEMGetBaseHeapHandle(MEM_BASE_HEAP_FG);
         auto memOneHeap     = MEMGetBaseHeapHandle(MEM_BASE_HEAP_MEM1);
 
@@ -145,8 +147,6 @@ namespace love
         this->context.compareMode = GX2_COMPARE_FUNC_ALWAYS;
 
         this->uniform = (Uniform*)memalign(GX2_UNIFORM_BLOCK_ALIGNMENT, sizeof(Uniform));
-
-        love::currentScreen = (Screen)0;
         this->bindFramebuffer(&this->targets[0].get());
 
         this->initialized = true;
@@ -183,11 +183,21 @@ namespace love
 
     void GX2::ensureInFrame()
     {
+        GX2SetContextState(this->state);
+
         if (!this->inFrame)
-        {
-            GX2SetContextState(this->state);
             this->inFrame = true;
-        }
+    }
+
+    void GX2::copyCurrentScanBuffer()
+    {
+        Graphics::flushBatchedDrawsGlobal();
+        Graphics::advanceStreamBuffersGlobal();
+
+        this->targets[love::currentScreen].copyScanBuffer();
+
+        GX2Flush();
+        GX2WaitForFlip();
     }
 
     void GX2::clear(const Color& color)
@@ -197,12 +207,6 @@ namespace love
 
         GX2ClearColor(this->getFramebuffer(), color.r, color.g, color.b, color.a);
         GX2SetContextState(this->state);
-
-        if (ShaderBase::current != nullptr)
-        {
-            auto* shader = (Shader*)ShaderBase::current;
-            shader->attach();
-        }
     }
 
     void GX2::clearDepthStencil(int depth, uint8_t mask, double stencil)
@@ -239,7 +243,8 @@ namespace love
 
     void GX2::setSamplerState(TextureBase* texture, const SamplerState& state)
     {
-        auto sampler = (GX2Sampler*)texture->getSamplerHandle();
+        auto* sampler = (GX2Sampler*)texture->getSamplerHandle();
+        GX2InitSampler(sampler, GX2_TEX_CLAMP_MODE_WRAP, GX2_TEX_XY_FILTER_MODE_LINEAR);
 
         GX2TexXYFilterMode minFilter;
 
@@ -293,6 +298,9 @@ namespace love
 
         auto* sampler = (GX2Sampler*)texture->getSamplerHandle();
 
+        if (sampler == nullptr)
+            return;
+
         this->bindTextureToUnit(handle, sampler, unit);
     }
 
@@ -307,25 +315,8 @@ namespace love
 
     void GX2::present()
     {
-        if (this->inFrame)
-        {
-            Graphics::flushBatchedDrawsGlobal();
-
-            GX2DrawDone();
-
-            Graphics::advanceStreamBuffersGlobal();
-            this->inFrame = false;
-        }
-
-        // if (Keyboard()->hasTextInput())
-        //     nn::swkbd::DrawDRC();
-
-        for (auto& target : this->targets)
-            target.copyScanBuffer();
-
+        this->inFrame = false;
         GX2SwapScanBuffers();
-        GX2Flush();
-        GX2WaitForFlip();
     }
 
     void GX2::setViewport(const Rect& rect)

@@ -7,7 +7,7 @@
 
 namespace love
 {
-    Shader::Shader() : uniforms {}
+    Shader::Shader() : ShaderBase(STANDARD_DEFAULT), uniforms {}
     {
         this->loadVolatile();
     }

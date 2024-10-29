@@ -8,6 +8,8 @@
 #include "modules/graphics/Texture.hpp"
 
 #include <gx2/draw.h>
+#include <gx2/event.h>
+#include <gx2/state.h>
 #include <gx2r/draw.h>
 
 namespace love
@@ -167,6 +169,11 @@ namespace love
         gx2.bindFramebuffer(&gx2.getInternalBackbuffer());
     }
 
+    void Graphics::copyCurrentScanBuffer()
+    {
+        gx2.copyCurrentScanBuffer();
+    }
+
     void Graphics::present(void* screenshotCallbackData)
     {
         if (!this->isActive())
@@ -179,6 +186,7 @@ namespace love
 
         this->drawCalls        = 0;
         this->drawCallsBatched = 0;
+        Shader::shaderSwitches = 0;
     }
 
     void Graphics::setScissor(const Rect& scissor)
@@ -329,7 +337,7 @@ namespace love
 
         this->restoreState(this->states.back());
 
-        for (int index = 0; index < 1; index++)
+        for (int index = 0; index < ShaderBase::STANDARD_MAX_ENUM; index++)
         {
             auto type = (Shader::StandardShader)index;
 
@@ -372,6 +380,7 @@ namespace love
     {
         gx2.prepareDraw(this);
         gx2.bindTextureToUnit(command.texture, 0);
+        // gx2.setCullMode(command.cullMode);
 
         const auto mode              = GX2::getPrimitiveType(command.primitiveType);
         auto* buffer                 = (GX2RBuffer*)command.indexBuffer->getHandle();

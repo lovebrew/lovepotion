@@ -41,6 +41,6 @@ namespace love
 
         GX2Texture* texture    = nullptr;
         GX2ColorBuffer* target = nullptr;
-        GX2Sampler* sampler    = nullptr;
+        GX2Sampler sampler;
     };
 } // namespace love

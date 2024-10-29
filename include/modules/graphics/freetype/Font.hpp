@@ -1,5 +1,6 @@
 #pragma once
 
+#include "modules/font/freetype/TrueTypeRasterizer.hpp"
 #include "modules/graphics/Font.tcc"
 
 namespace love
@@ -12,5 +13,8 @@ namespace love
         virtual void createTexture() override;
 
         bool loadVolatile() override;
+
+      private:
+        virtual const FontBase::Glyph& addGlyph(TextShaper::GlyphIndex glyphIndex) override;
     };
 } // namespace love

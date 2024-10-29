@@ -1667,16 +1667,34 @@ int Wrap_Graphics::getScreens(lua_State* L)
     return 1;
 }
 
+int Wrap_Graphics::getActiveScreen(lua_State* L)
+{
+    auto& info = love::getScreenInfo(love::currentScreen);
+    luax_pushstring(L, info.name);
+
+    return 1;
+}
+
 int Wrap_Graphics::setActiveScreen(lua_State* L)
 {
     std::string name = luax_checkstring(L, 1);
-    Screen screen    = love::getScreenId(name);
+    auto value       = love::getScreenId(name);
 
-    love::currentScreen = screen;
+    if (value == INVALID_SCREEN)
+        return luaL_error(L, "Invalid screen '%s'", name.c_str());
+
+    love::currentScreen = value;
     instance()->setActiveScreen();
 
     return 0;
 }
+
+#if !defined(__WIIU__)
+int Wrap_Graphics::copyCurrentScanBuffer(lua_State* L)
+{
+    return 0;
+}
+#endif
 
 // clang-format off
 #if defined(__3DS__)
@@ -1725,7 +1743,16 @@ static constexpr std::array<luaL_Reg, 5> platformFunctions =
     { "setWide",  Wrap_Graphics::setWide  },
     { "getDepth", Wrap_Graphics::getDepth }
 }};
-#else
+#elif defined(__WIIU__)
+int Wrap_Graphics::copyCurrentScanBuffer(lua_State* L)
+{
+    instance()->copyCurrentScanBuffer();
+
+    return 0;
+}
+#endif
+
+#if !defined(__3DS__)
 static constexpr std::span<const luaL_Reg> platformFunctions = {};
 #endif
 
@@ -1808,8 +1835,10 @@ static constexpr luaL_Reg functions[] =
     { "print",                  Wrap_Graphics::print                 },
     { "printf",                 Wrap_Graphics::printf                },
 
-    { "setActiveScreen", Wrap_Graphics::setActiveScreen },
-    { "getScreens",      Wrap_Graphics::getScreens      }
+    { "getScreens",            Wrap_Graphics::getScreens            },
+    { "getActiveScreen",       Wrap_Graphics::getActiveScreen       },
+    { "setActiveScreen",       Wrap_Graphics::setActiveScreen       },
+    { "copyCurrentScanBuffer", Wrap_Graphics::copyCurrentScanBuffer }
 };
 
 static int open_drawable(lua_State* L)

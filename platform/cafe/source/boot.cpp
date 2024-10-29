@@ -75,6 +75,9 @@ namespace love
                 return -1;
         }
 
+        WPADEnableWiiRemote(true);
+        WPADEnableURCC(true);
+
         Console::setMainCoreId(OSGetCoreId());
 
         return 0;

@@ -2,6 +2,7 @@
 
 #include "modules/graphics/Texture.hpp"
 
+#include <gx2/state.h>
 #include <gx2/utils.h>
 
 #include <malloc.h>
@@ -15,7 +16,7 @@ namespace love
         if (!texture)
             throw love::Exception("Failed to create GX2Texture.");
 
-        std::memset(texture, 0, sizeof(GX2Texture));
+        std::memset(&texture->surface, 0, sizeof(GX2Surface));
 
         texture->surface.use    = GX2_SURFACE_USE_TEXTURE;
         texture->surface.dim    = GX2_SURFACE_DIM_TEXTURE_2D;
@@ -33,7 +34,7 @@ namespace love
         texture->surface.aa       = GX2_AA_MODE1X;
         texture->surface.tileMode = GX2_TILE_MODE_LINEAR_ALIGNED;
         texture->viewFirstMip     = 0;
-        texture->viewNumMips      = 1;
+        texture->viewNumMips      = 0;
         texture->viewFirstSlice   = 0;
         texture->viewNumSlices    = 1;
         texture->compMap          = GX2_COMP_MAP(GX2_SQ_SEL_R, GX2_SQ_SEL_G, GX2_SQ_SEL_B, GX2_SQ_SEL_A);
@@ -53,7 +54,7 @@ namespace love
     Texture::Texture(GraphicsBase* graphics, const Settings& settings, const Slices* data) :
         TextureBase(graphics, settings, data),
         slices(settings.type),
-        sampler(nullptr)
+        sampler {}
     {
         if (data != nullptr)
             slices = *data;
@@ -93,7 +94,7 @@ namespace love
             const auto faces = (this->textureType == TEXTURE_CUBE) ? 6 : 1;
             int slices       = this->getDepth(mip) * this->layers * faces;
 
-            memorySize += getPixelFormatSliceSize(this->format, width, height) * slices;
+            memorySize += getPixelFormatSliceSize(this->format, width, height, false) * slices;
         }
 
         this->setGraphicsMemorySize(memorySize);
@@ -107,7 +108,7 @@ namespace love
             delete this->texture;
 
         if (this->target != nullptr)
-            delete this->texture;
+            delete this->target;
 
         this->setGraphicsMemorySize(0);
     }
@@ -162,6 +163,11 @@ namespace love
             {
             }
         }
+
+        this->setSamplerState(this->samplerState);
+
+        if (this->slices.getMipmapCount() <= 1 && this->getMipmapsMode() != MIPMAPS_NONE)
+            this->generateMipmaps();
     }
 
     void Texture::setSamplerState(const SamplerState& state)
@@ -179,16 +185,18 @@ namespace love
 
         size_t pixelSize = getPixelFormatBlockSize(this->format);
 
-        for (uint32_t y = 0; y < rect.h; y++)
+        for (uint32_t y = 0; y < (uint32_t)rect.h; y++)
         {
-            const auto row  = (y * rect.w * pixelSize);
-            const auto dest = (rect.x + (y + rect.y) * pitch) * pixelSize;
+            const auto srcRow  = (y * rect.w * pixelSize);
+            const auto destRow = (rect.x + (y + rect.y) * pitch) * pixelSize;
 
-            std::memcpy(destination + dest, source + row, rect.w * pixelSize);
+            std::memcpy(destination + destRow, source + srcRow, rect.w * pixelSize);
         }
 
         const auto imageSize = this->texture->surface.imageSize;
-        GX2Invalidate(GX2_INVALIDATE_MODE_CPU_TEXTURE, destination, imageSize);
+
+        GX2Invalidate(GX2_INVALIDATE_MODE_CPU_TEXTURE, this->texture->surface.image, imageSize);
+        GX2Flush();
     }
 
     void Texture::generateMipmapsInternal()
@@ -206,6 +214,6 @@ namespace love
 
     ptrdiff_t Texture::getSamplerHandle() const
     {
-        return (ptrdiff_t)(&this->sampler);
+        return (ptrdiff_t)std::addressof(this->sampler);
     }
 } // namespace love

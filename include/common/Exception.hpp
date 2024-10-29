@@ -27,4 +27,25 @@ namespace love
       private:
         std::string message;
     };
+
+#if !(__DEBUG__)
+    #define LOG()
+#else
+    #include <cstdio>
+
+    // Macro to log to both stdout and a debug.log file
+    #define LOG(format, ...)                                                                  \
+        do                                                                                    \
+        {                                                                                     \
+            std::FILE* outFile      = std::fopen("debug.log", "a");                           \
+            static const char* data = "%s %s:%d: " format "\n";                               \
+                                                                                              \
+            if (outFile)                                                                      \
+            {                                                                                 \
+                std::fprintf(outFile, data, __FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__); \
+                std::fclose(outFile);                                                         \
+            }                                                                                 \
+            std::printf(data, __FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__);               \
+        } while (0)
+#endif
 } // namespace love

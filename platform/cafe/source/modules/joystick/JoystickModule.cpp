@@ -3,6 +3,9 @@
 #include <padscore/kpad.h>
 #include <vpad/input.h>
 
+#include "modules/joystick/kpad/Joystick.hpp"
+#include "modules/joystick/vpad/Joystick.hpp"
+
 namespace love::joystick
 {
     int getJoystickCount()
@@ -37,6 +40,9 @@ namespace love::joystick
     */
     JoystickBase* openJoystick(int index)
     {
-        return nullptr;
+        if (index == 0)
+            return new vpad::Joystick(index);
+
+        return new kpad::Joystick(index);
     }
 } // namespace love::joystick

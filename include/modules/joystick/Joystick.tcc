@@ -53,6 +53,8 @@ namespace love
             GAMEPAD_BUTTON_DPAD_DOWN,
             GAMEPAD_BUTTON_DPAD_LEFT,
             GAMEPAD_BUTTON_DPAD_RIGHT,
+            GAMEPAD_BUTTON_MISC1,
+            GAMEPAD_BUTTON_MISC2,
             GAMEPAD_BUTTON_MAX_ENUM
         };
 
@@ -202,7 +204,9 @@ namespace love
             { "dpup",          GAMEPAD_BUTTON_DPAD_UP        },
             { "dpdown",        GAMEPAD_BUTTON_DPAD_DOWN      },
             { "dpleft",        GAMEPAD_BUTTON_DPAD_LEFT      },
-            { "dpright",       GAMEPAD_BUTTON_DPAD_RIGHT     }
+            { "dpright",       GAMEPAD_BUTTON_DPAD_RIGHT     },
+            { "misc1",         GAMEPAD_BUTTON_MISC1          },
+            { "misc2",         GAMEPAD_BUTTON_MISC2          }
         );
 
         STRINGMAP_DECLARE(GamepadAxes, GamepadAxis,
@@ -260,11 +264,7 @@ namespace love
             return std::clamp(value / MAX_AXIS_VALUE, -1.0f, 1.0f);
         }
 
-        JoystickBase(int id) :
-            joystickType(JOYSTICK_TYPE_UNKNOWN),
-            instanceId(-1),
-            id(id),
-            sensors()
+        JoystickBase(int id) : joystickType(JOYSTICK_TYPE_UNKNOWN), instanceId(-1), id(id), sensors()
         {
             this->sensors[Sensor::SENSOR_ACCELEROMETER] = false;
             this->sensors[Sensor::SENSOR_GYROSCOPE]     = false;

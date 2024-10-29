@@ -44,8 +44,10 @@ namespace love
         result.width  = image.width;
         result.height = image.height;
         result.format = PIXELFORMAT_RGBA8_UNORM;
-        result.size   = (image.width * image.height * sizeof(uint32_t));
+        result.size   = (image.width * image.height) * sizeof(uint32_t);
         result.data   = new uint8_t[result.size];
+
+        png_image_finish_read(&image, nullptr, result.data, PNG_IMAGE_ROW_STRIDE(image), nullptr);
 
         if (PNG_IMAGE_FAILED(image))
         {

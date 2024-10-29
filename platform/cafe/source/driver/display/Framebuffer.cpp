@@ -1,3 +1,5 @@
+#include "common/Exception.hpp"
+
 #include "driver/display/Framebuffer.hpp"
 #include "driver/display/utility.hpp"
 
@@ -76,7 +78,7 @@ namespace love
 
     void Framebuffer::copyScanBuffer()
     {
-        GX2CopyColorBufferToScanBuffer(&this->target, (GX2ScanTarget)this->id);
+        GX2CopyColorBufferToScanBuffer(&this->target, this->id);
     }
 
     void Framebuffer::create(const ScreenInfo& info)

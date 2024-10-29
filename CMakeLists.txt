@@ -169,7 +169,7 @@ if (NINTENDO_WIIU)
         source/modules/image/magpie/PNGHandler.cpp
         source/modules/font/freetype/Font.cpp
         source/modules/font/freetype/TrueTypeRasterizer.cpp
-        source/modules/graphics/Font.cpp
+        source/modules/graphics/freetype/Font.cpp
     )
 
     add_library(ddsparse

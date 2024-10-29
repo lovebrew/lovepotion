@@ -46,7 +46,7 @@ namespace love
         image.width  = width;
         image.height = height;
         image.format = PIXELFORMAT_RGBA8_UNORM;
-        image.size   = (width * height * sizeof(uint32_t));
+        image.size   = (width * height) * sizeof(uint32_t);
         image.data   = new uint8_t[image.size];
 
         const auto format = TJPF_RGBA;

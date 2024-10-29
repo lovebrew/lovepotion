@@ -367,6 +367,9 @@ namespace love
         this->draw(graphics, this->quad, matrix);
     }
 
+    static constexpr ShaderBase::StandardShader shader =
+        (Console::is(Console::CTR) ? ShaderBase::STANDARD_DEFAULT : ShaderBase::STANDARD_TEXTURE);
+
     void TextureBase::draw(GraphicsBase* graphics, Quad* quad, const Matrix4& matrix)
     {
         if (!this->readable)
@@ -383,6 +386,7 @@ namespace love
         command.indexMode   = TRIANGLEINDEX_QUADS;
         command.vertexCount = 4;
         command.texture     = this;
+        command.shaderType  = shader;
 
         BatchedVertexData data = graphics->requestBatchedDraw(command);
 
@@ -407,11 +411,13 @@ namespace love
         }
     }
 
+    static constexpr bool pow2 = (Console::is(Console::CTR) ? true : false);
+
     void TextureBase::uploadImageData(ImageDataBase* data, int level, int slice, int x, int y)
     {
         Rect rectangle = { x, y, data->getWidth(), data->getHeight() };
 
-        const auto size = getPixelFormatSliceSize(this->format, data->getWidth(), data->getHeight());
+        const auto size = getPixelFormatSliceSize(this->format, data->getWidth(), data->getHeight(), pow2);
         this->uploadByteData(data->getData(), size, level, slice, rectangle);
     }
 

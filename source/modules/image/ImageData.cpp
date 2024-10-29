@@ -90,9 +90,11 @@ namespace love
         }
     }
 
+    static constexpr bool needsPowTwo = (Console::is(Console::CTR) ? true : false);
+
     void ImageData::create(int width, int height, PixelFormat format, void* data)
     {
-        const auto dataSize = love::getPixelFormatSliceSize(format, width, height);
+        const auto dataSize = love::getPixelFormatSliceSize(format, width, height, needsPowTwo);
 
         try
         {
@@ -105,7 +107,7 @@ namespace love
 
         if (data)
         {
-            if (Console::is(Console::CTR))
+            if constexpr (Console::is(Console::CTR))
             {
                 if (format == PIXELFORMAT_RGB565_UNORM)
                     copyBytesTiled<uint16_t>(this->data, data, width, height);

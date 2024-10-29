@@ -1,7 +1,9 @@
 #pragma once
 
 #include "driver/EventQueue.tcc"
-#include "modules/joystick/Joystick.hpp"
+
+#include "modules/joystick/kpad/Joystick.hpp"
+#include "modules/joystick/vpad/Joystick.hpp"
 
 #include <vpad/input.h>
 
@@ -17,7 +19,7 @@ namespace love
         void pollInternal() override;
 
       private:
-        Joystick* gamepad;
+        vpad::Joystick* gamepad;
         VPADTouchData previousTouch;
     };
 } // namespace love

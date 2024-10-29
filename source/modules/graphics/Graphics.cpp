@@ -346,7 +346,7 @@ namespace love
             state.pushTransform = command.pushTransform;
         }
 
-        if (state.vertexCount == 0)
+        if (state.lastVertexCount == 0)
         {
             if (ShaderBase::isDefaultActive())
                 ShaderBase::attachDefault(state.shaderType);
@@ -455,7 +455,7 @@ namespace love
         if ((state.lastIndexCount == 0 && state.lastVertexCount == 0) || state.flushing)
             return;
 
-        if ((state.vertexCount == 0 && state.indexCount == 0) || state.flushing)
+        if ((state.indexCount == 0 && state.vertexCount == 0) || state.flushing)
             return;
 
         VertexAttributes attributes {};
@@ -478,7 +478,7 @@ namespace love
         if (attributes.enableBits == 0)
             return;
 
-        // state.flushing = true;
+        state.flushing = true;
 
         // auto originalColor = this->getColor();
         // if (attributes.isEnabled(ATTRIB_COLOR))
@@ -498,6 +498,7 @@ namespace love
             command.indexBufferOffset = state.indexBuffer->unmap(usedSizes[1]);
             command.texture           = state.texture;
             command.isFont            = state.isFont;
+
             this->draw(command);
 
             state.indexBufferMap = MapInfo<uint16_t>();
@@ -527,6 +528,7 @@ namespace love
 
         state.lastVertexCount = 0;
         state.lastIndexCount  = 0;
+        state.flushing        = false;
     }
 
     void GraphicsBase::flushBatchedDrawsGlobal()

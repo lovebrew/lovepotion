@@ -199,6 +199,8 @@ namespace Wrap_Graphics
 
     int getScreens(lua_State* L);
 
+    int getActiveScreen(lua_State* L);
+
     int setActiveScreen(lua_State* L);
 
     int is3D(lua_State* L);
@@ -210,6 +212,8 @@ namespace Wrap_Graphics
     int setWide(lua_State* L);
 
     int getDepth(lua_State* L);
+
+    int copyCurrentScanBuffer(lua_State* L);
 
     int open(lua_State* L);
 } // namespace Wrap_Graphics

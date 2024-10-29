@@ -1,4 +1,4 @@
-#include "common/Console.hpp"
+#include "common/Exception.hpp"
 
 #include "modules/graphics/Shader.tcc"
 
@@ -8,6 +8,9 @@ namespace love
     ShaderBase* ShaderBase::standardShaders[STANDARD_MAX_ENUM] = { nullptr };
 
     int ShaderBase::shaderSwitches = 0;
+
+    ShaderBase::ShaderBase(StandardShader type) : shaderType(type)
+    {}
 
     ShaderBase::~ShaderBase()
     {
@@ -31,12 +34,7 @@ namespace love
             return;
         }
 
-        if constexpr (!Console::is(Console::CAFE))
-        {
-            if (current != defaultShader)
-                defaultShader->attach();
-        }
-        else
+        if (current != defaultShader)
             defaultShader->attach();
     }
 

@@ -93,6 +93,9 @@ namespace love
 
         void ensureInFrame();
 
+        void copyCurrentScanBuffer()
+        {}
+
         static GPU_TEXTURE_MODE_PARAM getTextureType(TextureType type);
 
         static GPU_Primitive_t getPrimitiveType(PrimitiveType type);

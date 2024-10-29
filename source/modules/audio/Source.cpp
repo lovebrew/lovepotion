@@ -98,6 +98,7 @@ namespace love
     }
 
     Source::Source(const Source& other) :
+        Object(other),
         sourceType(other.sourceType),
         pool(other.pool),
         valid(false),

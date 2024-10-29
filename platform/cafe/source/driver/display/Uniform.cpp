@@ -1,21 +1,22 @@
 #include "driver/display/Uniform.hpp"
 
-#include <bit>
-
 namespace love
 {
-    glm::mat4 updateMatrix(const glm::mat4& matrix)
+    glm::mat4 createTransposedSwappedMatrix(const Matrix4& matrix)
     {
-        glm::mat4 out(1.0f);
+        const uint32_t count = sizeof(glm::mat4) / sizeof(uint32_t);
 
-        uint32_t* destination  = (uint32_t*)glm::value_ptr(out);
-        const uint32_t* source = (const uint32_t*)glm::value_ptr(matrix);
+        // Transpose the input matrix to convert from row-major to column-major
+        glm::mat4 sourceMatrix = glm::transpose(glm::make_mat4(matrix.getElements()));
 
-        const size_t count = sizeof(glm::mat4) / sizeof(uint32_t);
+        // Create a new matrix to hold the endian-swapped version
+        glm::mat4 resultMatrix;
+        uint32_t* destination  = (uint32_t*)glm::value_ptr(resultMatrix);
+        const uint32_t* source = (const uint32_t*)glm::value_ptr(sourceMatrix);
 
-        for (size_t i = 0; i < count; i++)
+        for (int i = 0; i < count; ++i)
             destination[i] = __builtin_bswap32(source[i]);
 
-        return out;
+        return resultMatrix;
     }
 } // namespace love

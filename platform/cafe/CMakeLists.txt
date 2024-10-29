@@ -33,7 +33,8 @@ source/modules/audio/Source.cpp
 source/modules/graphics/Graphics.cpp
 source/modules/graphics/Shader.cpp
 source/modules/graphics/Texture.cpp
-source/modules/joystick/Joystick.cpp
+source/modules/joystick/vpad/Joystick.cpp
+source/modules/joystick/kpad/Joystick.cpp
 source/modules/joystick/JoystickModule.cpp
 source/modules/keyboard/Keyboard.cpp
 source/modules/system/System.cpp

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/luax.hpp"
-#include "modules/joystick/Joystick.hpp"
+#include "modules/joystick/Joystick.tcc"
 
 namespace love
 {
