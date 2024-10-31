@@ -114,8 +114,8 @@ namespace love
         auto& transform = graphics->getTransform();
         // uniform->update(transform);
 
-        GX2Invalidate(INVALIDATE_UNIFORM_BLOCK, uniform, sizeof(Uniform));
-        GX2SetVertexUniformBlock(this->uniform.location, sizeof(Uniform), uniform);
+        GX2Invalidate(INVALIDATE_UNIFORM_BLOCK, uniform, UNIFORM_SIZE);
+        GX2SetVertexUniformBlock(this->uniform.location, UNIFORM_SIZE, uniform);
     }
 
     ptrdiff_t Shader::getHandle() const

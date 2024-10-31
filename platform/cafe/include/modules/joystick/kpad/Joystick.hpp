@@ -59,6 +59,10 @@ namespace love
 
             virtual std::vector<float> getSensorData(Sensor::SensorType type) const override;
 
+            std::array<float, 2> getPosition() const;
+
+            std::array<float, 2> getAngle() const;
+
             using JoystickBase::getConstant;
 
             // #region Wii Remote

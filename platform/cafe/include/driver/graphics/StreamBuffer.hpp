@@ -9,14 +9,21 @@
 
 namespace love
 {
+    static GX2RResourceFlags getBufferUsage(BufferUsage usage)
+    {
+        if (usage == BUFFERUSAGE_VERTEX)
+            return GX2R_RESOURCE_BIND_VERTEX_BUFFER;
+
+        return GX2R_RESOURCE_BIND_INDEX_BUFFER;
+    }
+
     template<typename T>
     class StreamBuffer final : public StreamBufferBase<T>
     {
       public:
-        StreamBuffer(BufferUsage usage, size_t size) : StreamBufferBase<T>(usage, size)
+        StreamBuffer(BufferUsage usage, size_t size) : StreamBufferBase<T>(usage, size), buffer {}
         {
-            auto flags = (usage == BufferUsage::BUFFERUSAGE_VERTEX) ? GX2R_RESOURCE_BIND_VERTEX_BUFFER
-                                                                    : GX2R_RESOURCE_BIND_INDEX_BUFFER;
+            const auto flags = getBufferUsage(usage);
 
             this->buffer.elemCount = size;
             this->buffer.elemSize  = sizeof(T);
@@ -24,6 +31,11 @@ namespace love
 
             if (!GX2RCreateBuffer(&this->buffer))
                 throw love::Exception("Failed to create StreamBuffer");
+        }
+
+        ~StreamBuffer()
+        {
+            GX2RDestroyBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
         }
 
         MapInfo<T> map(size_t)
@@ -46,11 +58,6 @@ namespace love
                 GX2RSetAttributeBuffer(&this->buffer, 0, this->buffer.elemSize, 0);
 
             return this->index;
-        }
-
-        ~StreamBuffer()
-        {
-            GX2RDestroyBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
         }
 
         ptrdiff_t getHandle() const override

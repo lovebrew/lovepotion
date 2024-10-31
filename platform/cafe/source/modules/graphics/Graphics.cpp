@@ -3,9 +3,9 @@
 #include "modules/graphics/Graphics.hpp"
 #include "modules/window/Window.hpp"
 
-#include "modules/graphics/Font.hpp"
 #include "modules/graphics/Shader.hpp"
 #include "modules/graphics/Texture.hpp"
+#include "modules/graphics/freetype/Font.hpp"
 
 #include <gx2/draw.h>
 #include <gx2/event.h>

@@ -21,7 +21,7 @@ namespace love
 
             VPADStatus& getVPADStatus()
             {
-                return this->vpadStatus;
+                return this->status;
             }
 
             virtual bool open(int64_t deviceId) override;
@@ -108,8 +108,8 @@ namespace love
             // clang-format on
 
           private:
-            VPADStatus vpadStatus;
-            VPADReadError vpadError;
+            VPADStatus status;
+            VPADReadError error;
 
             mutable struct State
             {

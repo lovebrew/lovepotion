@@ -288,8 +288,6 @@ namespace love
 
     int open_font(lua_State* L)
     {
-        luax_register_type(L, &FontBase::type, functions);
-
-        return 0;
+        return luax_register_type(L, &FontBase::type, functions);
     }
 } // namespace love

@@ -273,7 +273,7 @@ namespace love
             { "usedpiscale",    SETTING_USE_DPISCALE    },
             { "refreshrate",    SETTING_REFRESHRATE     },
             { "x",              SETTING_X               },
-            { "y",              SETTING_Y               },
+            { "y",              SETTING_Y               }
         );
 
         STRINGMAP_DECLARE(FullscreenTypes, FullscreenType,

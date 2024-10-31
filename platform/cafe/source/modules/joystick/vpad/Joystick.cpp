@@ -19,10 +19,10 @@ namespace love
 
         void Joystick::update()
         {
-            VPADRead(VPAD_CHAN_0, &this->vpadStatus, 1, &this->vpadError);
+            VPADRead(VPAD_CHAN_0, &this->status, 1, &this->error);
 
-            const auto& status = this->vpadStatus;
-            if (this->vpadError != VPAD_READ_NO_SAMPLES)
+            const auto& status = this->status;
+            if (this->error != VPAD_READ_NO_SAMPLES)
                 this->state = { status.trigger, status.release, status.hold };
         }
 
@@ -52,7 +52,7 @@ namespace love
 
         bool Joystick::isConnected() const
         {
-            switch (this->vpadError)
+            switch (this->error)
             {
                 case VPAD_READ_INVALID_CONTROLLER:
                 case VPAD_READ_UNINITIALIZED:
@@ -66,7 +66,7 @@ namespace love
 
         float Joystick::getAxis(GamepadAxis axis) const
         {
-            const auto status = this->vpadStatus;
+            const auto status = this->status;
 
             switch (axis)
             {
@@ -262,21 +262,17 @@ namespace love
             {
                 case Sensor::SENSOR_ACCELEROMETER:
                 {
-                    const auto& accelerometer = this->vpadStatus.accelorometer;
-
-                    data.push_back(accelerometer.acc.x);
-                    data.push_back(accelerometer.acc.y);
-                    data.push_back(accelerometer.acc.z);
+                    data.push_back(this->status.accelorometer.acc.x);
+                    data.push_back(this->status.accelorometer.acc.y);
+                    data.push_back(this->status.accelorometer.acc.z);
 
                     return data;
                 }
                 case Sensor::SENSOR_GYROSCOPE:
                 {
-                    const auto& gyroscope = this->vpadStatus.gyro;
-
-                    data.push_back(gyroscope.x);
-                    data.push_back(gyroscope.y);
-                    data.push_back(gyroscope.z);
+                    data.push_back(this->status.gyro.x);
+                    data.push_back(this->status.gyro.y);
+                    data.push_back(this->status.gyro.z);
 
                     return data;
                 }

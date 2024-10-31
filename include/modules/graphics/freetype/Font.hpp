@@ -13,8 +13,5 @@ namespace love
         virtual void createTexture() override;
 
         bool loadVolatile() override;
-
-      private:
-        virtual const FontBase::Glyph& addGlyph(TextShaper::GlyphIndex glyphIndex) override;
     };
 } // namespace love

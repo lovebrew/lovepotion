@@ -22,8 +22,8 @@ namespace love
         { 12,   6,  0, "{2418ED2A-7918-4D2C-B390-6127D5FEB977}", true,  true,  true,  true  }, // GAMEPAD_TYPE_NEW_NINTENDO_3DS_XL
         { 12,   2,  0, "{3846FA8C-25AB-44CB-91FD-D58FB1F572CC}", false, false, true,  true  }, // GAMEPAD_TYPE_NINTENDO_2DS
         { 12,   6,  0, "{560CDDB3-0594-4A52-A3D5-617060D2001B}", true,  true,  true,  true  }, // GAMEPAD_TYPE_NEW_NINTENDO_2DS_XL
-        { 10,   0,  0, "{02DC4D7B-2480-4678-BB06-D9AEDC3DE29B}", false, false, true,  true  }, // GAMEPAD_TYPE_NINTENDO_WII_REMOTE
-        { 12,   2,  0, "{C0E2DDE5-25DF-4F7D-AEA6-4F25DE2FC385}", false, false, true,  true  }, // GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUCK
+        { 10,   0,  0, "{02DC4D7B-2480-4678-BB06-D9AEDC3DE29B}", false, false, false, true  }, // GAMEPAD_TYPE_NINTENDO_WII_REMOTE
+        { 12,   2,  0, "{C0E2DDE5-25DF-4F7D-AEA6-4F25DE2FC385}", false, false, false, true  }, // GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUCK
         { 12,   6,  0, "{B4F6A311-8228-477D-857B-B875D891C46D}", true,  true,  false, false }, // GAMEPAD_TYPE_NINTENDO_WII_CLASSIC
         { 14,   6,  0, "{62998927-C43D-41F5-B6B1-D22CBF031D91}", true,  true,  true,  true  }, // GAMEPAD_TYPE_WII_U_GAMEPAD
         { 14,   6,  0, "{36895D3B-A724-4F46-994C-64BCE736EBCB}", true,  true,  false, false }, // GAMEPAD_TYPE_WII_U_PRO

@@ -154,7 +154,7 @@ namespace love
 
     void GX2::createFramebuffers()
     {
-        const auto& info = love::getScreenInfo();
+        const auto info = love::getScreenInfo();
 
         for (size_t index = 0; index < info.size(); ++index)
             this->targets[index].create(info[index]);

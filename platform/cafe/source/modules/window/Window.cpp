@@ -4,7 +4,7 @@
 
 namespace love
 {
-    Window::Window() : WindowBase("love.window.citro3d")
+    Window::Window() : WindowBase("love.window.gx2")
     {
         this->setDisplaySleepEnabled(false);
     }

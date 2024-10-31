@@ -147,8 +147,8 @@ namespace love
 
         bool operator==(const StencilState& s) const
         {
-            return compare == s.compare && action == s.action && value == s.value &&
-                   readMask == s.readMask && writeMask == s.writeMask;
+            return compare == s.compare && action == s.action && value == s.value && readMask == s.readMask &&
+                   writeMask == s.writeMask;
         }
     };
 
@@ -202,12 +202,12 @@ namespace love
         { "screen",   BLEND_SCREEN   },
         { "replace",  BLEND_REPLACE  },
         { "none",     BLEND_NONE     },
-        { "custom",   BLEND_CUSTOM   },
+        { "custom",   BLEND_CUSTOM   }
     );
 
     STRINGMAP_DECLARE(BlendAlphaModes, BlendAlpha,
         { "alphamultiply", BLENDALPHA_MULTIPLY      },
-        { "premultiplied", BLENDALPHA_PREMULTIPLIED },
+        { "premultiplied", BLENDALPHA_PREMULTIPLIED }
     );
 
     STRINGMAP_DECLARE(BlendFactors, BlendFactor,
@@ -247,7 +247,7 @@ namespace love
         { "decrement",     STENCIL_DECREMENT      },
         { "incrementwrap", STENCIL_INCREMENT_WRAP },
         { "decrementwrap", STENCIL_DECREMENT_WRAP },
-        { "invert",        STENCIL_INVERT         },
+        { "invert",        STENCIL_INVERT         }
     );
 
     STRINGMAP_DECLARE(CompareModes, CompareMode,

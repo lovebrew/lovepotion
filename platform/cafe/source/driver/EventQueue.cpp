@@ -59,20 +59,20 @@ namespace love
             if (joystick == nullptr)
                 continue;
 
-            if (joystick->getGamepadType() == GAMEPAD_TYPE_NINTENDO_WII_U_GAMEPAD)
-                this->gamepad = (vpad::Joystick*)joystick;
+            // if (joystick->getGamepadType() == GAMEPAD_TYPE_NINTENDO_WII_U_GAMEPAD)
+            //     this->gamepad = (vpad::Joystick*)joystick;
 
             joystick->update();
+            const auto which = joystick->getInstanceID();
 
             for (int input = 0; input < JoystickBase::GAMEPAD_BUTTON_MAX_ENUM; input++)
             {
                 std::vector<JoystickBase::GamepadButton> inputs = { JoystickBase::GamepadButton(input) };
-
                 if (joystick->isDown(inputs))
-                    this->sendGamepadButtonEvent(SUBTYPE_GAMEPADDOWN, 0, input);
+                    this->sendGamepadButtonEvent(SUBTYPE_GAMEPADDOWN, which, input);
 
                 if (joystick->isUp(inputs))
-                    this->sendGamepadButtonEvent(SUBTYPE_GAMEPADUP, 0, input);
+                    this->sendGamepadButtonEvent(SUBTYPE_GAMEPADUP, which, input);
             }
 
             for (int input = 0; input < JoystickBase::GAMEPAD_AXIS_MAX_ENUM; input++)
@@ -80,7 +80,7 @@ namespace love
                 if (joystick->isAxisChanged(JoystickBase::GamepadAxis(input)))
                 {
                     float value = joystick->getAxis(JoystickBase::GamepadAxis(input));
-                    this->sendGamepadAxisEvent(0, input, value);
+                    this->sendGamepadAxisEvent(which, input, value);
                 }
             }
 
@@ -90,7 +90,7 @@ namespace love
                     continue;
 
                 auto data = joystick->getSensorData(Sensor::SensorType(input));
-                this->sendGamepadSensorEvent(0, input, data);
+                this->sendGamepadSensorEvent(which, input, data);
             }
         }
 

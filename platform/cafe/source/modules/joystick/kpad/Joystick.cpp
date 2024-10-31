@@ -56,7 +56,7 @@ namespace love
             int index = (int)deviceId;
             this->close();
 
-            this->instanceId = 0;
+            this->instanceId = index;
 
             WPADExtensionType extension;
             if (WPADProbe(WPADChan(index - 1), &extension) < 0)
@@ -64,7 +64,6 @@ namespace love
 
             switch (extension)
             {
-                default:
                 case WPAD_EXT_CORE:
                 {
                     this->gamepadType = GAMEPAD_TYPE_NINTENDO_WII_REMOTE;
@@ -83,6 +82,11 @@ namespace love
                 case WPAD_EXT_PRO_CONTROLLER:
                 {
                     this->gamepadType = GAMEPAD_TYPE_NINTENDO_WII_U_PRO;
+                    break;
+                }
+                default:
+                {
+                    this->gamepadType = GAMEPAD_TYPE_UNKNOWN;
                     break;
                 }
             }
@@ -232,7 +236,7 @@ namespace love
                 case GAMEPAD_TYPE_NINTENDO_WII_REMOTE:
                     return isButtonDown<WPADButton>(buttons);
                 case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUCK:
-                    break;
+                    return isButtonDown<WPADButton>(buttons) || isButtonDown<WPADNunchukButton>(buttons);
                 case GAMEPAD_TYPE_NINTENDO_WII_CLASSIC:
                     return isButtonDown<WPADClassicButton>(buttons);
                 case GAMEPAD_TYPE_NINTENDO_WII_U_PRO:
@@ -254,7 +258,7 @@ namespace love
                 case GAMEPAD_TYPE_NINTENDO_WII_REMOTE:
                     return isButtonUp<WPADButton>(buttons);
                 case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUCK:
-                    break;
+                    return isButtonUp<WPADButton>(buttons) || isButtonUp<WPADNunchukButton>(buttons);
                 case GAMEPAD_TYPE_NINTENDO_WII_CLASSIC:
                     return isButtonUp<WPADClassicButton>(buttons);
                 case GAMEPAD_TYPE_NINTENDO_WII_U_PRO:
@@ -398,7 +402,75 @@ namespace love
 
             data.reserve(3);
 
+            switch (this->gamepadType)
+            {
+                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE:
+                {
+                    data.push_back(this->status.acc.x);
+                    data.push_back(this->status.acc.y);
+                    data.push_back(this->status.acc.z);
+                    break;
+                }
+                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUCK:
+                    data.push_back(this->status.acc.x);
+                    data.push_back(this->status.acc.y);
+                    data.push_back(this->status.acc.z);
+
+                    data.push_back(this->status.nunchuk.acc.x);
+                    data.push_back(this->status.nunchuk.acc.y);
+                    data.push_back(this->status.nunchuk.acc.z);
+                    break;
+                case GAMEPAD_TYPE_NINTENDO_WII_U_PRO:
+                case GAMEPAD_TYPE_NINTENDO_WII_CLASSIC:
+                default:
+                    break;
+            }
+
             return data;
+        }
+
+        std::array<float, 2> Joystick::getPosition() const
+        {
+            std::array<float, 2> result {};
+
+            switch (this->gamepadType)
+            {
+                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE:
+                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUCK:
+                {
+                    result[0] = this->status.pos.x;
+                    result[1] = this->status.pos.y;
+                    break;
+                }
+                case GAMEPAD_TYPE_NINTENDO_WII_CLASSIC:
+                case GAMEPAD_TYPE_NINTENDO_WII_U_PRO:
+                default:
+                    break;
+            }
+
+            return result;
+        }
+
+        std::array<float, 2> Joystick::getAngle() const
+        {
+            std::array<float, 2> result {};
+
+            switch (this->gamepadType)
+            {
+                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE:
+                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUCK:
+                {
+                    result[0] = this->status.angle.x;
+                    result[1] = this->status.angle.y;
+                    break;
+                }
+                case GAMEPAD_TYPE_NINTENDO_WII_CLASSIC:
+                case GAMEPAD_TYPE_NINTENDO_WII_U_PRO:
+                default:
+                    break;
+            }
+
+            return result;
         }
     } // namespace kpad
 } // namespace love

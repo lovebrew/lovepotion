@@ -7,9 +7,6 @@
 
 namespace love
 {
-    // void updateMatrix(glm::mat4& modelView, const Matrix4& matrix);
-    glm::mat4 createTransposedSwappedMatrix(const Matrix4& matrix);
-
     struct Uniform
     {
         glm::mat4 modelView;
@@ -41,4 +38,5 @@ namespace love
         }
     };
 
+    static constexpr auto UNIFORM_SIZE = sizeof(Uniform);
 } // namespace love

@@ -1,5 +1,7 @@
 #include "modules/joystick/JoystickModule.hpp"
 
+#include "modules/joystick/Joystick.hpp"
+
 namespace love::joystick
 {
     int getJoystickCount()

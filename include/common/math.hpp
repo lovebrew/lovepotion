@@ -72,11 +72,6 @@ namespace love
         }
     };
 
-    inline void DEBUG_RECT(const Rect& rectangle)
-    {
-        std::printf("x: %d, y: %d, w: %d, h: %d\n", rectangle.x, rectangle.y, rectangle.w, rectangle.h);
-    }
-
     /*
      ** Clamps 3DS textures between min
      ** and max texture size to prevent

@@ -29,7 +29,7 @@ namespace love
         { "vpad",   BIND(VPADInit),                               &VPADShutdown   },
         { "kpad",   BIND(KPADInit),                               &KPADShutdown   },
         { "ac",     BIND(ACInitialize),                           &ACFinalize     },
-        { "fs",     BIND(FSInit),                                 &FSShutdown     },
+        { "fs",     BIND(FSInit),                                 &FSShutdown     }
         // { "bsp",    BIND(bspInitializeShimInterface),             []() { }        }
     }};
     // clang-format on
@@ -37,10 +37,12 @@ namespace love
     uint32_t Console::mainCoreId = 0;
     bool Console::mainCoreIdSet  = false;
 
+    static constexpr const char* DEFAULT_PATH = "fs:/vol/external01/lovepotion.wuhb";
+
     std::string getApplicationPath(const std::string& argv0)
     {
         if (argv0 == "embedded boot.lua")
-            return "fs:/vol/external01/lovepotion.wuhb";
+            return DEFAULT_PATH;
 
         OSDynLoad_Module module;
         const auto type  = OS_DYNLOAD_EXPORT_FUNC;
@@ -60,7 +62,7 @@ namespace love
             }
         }
 
-        return "fs:/vol/external01/lovepotion.wuhb";
+        return DEFAULT_PATH;
     }
 
     int preInit()

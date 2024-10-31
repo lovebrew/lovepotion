@@ -319,7 +319,7 @@ int Wrap_Joystick::setVibration(lua_State* L)
 
     luax_pushboolean(L, success);
 
-    return 0;
+    return 1;
 }
 
 int Wrap_Joystick::getVibration(lua_State* L)

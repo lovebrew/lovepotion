@@ -431,7 +431,7 @@ namespace love
             throw love::Exception("replacePixels cannot be called on a multisampled Texture.");
 
         auto* graphics = Module::getInstance<GraphicsBase>(Module::M_GRAPHICS);
-        if (graphics == nullptr && graphics->isRenderTargetActive(this))
+        if (graphics != nullptr && graphics->isRenderTargetActive(this))
             throw love::Exception("Cannot replace pixels of a Texture that is currently being rendered to.");
 
         if (this->getHandle() == 0)

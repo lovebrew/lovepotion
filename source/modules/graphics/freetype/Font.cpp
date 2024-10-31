@@ -1,4 +1,4 @@
-#include "modules/graphics/Font.hpp"
+#include "modules/graphics/freetype/Font.hpp"
 #include "modules/graphics/Graphics.tcc"
 
 namespace love

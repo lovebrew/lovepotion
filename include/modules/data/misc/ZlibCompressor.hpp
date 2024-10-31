@@ -5,6 +5,8 @@
 #include "common/Exception.hpp"
 #include "common/int.hpp"
 
+#include <cstring>
+
 #include <zlib.h>
 
 namespace love
@@ -22,8 +24,8 @@ namespace love
             return size;
         }
 
-        int zlibCompress(Format format, Bytef* destination, uLongf* destinationLength,
-                         const Bytef* source, uLong sourceLength, int level)
+        int zlibCompress(Format format, Bytef* destination, uLongf* destinationLength, const Bytef* source,
+                         uLong sourceLength, int level)
         {
             z_stream stream {};
 
@@ -56,8 +58,8 @@ namespace love
             return deflateEnd(&stream);
         }
 
-        int zlibDecompress(Format format, Bytef* destination, uLongf* destinationLength,
-                           const Bytef* source, uLong sourceLength)
+        int zlibDecompress(Format format, Bytef* destination, uLongf* destinationLength, const Bytef* source,
+                           uLong sourceLength)
         {
             z_stream stream {};
 
@@ -118,8 +120,8 @@ namespace love
             }
 
             uLongf dstLength = (uLongf)maxSize;
-            int status       = zlibCompress(format, (Bytef*)compressedBytes, &dstLength,
-                                            (const Bytef*)data, (uLong)dataSize, level);
+            int status       = zlibCompress(format, (Bytef*)compressedBytes, &dstLength, (const Bytef*)data,
+                                            (uLong)dataSize, level);
 
             if (status != Z_OK)
             {
@@ -164,8 +166,8 @@ namespace love
                 }
 
                 uLongf dstLength = (uLongf)rawSize;
-                int status       = zlibDecompress(format, (Bytef*)rawBytes, &dstLength,
-                                                  (const Bytef*)data, (uLong)dataSize);
+                int status =
+                    zlibDecompress(format, (Bytef*)rawBytes, &dstLength, (const Bytef*)data, (uLong)dataSize);
 
                 if (status == Z_OK)
                 {
