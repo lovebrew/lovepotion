@@ -33,6 +33,10 @@ namespace love
                 throw love::Exception("Failed to create StreamBuffer");
         }
 
+        StreamBuffer(StreamBuffer&&) = delete;
+
+        StreamBuffer& operator=(const StreamBuffer&) = delete;
+
         ~StreamBuffer()
         {
             GX2RDestroyBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);

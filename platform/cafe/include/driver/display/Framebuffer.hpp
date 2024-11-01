@@ -49,11 +49,6 @@ namespace love
 
         void copyScanBuffer();
 
-        operator GX2ContextState*()
-        {
-            return this->state;
-        }
-
       private:
         static constexpr auto FORMAT      = GX2_SURFACE_FORMAT_UNORM_R8_G8_B8_A8;
         static constexpr auto BUFFER_MODE = GX2_BUFFERING_MODE_DOUBLE;
@@ -66,11 +61,10 @@ namespace love
         uint8_t renderMode;
         GX2ScanTarget id;
 
-        Uniform* uniform;
+        Uniform* uniform = nullptr;
+        glm::mat4 tmpModel;
 
         void* scanBuffer;
         uint32_t scanBufferSize;
-
-        GX2ContextState* state;
     };
 } // namespace love

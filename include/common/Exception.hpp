@@ -28,7 +28,7 @@ namespace love
         std::string message;
     };
 
-#if __DEBUG__
+#if 1
     #include <cstdio>
 
     // Macro to log to both stdout and a debug.log file

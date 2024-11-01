@@ -15,11 +15,14 @@ namespace love
 
         this->uniform->modelView  = glm::mat4(1.0f);
         this->uniform->projection = glm::mat4(1.0f);
+
+        this->tmpModel = glm::mat4(1.0f);
     }
 
     void Framebuffer::destroy()
     {
         std::free(this->uniform);
+        this->uniform = nullptr;
     }
 
     bool Framebuffer::allocateScanBuffer(MEMHeapHandle handle)
@@ -127,13 +130,18 @@ namespace love
 
         const size_t count = sizeof(glm::mat4) / sizeof(uint32_t);
 
-        uint32_t* model = (uint32_t*)glm::value_ptr(glm::mat4(1.0f));
+        uint32_t* model = (uint32_t*)glm::value_ptr(this->tmpModel);
         for (size_t index = 0; index < count; index++)
+        {
+            LOG("%lu/%f", model[index], (float)(model[index]));
             dstModel[index] = __builtin_bswap32(model[index]);
+        }
 
         uint32_t* projection = (uint32_t*)glm::value_ptr(ortho);
         for (size_t index = 0; index < count; index++)
             dstProj[index] = __builtin_bswap32(projection[index]);
+
+        love::debugUniform(this->uniform);
     }
 
     void Framebuffer::setScissor(const Rect& scissor)

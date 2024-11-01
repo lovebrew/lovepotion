@@ -76,7 +76,7 @@ namespace love
                 }
                 case WPAD_EXT_NUNCHUK:
                 {
-                    this->gamepadType = GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUCK;
+                    this->gamepadType = GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK;
                     break;
                 }
                 case WPAD_EXT_PRO_CONTROLLER:
@@ -138,13 +138,17 @@ namespace love
                         return clamp(this->status.classic.rightStick.y);
                     else if (axis == GAMEPAD_AXIS_TRIGGERLEFT)
                         return this->status.classic.hold & WPAD_CLASSIC_BUTTON_ZL ? 1.0f : 0.0f;
+                    else if (axis == GAMEPAD_AXIS_TRIGGERRIGHT)
+                        return this->status.classic.hold & WPAD_CLASSIC_BUTTON_ZR ? 1.0f : 0.0f;
 
-                    return this->status.classic.hold & WPAD_CLASSIC_BUTTON_ZR ? 1.0f : 0.0f;
+                    break;
                 }
-                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUCK:
+                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK:
                 {
-                    if (axis == GAMEPAD_AXIS_TRIGGERLEFT)
-                        return this->status.nunchuk.hold & WPAD_NUNCHUK_BUTTON_Z ? 1.0f : 0.0f;
+                    if (axis == GAMEPAD_AXIS_LEFTX)
+                        return clamp(this->status.nunchuk.stick.x);
+                    else if (axis == GAMEPAD_AXIS_LEFTY)
+                        return clamp(this->status.nunchuk.stick.y);
 
                     break;
                 }
@@ -160,11 +164,13 @@ namespace love
                         return clamp(this->status.pro.rightStick.y);
                     else if (axis == GAMEPAD_AXIS_TRIGGERLEFT)
                         return this->status.pro.hold & WPAD_PRO_TRIGGER_ZL ? 1.0f : 0.0f;
+                    else if (axis == GAMEPAD_AXIS_TRIGGERRIGHT)
+                        return this->status.pro.hold & WPAD_PRO_TRIGGER_ZR ? 1.0f : 0.0f;
 
-                    return this->status.pro.hold & WPAD_PRO_TRIGGER_ZR ? 1.0f : 0.0f;
+                    break;
                 }
                 default:
-                    return 0.0f;
+                    break;
             }
 
             return 0.0f;
@@ -235,7 +241,7 @@ namespace love
             {
                 case GAMEPAD_TYPE_NINTENDO_WII_REMOTE:
                     return isButtonDown<WPADButton>(buttons);
-                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUCK:
+                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK:
                     return isButtonDown<WPADButton>(buttons) || isButtonDown<WPADNunchukButton>(buttons);
                 case GAMEPAD_TYPE_NINTENDO_WII_CLASSIC:
                     return isButtonDown<WPADClassicButton>(buttons);
@@ -257,7 +263,7 @@ namespace love
             {
                 case GAMEPAD_TYPE_NINTENDO_WII_REMOTE:
                     return isButtonUp<WPADButton>(buttons);
-                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUCK:
+                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK:
                     return isButtonUp<WPADButton>(buttons) || isButtonUp<WPADNunchukButton>(buttons);
                 case GAMEPAD_TYPE_NINTENDO_WII_CLASSIC:
                     return isButtonUp<WPADClassicButton>(buttons);
@@ -296,7 +302,7 @@ namespace love
             {
                 case GAMEPAD_TYPE_NINTENDO_WII_REMOTE:
                     break;
-                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUCK:
+                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK:
                     return isAxisValueChanged<NunchuckAxis>(axis);
                 case GAMEPAD_TYPE_NINTENDO_WII_CLASSIC:
                     return isAxisValueChanged<ClassicAxis>(axis);
@@ -411,7 +417,7 @@ namespace love
                     data.push_back(this->status.acc.z);
                     break;
                 }
-                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUCK:
+                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK:
                     data.push_back(this->status.acc.x);
                     data.push_back(this->status.acc.y);
                     data.push_back(this->status.acc.z);
@@ -436,7 +442,7 @@ namespace love
             switch (this->gamepadType)
             {
                 case GAMEPAD_TYPE_NINTENDO_WII_REMOTE:
-                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUCK:
+                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK:
                 {
                     result[0] = this->status.pos.x;
                     result[1] = this->status.pos.y;
@@ -458,7 +464,7 @@ namespace love
             switch (this->gamepadType)
             {
                 case GAMEPAD_TYPE_NINTENDO_WII_REMOTE:
-                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUCK:
+                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK:
                 {
                     result[0] = this->status.angle.x;
                     result[1] = this->status.angle.y;

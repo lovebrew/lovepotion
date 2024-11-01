@@ -146,7 +146,10 @@ namespace love
         this->context.depthWrite  = true;
         this->context.compareMode = GX2_COMPARE_FUNC_ALWAYS;
 
-        this->uniform = (Uniform*)memalign(GX2_UNIFORM_BLOCK_ALIGNMENT, sizeof(Uniform));
+        this->uniform             = (Uniform*)memalign(GX2_UNIFORM_BLOCK_ALIGNMENT, sizeof(Uniform));
+        this->uniform->modelView  = glm::mat4(1.0f);
+        this->uniform->projection = glm::mat4(1.0f);
+
         this->bindFramebuffer(&this->targets[0].get());
 
         this->initialized = true;

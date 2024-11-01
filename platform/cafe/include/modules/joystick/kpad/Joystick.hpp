@@ -94,7 +94,8 @@ namespace love
 
             // clang-format off
             ENUMMAP_DECLARE(NunchuckButtons, GamepadButton, WPADNunchukButton,
-                { GAMEPAD_BUTTON_LEFTSHOULDER, WPAD_NUNCHUK_BUTTON_C }
+                { GAMEPAD_BUTTON_C, WPAD_NUNCHUK_BUTTON_C },
+                { GAMEPAD_BUTTON_Z, WPAD_NUNCHUK_BUTTON_Z }
             );
 
             ENUMMAP_DECLARE(NunchuckAxes, GamepadAxis, NunchuckAxis,
