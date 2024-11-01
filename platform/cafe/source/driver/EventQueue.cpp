@@ -59,8 +59,8 @@ namespace love
             if (joystick == nullptr)
                 continue;
 
-            // if (joystick->getGamepadType() == GAMEPAD_TYPE_NINTENDO_WII_U_GAMEPAD)
-            //     this->gamepad = (vpad::Joystick*)joystick;
+            if (joystick->getGamepadType() == GAMEPAD_TYPE_NINTENDO_WII_U_GAMEPAD)
+                this->gamepad = (vpad::Joystick*)joystick;
 
             joystick->update();
             const auto which = joystick->getInstanceID();
