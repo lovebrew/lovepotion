@@ -1,5 +1,3 @@
-#include "common/Exception.hpp"
-
 #include "driver/display/Framebuffer.hpp"
 #include "driver/display/utility.hpp"
 
@@ -132,10 +130,7 @@ namespace love
 
         uint32_t* model = (uint32_t*)glm::value_ptr(this->tmpModel);
         for (size_t index = 0; index < count; index++)
-        {
-            LOG("%lu/%f", model[index], (float)(model[index]));
             dstModel[index] = __builtin_bswap32(model[index]);
-        }
 
         uint32_t* projection = (uint32_t*)glm::value_ptr(ortho);
         for (size_t index = 0; index < count; index++)

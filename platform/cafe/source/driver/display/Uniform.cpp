@@ -8,10 +8,10 @@ namespace love
 
         uint32_t* model = (uint32_t*)glm::value_ptr(uniform->modelView);
         for (size_t index = 0; index < count; index++)
-            LOG("modelView[%zu] = %u\n", index, model[index]);
+            std::printf("modelView[%zu] = %u\n", index, model[index]);
 
         uint32_t* projection = (uint32_t*)glm::value_ptr(uniform->projection);
         for (size_t index = 0; index < count; index++)
-            LOG("projection[%zu] = %u\n", index, projection[index]);
+            std::printf("projection[%zu] = %u\n", index, projection[index]);
     }
 } // namespace love
