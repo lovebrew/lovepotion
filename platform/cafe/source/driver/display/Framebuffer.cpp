@@ -120,7 +120,7 @@ namespace love
         this->viewport = { 0, 0, info.width, info.height };
         this->scissor  = { 0, 0, info.width, info.height };
 
-        auto ortho = glm::ortho(0.0f, (float)info.width, (float)info.height, 0.0f, Z_NEAR, Z_FAR);
+        this->ortho = glm::ortho(0.0f, (float)info.width, (float)info.height, 0.0f, Z_NEAR, Z_FAR);
 
         /* glm::value_ptr lets us access the data linearly rather than an XxY matrix */
         uint32_t* dstModel = (uint32_t*)glm::value_ptr(this->uniform->modelView);
@@ -132,11 +132,9 @@ namespace love
         for (size_t index = 0; index < count; index++)
             dstModel[index] = __builtin_bswap32(model[index]);
 
-        uint32_t* projection = (uint32_t*)glm::value_ptr(ortho);
+        uint32_t* projection = (uint32_t*)glm::value_ptr(this->ortho);
         for (size_t index = 0; index < count; index++)
             dstProj[index] = __builtin_bswap32(projection[index]);
-
-        love::debugUniform(this->uniform);
     }
 
     void Framebuffer::setScissor(const Rect& scissor)

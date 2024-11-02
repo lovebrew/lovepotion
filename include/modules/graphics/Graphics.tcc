@@ -460,6 +460,8 @@ namespace love
 
         void setBlendMode(BlendMode mode, BlendAlpha alphaMode);
 
+        Quad* newQuad(Quad::Viewport viewport, double sourceWidth, double sourceHeight) const;
+
         virtual TextureBase* newTexture(const TextureBase::Settings& settings,
                                         const TextureBase::Slices* data = nullptr) = 0;
 

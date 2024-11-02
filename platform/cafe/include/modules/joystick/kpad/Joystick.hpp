@@ -1,5 +1,7 @@
 #pragma once
 
+#include "common/Vector.hpp"
+
 #include "modules/joystick/Joystick.tcc"
 
 #include <padscore/kpad.h>
@@ -59,9 +61,9 @@ namespace love
 
             virtual std::vector<float> getSensorData(Sensor::SensorType type) const override;
 
-            std::array<float, 2> getPosition() const;
+            Vector2 getPosition() const;
 
-            std::array<float, 2> getAngle() const;
+            Vector2 getAngle() const;
 
             using JoystickBase::getConstant;
 

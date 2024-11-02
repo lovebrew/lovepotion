@@ -430,6 +430,49 @@ static constexpr luaL_Reg functions[] = {
     { "getSensorData",           Wrap_Joystick::getSensorData           },
     { "getConnectedIndex",       Wrap_JoystickModule::getIndex          }
 };
+
+#if !defined(__WIIU__)
+static constexpr luaL_Reg extFunctions[] = {};
+#else
+#include "modules/joystick/kpad/Joystick.hpp"
+
+int Wrap_Joystick::getPosition(lua_State*L)
+{
+    auto* base = luax_checkjoystick(L, 1);
+    const auto type = base->getGamepadType();
+
+    if (type != GAMEPAD_TYPE_NINTENDO_WII_REMOTE && type != GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK)
+        return luaL_error(L, "Invalid controller! Must be of type Wii Remote");
+
+    auto position = ((kpad::Joystick*)base)->getPosition();
+
+    lua_pushnumber(L, position.x);
+    lua_pushnumber(L, position.y);
+
+    return 2;
+}
+
+int Wrap_Joystick::getAngle(lua_State*L)
+{
+    auto* base = luax_checkjoystick(L, 1);
+    const auto type = base->getGamepadType();
+
+    if (type != GAMEPAD_TYPE_NINTENDO_WII_REMOTE && type != GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK)
+        return luaL_error(L, "Invalid controller! Must be of type Wii Remote");
+
+    auto angle = ((kpad::Joystick*)base)->getAngle();
+
+    lua_pushnumber(L, angle.x);
+    lua_pushnumber(L, angle.y);
+
+    return 2;
+}
+
+static constexpr luaL_Reg extFunctions[] = {
+    { "getPosition", Wrap_Joystick::getPosition },
+    { "getAngle",    Wrap_Joystick::getAngle    }
+};
+#endif
 // clang-format on
 
 namespace love
@@ -441,6 +484,6 @@ namespace love
 
     int open_joystick(lua_State* L)
     {
-        return luax_register_type(L, &JoystickBase::type, functions);
+        return luax_register_type(L, &JoystickBase::type, functions, extFunctions);
     }
 } // namespace love

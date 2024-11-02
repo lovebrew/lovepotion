@@ -62,7 +62,9 @@ namespace love
         GX2ScanTarget id;
 
         Uniform* uniform = nullptr;
+
         glm::mat4 tmpModel;
+        glm::highp_mat4 ortho;
 
         void* scanBuffer;
         uint32_t scanBufferSize;

@@ -1,3 +1,5 @@
+#include "common/screen.hpp"
+
 #include "modules/joystick/kpad/Joystick.hpp"
 
 namespace love
@@ -435,17 +437,27 @@ namespace love
             return data;
         }
 
-        std::array<float, 2> Joystick::getPosition() const
+        static Vector2 ndcToScreen(const KPADVec2D& input)
         {
-            std::array<float, 2> result {};
+            Vector2 result {};
+            const auto& info = love::getScreenInfo((Screen)0);
 
+            result.x = ((input.x) / 2) * info.width;
+            result.y = ((input.y + 1.0f) / 2) * info.height;
+
+            return result;
+        }
+
+        Vector2 Joystick::getPosition() const
+        {
             switch (this->gamepadType)
             {
                 case GAMEPAD_TYPE_NINTENDO_WII_REMOTE:
                 case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK:
                 {
-                    result[0] = this->status.pos.x;
-                    result[1] = this->status.pos.y;
+                    if (this->status.posValid)
+                        return ndcToScreen(this->status.pos);
+
                     break;
                 }
                 case GAMEPAD_TYPE_NINTENDO_WII_CLASSIC:
@@ -454,20 +466,23 @@ namespace love
                     break;
             }
 
-            return result;
+            return Vector2 {};
         }
 
-        std::array<float, 2> Joystick::getAngle() const
+        Vector2 Joystick::getAngle() const
         {
-            std::array<float, 2> result {};
+            Vector2 result {};
 
             switch (this->gamepadType)
             {
                 case GAMEPAD_TYPE_NINTENDO_WII_REMOTE:
                 case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK:
                 {
-                    result[0] = this->status.angle.x;
-                    result[1] = this->status.angle.y;
+                    if (!this->status.posValid)
+                        break;
+
+                    result.x = this->status.angle.x;
+                    result.y = this->status.angle.y;
                     break;
                 }
                 case GAMEPAD_TYPE_NINTENDO_WII_CLASSIC:

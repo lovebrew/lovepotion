@@ -977,6 +977,55 @@ int Wrap_Graphics::newTexture(lua_State* L)
     return pushNewTexture(L, slicesRef, settings);
 }
 
+int Wrap_Graphics::newQuad(lua_State* L)
+{
+    luax_checkgraphicscreated(L);
+
+    Quad::Viewport viewport {};
+    viewport.x = luaL_checknumber(L, 1);
+    viewport.y = luaL_checknumber(L, 2);
+    viewport.w = luaL_checknumber(L, 3);
+    viewport.h = luaL_checknumber(L, 4);
+
+    double sourceWidth  = 0.0f;
+    double sourceHeight = 0.0f;
+
+    int layer = 0;
+
+    if (luax_istype(L, 5, TextureBase::type))
+    {
+        TextureBase* texture = luax_checktexture(L, 5);
+        sourceWidth          = texture->getWidth();
+        sourceHeight         = texture->getHeight();
+    }
+    else if (luax_istype(L, 6, TextureBase::type))
+    {
+        layer                = (int)luaL_checkinteger(L, 5) - 1;
+        TextureBase* texture = luax_checktexture(L, 6);
+        sourceWidth          = texture->getWidth();
+        sourceHeight         = texture->getHeight();
+    }
+    else if (!lua_isnoneornil(L, 7))
+    {
+        layer        = (int)luaL_checkinteger(L, 5) - 1;
+        sourceWidth  = luaL_checknumber(L, 6);
+        sourceHeight = luaL_checknumber(L, 7);
+    }
+    else
+    {
+        sourceWidth  = luaL_checknumber(L, 5);
+        sourceHeight = luaL_checknumber(L, 6);
+    }
+
+    Quad* quad = instance()->newQuad(viewport, sourceWidth, sourceHeight);
+    quad->setLayer(layer);
+
+    luax_pushtype(L, quad);
+    quad->release();
+
+    return 1;
+}
+
 int Wrap_Graphics::newImage(lua_State* L)
 {
     return newTexture(L);
@@ -1823,6 +1872,7 @@ static constexpr luaL_Reg functions[] =
     { "line",                   Wrap_Graphics::line                  },
 
     { "newTexture",             Wrap_Graphics::newTexture            },
+    { "newQuad",                Wrap_Graphics::newQuad               },
     { "newImage",               Wrap_Graphics::newImage              },
 
     // { "newMesh",                Wrap_Graphics::newMesh               },

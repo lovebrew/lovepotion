@@ -401,6 +401,11 @@ namespace love
         return data;
     }
 
+    Quad* GraphicsBase::newQuad(Quad::Viewport viewport, double sourceWidth, double sourceHeight) const
+    {
+        return new Quad(viewport, sourceWidth, sourceHeight);
+    }
+
     TextBatch* GraphicsBase::newTextBatch(FontBase* font, const std::vector<ColoredString>& text)
     {
         return new TextBatch(font, text);
