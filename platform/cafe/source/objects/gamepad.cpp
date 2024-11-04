@@ -227,8 +227,7 @@ float Gamepad::GetGamepadAxis(GamepadAxis axis)
     if (!this->IsConnected())
         return 0.0f;
 
-    int getAxis = (int)axis;
-    return this->GetAxis(getAxis - 1);
+    return this->GetAxis(axis);
 }
 
 std::vector<float> Gamepad::GetAxes()
