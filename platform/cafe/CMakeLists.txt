@@ -28,7 +28,6 @@ source/driver/audio/SoundChannel.cpp
 source/driver/display/Framebuffer.cpp
 source/driver/display/GX2.cpp
 source/driver/display/Uniform.cpp
-source/driver/graphics/StreamBuffer.cpp
 source/driver/EventQueue.cpp
 source/modules/audio/Source.cpp
 source/modules/graphics/Graphics.cpp
