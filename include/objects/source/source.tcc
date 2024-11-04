@@ -104,7 +104,7 @@ namespace love
         Source(SourceType type) :
             sourceType(type),
             looping(false),
-            minVolume(1.0f),
+            minVolume(0.0f),
             maxVolume(1.0f),
             volume(1.0f),
             valid(false),
