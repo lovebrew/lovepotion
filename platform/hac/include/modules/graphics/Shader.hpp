@@ -1,9 +1,9 @@
 #pragma once
 
+#include "driver/display/deko3d/CMemPool.h"
+#include "modules/graphics/Graphics.hpp"
 #include "modules/graphics/Shader.tcc"
 #include "modules/graphics/Volatile.hpp"
-
-#include "driver/display/deko3d/CMemPool.h"
 
 #include <deko3d.hpp>
 
@@ -29,6 +29,8 @@ namespace love
             Stage vertex;
             Stage fragment;
         } program;
+
+        Shader();
 
         Shader(StandardShader shader);
 

@@ -2,6 +2,7 @@
 
 #include "common/Object.hpp"
 
+#include "modules/graphics/Resource.hpp"
 #include "modules/graphics/vertex.hpp"
 
 #include <type_traits>

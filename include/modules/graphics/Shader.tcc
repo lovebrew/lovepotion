@@ -31,6 +31,9 @@ namespace love
         static ShaderBase* current;
         static ShaderBase* standardShaders[STANDARD_MAX_ENUM];
 
+        ShaderBase()
+        {}
+
         ShaderBase(StandardShader type);
 
         virtual ~ShaderBase();

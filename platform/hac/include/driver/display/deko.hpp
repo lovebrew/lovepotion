@@ -10,7 +10,7 @@
 #include "driver/display/deko3d/CCmdVtxRing.h"
 #include "driver/display/deko3d/CDescriptorSet.h"
 
-#include "modules/graphics/Shader.hpp"
+#include "modules/graphics/Texture.hpp"
 #include "modules/graphics/vertex.hpp"
 
 /* Enforces GLSL std140/std430 alignment rules for glm types */
@@ -68,9 +68,11 @@ namespace love
 
         void setVertexWinding(Winding winding);
 
-        void prepareDraw(GraphicsBase* graphics) override;
+        void prepareDraw(GraphicsBase* graphics);
 
-        void useProgram(const Shader::Program& program);
+        void useProgram(const dk::Shader& vertex, const dk::Shader& fragment);
+
+        void bindBuffer(BufferUsage usage, DkGpuAddr buffer, size_t size);
 
         void onModeChanged()
         {

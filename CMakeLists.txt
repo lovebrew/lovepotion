@@ -123,6 +123,9 @@ if (NINTENDO_SWITCH)
         source/modules/image/magpie/KTXHandler.cpp
         source/modules/image/magpie/PKMHandler.cpp
         source/modules/image/magpie/PNGHandler.cpp
+        source/modules/font/freetype/Font.cpp
+        source/modules/font/freetype/TrueTypeRasterizer.cpp
+        source/modules/graphics/freetype/Font.cpp
     )
 
     add_library(ddsparse
@@ -131,7 +134,10 @@ if (NINTENDO_SWITCH)
         libraries/ddsparse/ddsinfo.h
     )
 
-    target_link_libraries(${PROJECT_NAME} PRIVATE ddsparse)
+    find_package(Freetype REQUIRED)
+    target_link_libraries(${PROJECT_NAME} PRIVATE Freetype::Freetype bz2 png turbojpeg ddsparse)
+
+    execute_process(COMMAND patch -d ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket -N -i ${PROJECT_SOURCE_DIR}/platform/hac/libraries/luasocket.patch)
 endif()
 
 if (NINTENDO_WIIU)

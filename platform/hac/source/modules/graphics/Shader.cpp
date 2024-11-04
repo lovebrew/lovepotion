@@ -1,6 +1,15 @@
 #include "modules/graphics/Shader.hpp"
 #include "driver/display/deko.hpp"
 
+#include <cstring>
+
+#define SHADERS_DIR "romfs:/shaders/"
+
+#define DEFAULT_VERTEX_SHADER   (SHADERS_DIR "transform_vsh.dksh")
+#define DEFAULT_FRAGMENT_SHADER (SHADERS_DIR "color_fsh.dksh")
+#define DEFAULT_TEXTURE_SHADER  (SHADERS_DIR "texture_fsh.dksh")
+#define DEFAULT_VIDEO_SHADER    (SHADERS_DIR "video_fsh.dksh")
+
 namespace love
 {
     struct DkshHeader
@@ -13,12 +22,8 @@ namespace love
         uint32_t num_programs;
     };
 
-#define SHADERS_DIR "romfs:/shaders/"
-
-#define DEFAULT_VERTEX_SHADER   (SHADERS_DIR "transform_vsh.dksh")
-#define DEFAULT_FRAGMENT_SHADER (SHADERS_DIR "color_fsh.dksh")
-#define DEFAULT_TEXTURE_SHADER  (SHADERS_DIR "texture_fsh.dksh")
-#define DEFAULT_VIDEO_SHADER    (SHADERS_DIR "video_fsh.dksh")
+    Shader::Shader()
+    {}
 
     Shader::Shader(StandardShader shader)
     {
@@ -54,7 +59,7 @@ namespace love
         if (Shader::current != this)
         {
             Shader::current = this;
-            d3d.useProgram(this->program);
+            d3d.useProgram(this->program.vertex.shader, this->program.fragment.shader);
             ++shaderSwitches;
         }
     }

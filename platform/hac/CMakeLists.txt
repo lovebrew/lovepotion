@@ -34,7 +34,7 @@ source/driver/audio/MemoryPool.cpp
 source/driver/display/deko3d/CIntrusiveTree.cpp
 source/driver/display/deko3d/CMemPool.cpp
 source/driver/display/Framebuffer.cpp
-source/driver/display/deko3d.cpp
+source/driver/display/deko.cpp
 source/driver/EventQueue.cpp
 source/modules/audio/Source.cpp
 source/modules/graphics/Graphics.cpp

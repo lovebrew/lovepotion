@@ -1,7 +1,10 @@
 #pragma once
 
-#include "driver/display/deko.hpp"
 #include "driver/graphics/StreamBuffer.tcc"
+#include "modules/graphics/Volatile.hpp"
+
+#include "driver/display/deko.hpp"
+#include "driver/display/deko3d/CMemPool.h"
 
 namespace love
 {
@@ -11,32 +14,34 @@ namespace love
       public:
         StreamBuffer(BufferUsage usage, size_t size) : StreamBufferBase<T>(usage, size)
         {
-            size_t align = (size + DK_CMDMEM_ALIGNMENT - 1) & ~(DK_CMDMEM_ALIGNMENT - 1);
-
-            this->memory = dk::MemBlockMaker { d3d.getDevice(), align }
-                               .setFlags(DkMemBlockFlags_GpuCached | DkMemBlockFlags_CpuUncached)
-                               .create();
+            this->sliceSize = (size + DK_CMDMEM_ALIGNMENT - 1) & ~(DK_CMDMEM_ALIGNMENT - 1);
         }
 
-        ~StreamBuffer()
-        {}
+        StreamBuffer(const StreamBuffer&) = delete;
 
-        MapInfo<T> StreamBuffer::map(size_t) override
+        StreamBuffer& operator=(const StreamBuffer&) = delete;
+
+        ~StreamBuffer()
+        {
+            this->memory.destroy();
+        }
+
+        MapInfo<T> map(size_t)
         {
             MapInfo<T> info {};
-            info.data = &this->memory.getCpuAddr()[this->index];
+            info.data = &((T*)this->memory.getCpuAddr())[this->index];
             info.size = this->bufferSize - this->frameGPUReadOffset;
 
             return info;
         }
 
-        ptrdiff_t getHandle() const override
+        ptrdiff_t getHandle() const
         {
-            return 0;
+            return (ptrdiff_t)this->memory.getGpuAddr();
         }
 
       private:
-        dk::UniqueMemBlock memory;
+        CMemPool::Handle memory;
         uint32_t sliceSize;
     };
 } // namespace love

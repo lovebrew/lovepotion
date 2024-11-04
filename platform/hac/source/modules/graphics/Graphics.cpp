@@ -30,6 +30,59 @@ namespace love
         }
     }
 
+    void Graphics::captureScreenshot(const ScreenshotInfo& info)
+    {}
+
+    void Graphics::initCapabilities()
+    {
+        // clang-format off
+        this->capabilities.features[FEATURE_MULTI_RENDER_TARGET_FORMATS]  = false;
+        this->capabilities.features[FEATURE_CLAMP_ZERO]                   = true;
+        this->capabilities.features[FEATURE_CLAMP_ONE]                    = true;
+        this->capabilities.features[FEATURE_BLEND_MINMAX]                 = true;
+        this->capabilities.features[FEATURE_LIGHTEN]                      = true;
+        this->capabilities.features[FEATURE_FULL_NPOT]                    = true;
+        this->capabilities.features[FEATURE_PIXEL_SHADER_HIGHP]           = false;
+        this->capabilities.features[FEATURE_SHADER_DERIVATIVES]           = false;
+        this->capabilities.features[FEATURE_GLSL3]                        = false;
+        this->capabilities.features[FEATURE_GLSL4]                        = false;
+        this->capabilities.features[FEATURE_INSTANCING]                   = false;
+        this->capabilities.features[FEATURE_TEXEL_BUFFER]                 = false;
+        this->capabilities.features[FEATURE_INDEX_BUFFER_32BIT]           = false;
+        this->capabilities.features[FEATURE_COPY_BUFFER_TO_TEXTURE]       = false; //< might be possible
+        this->capabilities.features[FEATURE_COPY_TEXTURE_TO_BUFFER]       = false; //< might be possible
+        this->capabilities.features[FEATURE_COPY_RENDER_TARGET_TO_BUFFER] = false; //< might be possible
+        this->capabilities.features[FEATURE_MIPMAP_RANGE]                 = false;
+        this->capabilities.features[FEATURE_INDIRECT_DRAW]                = false;
+        static_assert(FEATURE_MAX_ENUM == 19,  "Graphics::initCapabilities must be updated when adding a new graphics feature!");
+
+        this->capabilities.limits[LIMIT_POINT_SIZE]                 = 8.0f;
+        this->capabilities.limits[LIMIT_TEXTURE_SIZE]               = 4096;
+        this->capabilities.limits[LIMIT_TEXTURE_LAYERS]             = 1;
+        this->capabilities.limits[LIMIT_VOLUME_TEXTURE_SIZE]        = 4096;
+        this->capabilities.limits[LIMIT_CUBE_TEXTURE_SIZE]          = 4096;
+        this->capabilities.limits[LIMIT_TEXEL_BUFFER_SIZE]          = 0;
+        this->capabilities.limits[LIMIT_SHADER_STORAGE_BUFFER_SIZE] = 0;
+        this->capabilities.limits[LIMIT_THREADGROUPS_X]             = 0;
+        this->capabilities.limits[LIMIT_THREADGROUPS_Y]             = 0;
+        this->capabilities.limits[LIMIT_THREADGROUPS_Z]             = 0;
+        this->capabilities.limits[LIMIT_RENDER_TARGETS]             = 1; //< max simultaneous render targets
+        this->capabilities.limits[LIMIT_TEXTURE_MSAA]               = 0;
+        this->capabilities.limits[LIMIT_ANISOTROPY]                 = 0;
+        static_assert(LIMIT_MAX_ENUM == 13, "Graphics::initCapabilities must be updated when adding a new system limit!");
+        // clang-format on
+
+        this->capabilities.textureTypes[TEXTURE_2D]       = true;
+        this->capabilities.textureTypes[TEXTURE_VOLUME]   = false;
+        this->capabilities.textureTypes[TEXTURE_CUBE]     = true;
+        this->capabilities.textureTypes[TEXTURE_2D_ARRAY] = false;
+    }
+
+    void Graphics::setActiveScreen()
+    {
+        // gx2.ensureInFrame();
+    }
+
     void Graphics::backbufferChanged(int width, int height, int pixelWidth, int pixelHeight, bool stencil,
                                      bool depth, int msaa)
     {
@@ -284,4 +337,10 @@ namespace love
         auto* window = Module::getInstance<Window>(M_WINDOW);
         return this->active && this->created && window != nullptr && window->isOpen();
     }
+
+    void Graphics::draw(const DrawIndexedCommand& command)
+    {}
+
+    void Graphics::draw(const DrawCommand& command)
+    {}
 } // namespace love

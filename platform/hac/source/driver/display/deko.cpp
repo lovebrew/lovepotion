@@ -99,10 +99,10 @@ namespace love
         return this->framebuffers[this->framebufferSlot].getImage();
     }
 
-    void deko3d::useProgram(const Shader::Program& program)
+    void deko3d::useProgram(const dk::Shader& vertex, const dk::Shader& fragment)
     {
         // clang-format off
-        this->commandBuffer.bindShaders(DkStageFlag_GraphicsMask, { &program.vertex.shader, &program.fragment.shader });
+        this->commandBuffer.bindShaders(DkStageFlag_GraphicsMask, { &vertex, &fragment });
         this->commandBuffer.bindUniformBuffer(DkStage_Vertex, 0, this->uniformBuffer.getGpuAddr(), this->uniformBuffer.getSize());
         // clang-format off
     }
@@ -129,6 +129,22 @@ namespace love
             this->commandBuffer.bindRenderTargets(&target, &depth);
         }
     }
+
+    void deko3d::bindBuffer(BufferUsage usage, DkGpuAddr buffer, size_t size)
+    {
+        if (usage == BUFFERUSAGE_VERTEX)
+        {
+            this->commandBuffer.bindVtxBuffer(0, buffer, size);
+            return;
+        }
+        else if (usage == BUFFERUSAGE_INDEX)
+        {
+            this->commandBuffer.bindIdxBuffer(DkIdxFormat_Uint16, buffer);
+        }
+    }
+
+    void deko3d::prepareDraw(GraphicsBase* graphics)
+    {}
 
     void deko3d::present()
     {

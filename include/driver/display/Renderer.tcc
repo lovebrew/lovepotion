@@ -2,11 +2,11 @@
 
 #include "common/Singleton.tcc"
 
+#include "modules/graphics/Graphics.tcc"
 #include "modules/graphics/Shader.tcc"
 #include "modules/graphics/renderstate.hpp"
-#include "modules/graphics/vertex.hpp"
 
-#include "driver/graphics/DrawCommand.hpp"
+#include "modules/graphics/vertex.hpp"
 
 #include <array>
 #include <vector>

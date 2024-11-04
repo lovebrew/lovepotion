@@ -432,7 +432,7 @@ static constexpr luaL_Reg functions[] = {
 };
 
 #if !defined(__WIIU__)
-static constexpr luaL_Reg extFunctions[] = {};
+static constexpr std::span<luaL_Reg> extFunctions = {};
 #else
 #include "modules/joystick/kpad/Joystick.hpp"
 
