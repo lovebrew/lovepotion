@@ -3,6 +3,7 @@
 #include "modules/graphics/Texture.tcc"
 #include "modules/graphics/Volatile.hpp"
 
+#include "driver/display/deko3d/CMemPool.h"
 #include <deko3d.hpp>
 
 namespace love
@@ -24,21 +25,38 @@ namespace love
 
         ptrdiff_t getSamplerHandle() const override;
 
+        dk::ImageDescriptor getDescriptorHandle()
+        {
+            return this->descriptor;
+        }
+
+        dk::SamplerDescriptor getSamplerDescriptorHandle()
+        {
+            return this->samplerDescriptor;
+        }
+
         void setSamplerState(const SamplerState& state) override;
 
         void uploadByteData(const void* data, size_t size, int slice, int mipmap, const Rect& rect) override;
 
         void generateMipmapsInternal() override;
 
-        void setHandleData(void* data) override
-        {}
+        void setHandleData(ptrdiff_t data) override
+        {
+            this->handle = (DkResHandle)data;
+        }
 
       private:
         void createTexture();
 
         Slices slices;
 
-        DkImage texture;
-        DkSampler sampler;
+        dk::Image image;
+        dk::ImageDescriptor descriptor;
+        dk::Sampler sampler;
+        dk::SamplerDescriptor samplerDescriptor;
+
+        DkResHandle handle;
+        CMemPool::Handle memory;
     };
 } // namespace love

@@ -31,6 +31,14 @@ namespace love
 
         virtual void setColorMask(ColorChannelMask mask) override;
 
+        virtual void setPointSize(float size) override
+        {
+            if (size != this->states.back().pointSize)
+                this->flushBatchedDraws();
+
+            this->states.back().pointSize = size;
+        }
+
         virtual void setBlendState(const BlendState& state) override;
 
         virtual FontBase* newFont(Rasterizer* data) override;

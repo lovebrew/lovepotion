@@ -1,10 +1,9 @@
 #pragma once
 
+#include "driver/display/deko.hpp"
+
 #include "driver/graphics/StreamBuffer.tcc"
 #include "modules/graphics/Volatile.hpp"
-
-#include "driver/display/deko.hpp"
-#include "driver/display/deko3d/CMemPool.h"
 
 namespace love
 {
@@ -15,6 +14,12 @@ namespace love
         StreamBuffer(BufferUsage usage, size_t size) : StreamBufferBase<T>(usage, size)
         {
             this->sliceSize = (size + DK_CMDMEM_ALIGNMENT - 1) & ~(DK_CMDMEM_ALIGNMENT - 1);
+        }
+
+        bool allocate(CMemPool& pool)
+        {
+            this->memory = pool.allocate(this->sliceSize, alignof(T));
+            return this->memory;
         }
 
         StreamBuffer(const StreamBuffer&) = delete;
@@ -34,6 +39,8 @@ namespace love
 
             return info;
         }
+
+        size_t unmap(size_t);
 
         ptrdiff_t getHandle() const
         {

@@ -16,7 +16,7 @@ namespace love
     static constexpr std::array<const Service, 8> services =
     {{
         { "bsd",         BIND(socketInitializeDefault),                           &socketExit  },
-        { "pl:u",        BIND(plInitialize, PlServiceType_User),                  &plExit      },
+        { "pl:u",        BIND(plInitialize,      PlServiceType_User),             &plExit      },
         { "acc:a",       BIND(accountInitialize, AccountServiceType_Application), &accountExit },
         { "set",         BIND(setInitialize),                                     &setExit     },
         { "set:sys",     BIND(setsysInitialize),                                  &setsysExit  },

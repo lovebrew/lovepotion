@@ -32,9 +32,9 @@ namespace love
 
         void generateMipmapsInternal() override;
 
-        void setHandleData(void* data) override
+        void setHandleData(ptrdiff_t data) override
         {
-            this->texture->data = data;
+            this->texture->data = (void*)data;
         }
 
         // bool validateDimensions(bool throwException) const;

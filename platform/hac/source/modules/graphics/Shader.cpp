@@ -1,6 +1,8 @@
 #include "modules/graphics/Shader.hpp"
 #include "driver/display/deko.hpp"
 
+#include "driver/graphics/Attributes.hpp"
+
 #include <cstring>
 
 #define SHADERS_DIR "romfs:/shaders/"
@@ -54,13 +56,23 @@ namespace love
             throw love::Exception("Invalid fragment shader: %s", error.c_str());
     }
 
+    Shader::~Shader()
+    {
+        this->program.vertex.memory.destroy();
+        this->program.fragment.memory.destroy();
+    }
+
     void Shader::attach()
     {
         if (Shader::current != this)
         {
-            Shader::current = this;
+            Graphics::flushBatchedDrawsGlobal();
+
             d3d.useProgram(this->program.vertex.shader, this->program.fragment.shader);
             ++shaderSwitches;
+
+            Shader::current = this;
+            shaderSwitches++;
         }
     }
 
@@ -71,6 +83,14 @@ namespace love
 
     void Shader::unloadVolatile()
     {}
+
+    void Shader::updateBuiltinUniforms(GraphicsBase* graphics)
+    {}
+
+    ptrdiff_t Shader::getHandle() const
+    {
+        return 0;
+    }
 
     static bool loadFile(Shader::Stage& stage, const uint8_t* buffer, size_t size, std::string& error)
     {

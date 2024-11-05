@@ -208,6 +208,14 @@ namespace love
         state.scissorRect = scissor;
     }
 
+    void Graphics::setPointSize(float size)
+    {
+        if (size != this->states.back().pointSize)
+            this->flushBatchedDraws();
+
+        this->states.back().pointSize = size;
+    }
+
     void Graphics::setScissor()
     {
         if (this->states.back().scissor)

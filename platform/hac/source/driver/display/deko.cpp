@@ -1,4 +1,5 @@
 #include "driver/display/deko.hpp"
+#include "driver/graphics/Attributes.hpp"
 
 namespace love
 {
@@ -7,15 +8,13 @@ namespace love
         device(dk::DeviceMaker {}.setFlags(DkDeviceFlags_DepthMinusOneToOne).create()),
         mainQueue(dk::QueueMaker { this->device }.setFlags(DkQueueFlags_Graphics).create()),
         textureQueue(dk::QueueMaker { this->device }.setFlags(DkQueueFlags_Graphics).create()),
-        commandBuffer(dk::CmdBufMaker { this->device }.create()),
         swapchain {},
         images(CMemPool(this->device, GPU_USE_FLAGS, GPU_POOL_SIZE)),
         data(CMemPool(this->device, CPU_USE_FLAGS, CPU_POOL_SIZE)),
         code(CMemPool(this->device, SHADER_USE_FLAGS, SHADER_POOL_SIZE)),
-        framebufferSlot(-1)
-    {
-        std::memset(&this->context, 0, sizeof(this->context));
-    }
+        framebufferSlot(-1),
+        context {}
+    {}
 
     void deko3d::initialize()
     {
@@ -26,7 +25,14 @@ namespace love
         this->transform.modelView = glm::mat4(1.0f);
 
         this->commands.allocate(this->data, COMMAND_SIZE);
+        this->commandBuffer = dk::CmdBufMaker { this->device }.create();
+
         this->createFramebuffers();
+        this->ensureInFrame();
+
+        this->context.rasterizer.setCullMode(DkFace_None);
+        this->context.rasterizer.setFrontFace(DkFrontFace_CCW);
+        this->context.color.setBlendEnable(0, true);
 
         this->initialized = true;
     }
@@ -79,6 +85,9 @@ namespace love
     {
         if (!this->inFrame)
         {
+            if (this->framebufferSlot < 0)
+                this->framebufferSlot = this->mainQueue.acquireImage(this->swapchain);
+
             this->commands.begin(this->commandBuffer);
             this->inFrame = true;
         }
@@ -86,16 +95,23 @@ namespace love
 
     void deko3d::clear(const Color& color)
     {
+        if (!this->context.boundFramebuffer)
+            return;
+
         this->commandBuffer.clearColor(0, DkColorMask_RGBA, color.r, color.g, color.b, color.a);
     }
 
     void deko3d::clearDepthStencil(int depth, uint8_t mask, double stencil)
     {
+        if (!this->inFrame)
+            return;
+
         this->commandBuffer.clearDepthStencil(true, depth, mask, stencil);
     }
 
     dk::Image& deko3d::getInternalBackbuffer()
     {
+        this->ensureInFrame();
         return this->framebuffers[this->framebufferSlot].getImage();
     }
 
@@ -107,12 +123,23 @@ namespace love
         // clang-format off
     }
 
+    void deko3d::registerTexture(TextureBase* texture, bool registering)
+    {
+        if (registering)
+        {
+            const auto handle = this->textureHandles.allocate();
+            texture->setHandleData(handle);
+            return;
+        }
+
+        this->textureHandles.reset((DkResHandle)texture->getHandle());
+    }
+
     void deko3d::bindFramebuffer(dk::Image& framebuffer)
     {
         if (!this->swapchain)
             return;
 
-        this->ensureInFrame();
         bool bindingModified = false;
 
         if (this->context.boundFramebuffer != &framebuffer)
@@ -133,18 +160,36 @@ namespace love
     void deko3d::bindBuffer(BufferUsage usage, DkGpuAddr buffer, size_t size)
     {
         if (usage == BUFFERUSAGE_VERTEX)
-        {
             this->commandBuffer.bindVtxBuffer(0, buffer, size);
-            return;
-        }
         else if (usage == BUFFERUSAGE_INDEX)
-        {
             this->commandBuffer.bindIdxBuffer(DkIdxFormat_Uint16, buffer);
-        }
+    }
+
+    void deko3d::drawIndexed(DkPrimitive primitive, uint32_t indexCount, uint32_t indexOffset, uint32_t instanceCount)
+    {
+        vertex::Attributes attributes {};
+        bool success = getAttributes(CommonFormat::XYf_RGBAf, attributes);
+
+        if (!success)
+            return;
+
+        this->commandBuffer.bindVtxAttribState(attributes.attributeState);
+        this->commandBuffer.bindVtxBufferState(attributes.bufferState);
+
+        this->commandBuffer.drawIndexed(primitive, indexCount, instanceCount, indexOffset, 0, 0);
     }
 
     void deko3d::prepareDraw(GraphicsBase* graphics)
-    {}
+    {
+        this->commandBuffer.bindRasterizerState(this->context.rasterizer);
+        this->commandBuffer.bindBlendStates(0, this->context.blend);
+
+        // this->commandBuffer.bindColorState(this->context.color);
+
+        this->commandBuffer.pushConstants(this->uniformBuffer.getGpuAddr(),
+                                    this->uniformBuffer.getSize(), 0, TRANSFORM_SIZE,
+                                    &this->transform);
+    }
 
     void deko3d::present()
     {
@@ -153,13 +198,16 @@ namespace love
 
         if (this->inFrame)
         {
+            GraphicsBase::flushBatchedDrawsGlobal();
+            GraphicsBase::advanceStreamBuffersGlobal();
+
             this->mainQueue.submitCommands(this->commands.end(this->commandBuffer));
             this->mainQueue.presentImage(this->swapchain, this->framebufferSlot);
 
             this->inFrame = false;
         }
 
-        this->framebufferSlot = this->mainQueue.acquireImage(this->swapchain);
+        this->framebufferSlot = -1;
     }
 
     void deko3d::setVertexWinding(Winding winding)
@@ -169,6 +217,11 @@ namespace love
             return;
 
         this->context.rasterizer.setFrontFace(face);
+    }
+
+    void deko3d::setPointSize(float size)
+    {
+        this->commandBuffer.setPointSize(size);
     }
 
     void deko3d::setCullMode(CullMode mode)
@@ -230,6 +283,47 @@ namespace love
         this->context.blend.setDstAlphaBlendFactor(destAlpha);
     }
 
+    void deko3d::setSamplerState(TextureBase* texture, const SamplerState&state)
+    {
+        auto* sampler = (dk::Sampler*)texture->getSamplerHandle();
+        auto index = -1;
+
+        if (!this->textureHandles.find((uint32_t)texture->getHandle(), index))
+            index = this->textureHandles.allocate();
+
+        DkFilter magFilter;
+        if (!deko3d::getConstant(state.magFilter, magFilter))
+            return;
+
+        DkFilter minFilter;
+        if (!deko3d::getConstant(state.minFilter, minFilter))
+            return;
+
+        sampler->setFilter(minFilter, magFilter);
+
+        DkWrapMode wrapU;
+        if (!deko3d::getConstant(state.wrapU, wrapU))
+            return;
+
+        DkWrapMode wrapV;
+        if (!deko3d::getConstant(state.wrapV, wrapV))
+            return;
+
+        DkWrapMode wrapW;
+        if (!deko3d::getConstant(state.wrapW, wrapW))
+            return;
+
+        sampler->setWrapMode(wrapU, wrapV, wrapW);
+
+        // const auto descriptor = ((Texture*)texture)->getDescriptorHandle();
+        // this->imageSet.update(this->commandBuffer, index, descriptor);
+
+        // auto samplerDescriptor = ((Texture*)texture)->getSamplerDescriptorHandle();
+        // samplerDescriptor.initialize(*sampler);
+
+        // this->samplerSet.update(this->commandBuffer, index, samplerDescriptor);
+    }
+
     static DkScissor dkScissorFromRect(const Rect& rect)
     {
         DkScissor scissor {};
@@ -280,6 +374,9 @@ namespace love
             _viewport = dkViewportFromRect(viewport);
 
         this->commandBuffer.setViewports(0, { _viewport });
+
+        const auto ortho = glm::ortho(0.0f, (float)viewport.w, (float)viewport.h, 0.0f, -10.0f, 10.0f);
+        this->transform.projection = ortho;
     }
 
     deko3d d3d;

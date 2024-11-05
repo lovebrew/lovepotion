@@ -4,6 +4,8 @@
 #include "modules/window/Window.hpp"
 
 #include "modules/graphics/Shader.hpp"
+#include "modules/graphics/Texture.hpp"
+#include "modules/graphics/freetype/Font.hpp"
 
 namespace love
 {
@@ -80,7 +82,7 @@ namespace love
 
     void Graphics::setActiveScreen()
     {
-        // gx2.ensureInFrame();
+        d3d.ensureInFrame();
     }
 
     void Graphics::backbufferChanged(int width, int height, int pixelWidth, int pixelHeight, bool stencil,
@@ -120,6 +122,8 @@ namespace love
 
     void Graphics::clear(OptionalColor color, OptionalInt stencil, OptionalDouble depth)
     {
+        d3d.bindFramebuffer(d3d.getInternalBackbuffer());
+
         if (color.hasValue)
         {
             bool hasIntegerFormat = false;
@@ -151,14 +155,14 @@ namespace love
             gammaCorrectColor(color.value);
             d3d.clear(color.value);
         }
-
-        d3d.bindFramebuffer(d3d.getInternalBackbuffer());
     }
 
     void Graphics::clear(const std::vector<OptionalColor>& colors, OptionalInt stencil, OptionalDouble depth)
     {
         if (colors.size() == 0 && !stencil.hasValue && !depth.hasValue)
             return;
+
+        d3d.bindFramebuffer(d3d.getInternalBackbuffer());
 
         int numColors = (int)colors.size();
 
@@ -189,8 +193,6 @@ namespace love
             gammaCorrectColor(value);
             d3d.clear(value);
         }
-
-        d3d.bindFramebuffer(d3d.getInternalBackbuffer());
     }
 
     void Graphics::present(void* screenshotCallback)
@@ -235,6 +237,15 @@ namespace love
         d3d.setScissor(Rect::EMPTY);
     }
 
+    void Graphics::setPointSize(float size)
+    {
+        if (size != this->states.back().pointSize)
+            this->flushBatchedDraws();
+
+        this->states.back().pointSize = size;
+        d3d.setPointSize(size);
+    }
+
     void Graphics::setFrontFaceWinding(Winding winding)
     {
         auto& state = this->states.back();
@@ -276,6 +287,57 @@ namespace love
         this->states.back().blend = state;
     }
 
+    bool Graphics::isPixelFormatSupported(PixelFormat format, uint32_t usage)
+    {
+        format        = this->getSizedFormat(format);
+        bool readable = (usage & PIXELFORMATUSAGEFLAGS_SAMPLE) != 0;
+
+        DkImageFormat color;
+        bool supported = deko3d::getConstant(format, color);
+
+        return readable && supported;
+    }
+
+    void Graphics::setRenderTargetsInternal(const RenderTargets& targets, int pixelWidth, int pixelHeight,
+                                            bool hasSRGBTexture)
+    {
+        const auto& state = this->states.back();
+
+        bool isWindow = targets.getFirstTarget().texture == nullptr;
+
+        if (isWindow)
+            d3d.bindFramebuffer(d3d.getInternalBackbuffer());
+        else
+            d3d.bindFramebuffer(*(dk::Image*)targets.getFirstTarget().texture->getRenderTargetHandle());
+
+        d3d.setViewport({ 0, 0, pixelWidth, pixelHeight });
+
+        if (state.scissor)
+            d3d.setScissor(state.scissorRect);
+    }
+
+    TextureBase* Graphics::newTexture(const TextureBase::Settings& settings, const TextureBase::Slices* data)
+    {
+        return new Texture(this, settings, data);
+    }
+
+    FontBase* Graphics::newFont(Rasterizer* data)
+    {
+        return new Font(data, this->states.back().defaultSamplerState);
+    }
+
+    FontBase* Graphics::newDefaultFont(int size, const Rasterizer::Settings& settings)
+    {
+        auto* module = Module::getInstance<FontModuleBase>(Module::M_FONT);
+
+        if (module == nullptr)
+            throw love::Exception("Font module has not been loaded.");
+
+        StrongRef<Rasterizer> rasterizer = module->newTrueTypeRasterizer(size, settings);
+
+        return this->newFont(rasterizer.get());
+    }
+
     bool Graphics::setMode(int width, int height, int pixelWidth, int pixelHeight, bool backBufferStencil,
                            bool backBufferDepth, int msaa)
     {
@@ -290,8 +352,11 @@ namespace love
         {
             if (this->batchedDrawState.vertexBuffer == nullptr)
             {
-                this->batchedDrawState.indexBuffer  = newIndexBuffer(INIT_INDEX_BUFFER_SIZE);
+                this->batchedDrawState.indexBuffer = newIndexBuffer(INIT_INDEX_BUFFER_SIZE);
+                this->batchedDrawState.indexBuffer->allocate(d3d.getMemoryPool(deko3d::MEMORYPOOL_DATA));
+
                 this->batchedDrawState.vertexBuffer = newVertexBuffer(INIT_VERTEX_BUFFER_SIZE);
+                this->batchedDrawState.vertexBuffer->allocate(d3d.getMemoryPool(deko3d::MEMORYPOOL_DATA));
             }
         }
         catch (love::Exception&)
@@ -339,7 +404,13 @@ namespace love
     }
 
     void Graphics::draw(const DrawIndexedCommand& command)
-    {}
+    {
+        d3d.prepareDraw(this);
+
+        DkPrimitive primitive;
+        bool success = deko3d::getConstant(command.primitiveType, primitive);
+        d3d.drawIndexed(primitive, command.indexCount, command.indexBufferOffset, command.instanceCount);
+    }
 
     void Graphics::draw(const DrawCommand& command)
     {}

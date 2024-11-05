@@ -6,11 +6,11 @@
 #include "driver/display/Framebuffer.hpp"
 #include "driver/display/Renderer.tcc"
 
+#include "driver/graphics/BitAlloc.hpp"
+
 #include "driver/display/deko3d/CCmdMemRing.h"
-#include "driver/display/deko3d/CCmdVtxRing.h"
 #include "driver/display/deko3d/CDescriptorSet.h"
 
-#include "modules/graphics/Texture.hpp"
 #include "modules/graphics/vertex.hpp"
 
 /* Enforces GLSL std140/std430 alignment rules for glm types */
@@ -21,6 +21,8 @@
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
+
+#define MAX_OBJECTS 0x400
 
 namespace love
 {
@@ -68,6 +70,10 @@ namespace love
 
         void setVertexWinding(Winding winding);
 
+        void setPointSize(float size);
+
+        void setSamplerState(TextureBase* texture, const SamplerState& state);
+
         void prepareDraw(GraphicsBase* graphics);
 
         void useProgram(const dk::Shader& vertex, const dk::Shader& fragment);
@@ -111,6 +117,13 @@ namespace love
             }
         }
 
+        void registerTexture(TextureBase* texture, bool registering);
+
+        void ensureInFrame();
+
+        void drawIndexed(DkPrimitive primitive, uint32_t indexCount, uint32_t indexOffset,
+                         uint32_t instanceCount);
+
         // clang-format off
         ENUMMAP_DECLARE(BlendOperations, BlendOperation, DkBlendOp,
             { BLENDOP_ADD,              DkBlendOp_Add    },
@@ -144,6 +157,58 @@ namespace love
             { WINDING_CCW, DkFrontFace_CCW },
             { WINDING_CW,  DkFrontFace_CW  }
         );
+
+        ENUMMAP_DECLARE(FilterModes, SamplerState::FilterMode, DkFilter,
+            { SamplerState::FILTER_LINEAR,  DkFilter_Linear  },
+            { SamplerState::FILTER_NEAREST, DkFilter_Nearest }
+        );
+
+        ENUMMAP_DECLARE(WrapModes, SamplerState::WrapMode, DkWrapMode,
+            { SamplerState::WRAP_CLAMP,           DkWrapMode_Clamp          },
+            { SamplerState::WRAP_CLAMP_ZERO,      DkWrapMode_ClampToBorder  },
+            { SamplerState::WRAP_REPEAT,          DkWrapMode_Repeat         },
+            { SamplerState::WRAP_MIRRORED_REPEAT, DkWrapMode_MirroredRepeat }
+        );
+
+        ENUMMAP_DECLARE(PixelFormats, PixelFormat, DkImageFormat,
+            { PIXELFORMAT_R8_UNORM,         DkImageFormat_R8_Unorm            },
+            { PIXELFORMAT_R16_UNORM,        DkImageFormat_R16_Unorm           },
+            { PIXELFORMAT_RG8_UNORM,        DkImageFormat_RG8_Unorm           },
+            { PIXELFORMAT_RGBA8_UNORM,      DkImageFormat_RGBA8_Unorm         },
+            { PIXELFORMAT_RGB565_UNORM,     DkImageFormat_RGB565_Unorm        },
+            { PIXELFORMAT_RGBA8_sRGB, DkImageFormat_RGBA8_Unorm_sRGB    },
+            { PIXELFORMAT_DXT1_UNORM,       DkImageFormat_RGBA_BC1            },
+            { PIXELFORMAT_DXT3_UNORM,       DkImageFormat_RGBA_BC2            },
+            { PIXELFORMAT_DXT5_UNORM,       DkImageFormat_RGBA_BC3            },
+            { PIXELFORMAT_ETC1_UNORM,       DkImageFormat_RGB_ETC2            },
+            { PIXELFORMAT_ETC2_RGB_UNORM,   DkImageFormat_RGB_ETC2            },
+            { PIXELFORMAT_ETC2_RGBA1_UNORM, DkImageFormat_RGBA_ETC2           },
+            { PIXELFORMAT_ETC2_RGBA_UNORM,  DkImageFormat_RGBA_ETC2           },
+            { PIXELFORMAT_BC4_UNORM,        DkImageFormat_R_BC4_Unorm         },
+            { PIXELFORMAT_BC5_UNORM,        DkImageFormat_RG_BC5_Unorm        },
+            { PIXELFORMAT_BC7_UNORM,        DkImageFormat_RGBA_BC7_Unorm      },
+            { PIXELFORMAT_BC7_sRGB,         DkImageFormat_RGBA_BC7_Unorm_sRGB },
+            { PIXELFORMAT_ASTC_4x4_UNORM,   DkImageFormat_RGBA_ASTC_4x4       },
+            { PIXELFORMAT_ASTC_5x4_UNORM,   DkImageFormat_RGBA_ASTC_5x4       },
+            { PIXELFORMAT_ASTC_6x5_UNORM,   DkImageFormat_RGBA_ASTC_6x5       },
+            { PIXELFORMAT_ASTC_6x6_UNORM,   DkImageFormat_RGBA_ASTC_6x6       },
+            { PIXELFORMAT_ASTC_8x5_UNORM,   DkImageFormat_RGBA_ASTC_8x5       },
+            { PIXELFORMAT_ASTC_8x6_UNORM,   DkImageFormat_RGBA_ASTC_8x6       },
+            { PIXELFORMAT_ASTC_8x8_UNORM,   DkImageFormat_RGBA_ASTC_8x8       },
+            { PIXELFORMAT_ASTC_10x5_UNORM,  DkImageFormat_RGBA_ASTC_10x5      },
+            { PIXELFORMAT_ASTC_10x6_UNORM,  DkImageFormat_RGBA_ASTC_10x6      },
+            { PIXELFORMAT_ASTC_10x8_UNORM,  DkImageFormat_RGBA_ASTC_10x8      },
+            { PIXELFORMAT_ASTC_10x10_UNORM, DkImageFormat_RGBA_ASTC_10x10     },
+            { PIXELFORMAT_ASTC_12x10_UNORM, DkImageFormat_RGBA_ASTC_12x10     },
+            { PIXELFORMAT_ASTC_12x12_UNORM, DkImageFormat_RGBA_ASTC_12x12     }
+        );
+
+        ENUMMAP_DECLARE(PrimitiveTypes, PrimitiveType, DkPrimitive,
+            { PRIMITIVE_TRIANGLES,      DkPrimitive_Triangles     },
+            { PRIMITIVE_POINTS,         DkPrimitive_Points        },
+            { PRIMITIVE_TRIANGLE_STRIP, DkPrimitive_TriangleStrip },
+            { PRIMITIVE_TRIANGLE_FAN,   DkPrimitive_TriangleFan   }
+        );
         // clang-format on
 
       private:
@@ -163,8 +228,6 @@ namespace love
         static constexpr int COMMAND_SIZE        = 0x100000;
         static constexpr int VERTEX_COMMAND_SIZE = 0x100000;
 
-        void ensureInFrame();
-
         void createFramebuffers();
 
         void destroyFramebuffers();
@@ -174,6 +237,7 @@ namespace love
             dk::RasterizerState rasterizer;
             dk::ColorWriteState colorWrite;
             dk::BlendState blend;
+            dk::ColorState color;
 
             dk::Image* boundFramebuffer;
         } context;
@@ -207,6 +271,10 @@ namespace love
 
         CCmdMemRing<2> commands;
         std::array<DkImage const*, 2> targets;
+
+        BitwiseAlloc<MAX_OBJECTS> textureHandles;
+        CDescriptorSet<MAX_OBJECTS> imageSet;
+        CDescriptorSet<MAX_OBJECTS> samplerSet;
     };
 
     extern deko3d d3d;

@@ -312,7 +312,7 @@ namespace love
          * This is ONLY used on 3DS due to memory constraints.
          * The font textures are already on-device!
          */
-        virtual void setHandleData(void* data) = 0;
+        virtual void setHandleData(ptrdiff_t data) = 0;
 
         virtual void setSamplerState(const SamplerState& state) = 0;
 

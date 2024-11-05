@@ -185,6 +185,7 @@ namespace love
         XYf_STf_RGBAf,  //< 2D position, 2D texture coordinates and 32-bit floating point RGBA color.
         XYf_STus_RGBAf, //< 2D position, 2D unsigned short texture coordinates and 32-bit floating point RGBA
                         // color.
+        XYf_RGBAf,
         XYf_STPf_RGBAf, //< 2D position, 3D texture coordinates and 32-bit floating point RGBA color.
     };
 

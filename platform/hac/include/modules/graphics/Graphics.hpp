@@ -39,6 +39,8 @@ namespace love
 
         virtual void setBlendState(const BlendState& state) override;
 
+        virtual void setPointSize(float size) override;
+
         virtual FontBase* newFont(Rasterizer* data) override;
 
         virtual FontBase* newDefaultFont(int size, const Rasterizer::Settings& settings) override;

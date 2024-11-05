@@ -535,13 +535,7 @@ namespace love
             return this->states.back().lineJoin;
         }
 
-        void setPointSize(float size)
-        {
-            if (size != this->states.back().pointSize)
-                this->flushBatchedDraws();
-
-            this->states.back().pointSize = size;
-        }
+        virtual void setPointSize(float size) = 0;
 
         float getPointSize() const
         {

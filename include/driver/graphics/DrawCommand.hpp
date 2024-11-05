@@ -2,11 +2,11 @@
 
 #include "common/Exception.hpp"
 
+#include "driver/graphics/StreamBuffer.hpp"
+
 #include "modules/graphics/Shader.tcc"
 #include "modules/graphics/Texture.tcc"
 #include "modules/graphics/vertex.hpp"
-
-#include "driver/graphics/StreamBuffer.hpp"
 
 namespace love
 {

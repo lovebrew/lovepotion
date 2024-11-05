@@ -10,17 +10,18 @@ namespace love
 #if defined(__SWITCH__)
     ByteData* FontModule::loadSystemFontByType(SystemFontType type = PlSharedFontType_Standard)
     {
-        std::unique_ptr<PlFontData> data;
-        plGetSharedFontByType(data.get(), type);
+        PlFontData data {};
+        if (R_FAILED(plGetSharedFontByType(&data, type)))
+            throw love::Exception("Failed to load Shared Font {:d}", (int)type);
 
         std::string_view name {};
         FontModule::getConstant(type, name);
 
-        if (data == nullptr)
+        if (data.address == nullptr)
             throw love::Exception("Error loading system font '{:s}'", name);
 
         // create a copy of the data
-        return new ByteData(data->address, data->size, false);
+        return new ByteData(data.address, data.size, false);
     }
 #elif defined(__WIIU__)
     ByteData* FontModule::loadSystemFontByType(SystemFontType type = OS_SHAREDDATATYPE_FONT_STANDARD)
@@ -45,7 +46,7 @@ namespace love
         if (FT_Init_FreeType(&this->library) != 0)
             throw love::Exception("Error initializing FreeType library.");
 
-        this->defaultFontData.set(loadSystemFontByType(), Acquire::NO_RETAIN);
+        // this->defaultFontData.set(loadSystemFontByType(), Acquire::NO_RETAIN);
     }
 
     FontModule::~FontModule()

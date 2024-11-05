@@ -35,9 +35,12 @@ source/driver/display/deko3d/CIntrusiveTree.cpp
 source/driver/display/deko3d/CMemPool.cpp
 source/driver/display/Framebuffer.cpp
 source/driver/display/deko.cpp
+source/driver/graphics/StreamBuffer.cpp
 source/driver/EventQueue.cpp
 source/modules/audio/Source.cpp
 source/modules/graphics/Graphics.cpp
+source/modules/graphics/Shader.cpp
+source/modules/graphics/Texture.cpp
 source/modules/joystick/Joystick.cpp
 source/modules/joystick/JoystickModule.cpp
 source/modules/keyboard/Keyboard.cpp
