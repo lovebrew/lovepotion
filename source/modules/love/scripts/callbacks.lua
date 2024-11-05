@@ -128,16 +128,16 @@ function love.createhandlers()
                 return love.gamepadaxis(joystick, axis, value)
             end
         end,
-        -- joystickadded = function(joystick)
-        --     if love.joystickadded then
-        --         return love.joystickadded(joystick)
-        --     end
-        -- end,
-        -- joystickremoved = function(joystick)
-        --     if love.joystickremoved then
-        --         return love.joystickremoved(joystick)
-        --     end
-        -- end,
+        joystickadded = function(joystick)
+            if love.joystickadded then
+                return love.joystickadded(joystick)
+            end
+        end,
+        joystickremoved = function(joystick)
+            if love.joystickremoved then
+                return love.joystickremoved(joystick)
+            end
+        end,
         focus = function(focused)
             if love.focus then
                 return love.focus(focused)
@@ -225,6 +225,11 @@ end
 function love.run()
     if love.load then
         love.load(love.parsedGameArguments, love.rawGameArguments)
+        -- https://love2d.org/wiki/love.joystickadded
+        -- This callback is also triggered after love.load for every Joystick which was already connected when the game started up. 
+        for _, j in ipairs(love.joystick.getJoysticks()) do
+            love.handlers.joystickadded(j)
+        end
     end
 
     if love.timer then
