@@ -402,5 +402,14 @@ namespace love
     }
 
     void Graphics::draw(const DrawCommand& command)
-    {}
+    {
+        gx2.prepareDraw(this);
+
+        const auto mode        = GX2::getPrimitiveType(command.primitiveType);
+        const auto vertexCount = command.vertexCount;
+        const auto vertexStart = command.vertexStart;
+
+        GX2DrawEx(mode, vertexCount, vertexStart, 1);
+        ++this->drawCalls;
+    }
 } // namespace love

@@ -122,7 +122,9 @@ namespace love
         void ensureInFrame();
 
         void drawIndexed(DkPrimitive primitive, uint32_t indexCount, uint32_t indexOffset,
-                         uint32_t instanceCount);
+                         uint32_t instanceCount, bool isTexture);
+
+        void draw(DkPrimitive primitive, uint32_t vertexCount, uint32_t firstVertex);
 
         // clang-format off
         ENUMMAP_DECLARE(BlendOperations, BlendOperation, DkBlendOp,
@@ -238,6 +240,7 @@ namespace love
             dk::ColorWriteState colorWrite;
             dk::BlendState blend;
             dk::ColorState color;
+            dk::DepthStencilState depthStencil;
 
             dk::Image* boundFramebuffer;
         } context;

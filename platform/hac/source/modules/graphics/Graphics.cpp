@@ -386,10 +386,8 @@ namespace love
         if (!Shader::current)
             Shader::standardShaders[Shader::STANDARD_DEFAULT]->attach();
 
-        return true;
-
-        this->backbufferChanged(width, height, pixelWidth, pixelHeight, backBufferStencil, backBufferDepth,
-                                msaa);
+        // this->backbufferChanged(width, height, pixelWidth, pixelHeight, backBufferStencil, backBufferDepth,
+        //                         msaa);
 
         return true;
     }
@@ -408,10 +406,25 @@ namespace love
         d3d.prepareDraw(this);
 
         DkPrimitive primitive;
-        bool success = deko3d::getConstant(command.primitiveType, primitive);
-        d3d.drawIndexed(primitive, command.indexCount, command.indexBufferOffset, command.instanceCount);
+        deko3d::getConstant(command.primitiveType, primitive);
+
+        const auto indexCount    = command.indexCount;
+        const auto offset        = command.indexBufferOffset;
+        const auto instanceCount = command.instanceCount;
+        const auto isTexture     = command.texture != nullptr;
+
+        d3d.drawIndexed(primitive, indexCount, offset, instanceCount, isTexture);
+        ++drawCalls;
     }
 
     void Graphics::draw(const DrawCommand& command)
-    {}
+    {
+        d3d.prepareDraw(this);
+
+        DkPrimitive primitive;
+        deko3d::getConstant(command.primitiveType, primitive);
+
+        d3d.draw(primitive, command.vertexCount, command.vertexStart);
+        ++drawCalls;
+    }
 } // namespace love

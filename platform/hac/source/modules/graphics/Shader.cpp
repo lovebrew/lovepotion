@@ -1,8 +1,6 @@
 #include "modules/graphics/Shader.hpp"
 #include "driver/display/deko.hpp"
 
-#include "driver/graphics/Attributes.hpp"
-
 #include <cstring>
 
 #define SHADERS_DIR "romfs:/shaders/"
@@ -58,8 +56,7 @@ namespace love
 
     Shader::~Shader()
     {
-        this->program.vertex.memory.destroy();
-        this->program.fragment.memory.destroy();
+        this->unloadVolatile();
     }
 
     void Shader::attach()
@@ -82,7 +79,13 @@ namespace love
     }
 
     void Shader::unloadVolatile()
-    {}
+    {
+        if (this->program.vertex.memory)
+            this->program.vertex.memory.destroy();
+
+        if (this->program.fragment.memory)
+            this->program.fragment.memory.destroy();
+    }
 
     void Shader::updateBuiltinUniforms(GraphicsBase* graphics)
     {}

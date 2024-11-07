@@ -13,12 +13,11 @@ namespace love
     struct BatchedDrawCommand
     {
         PrimitiveType primitiveMode           = PRIMITIVE_TRIANGLES;
-        ShaderBase::StandardShader shaderType = ShaderBase::STANDARD_DEFAULT;
-        TriangleIndexMode indexMode           = TRIANGLEINDEX_NONE;
         CommonFormat format                   = CommonFormat::NONE;
-
-        TextureBase* texture = nullptr;
-        int vertexCount      = 0;
+        TriangleIndexMode indexMode           = TRIANGLEINDEX_NONE;
+        int vertexCount                       = 0;
+        TextureBase* texture                  = nullptr;
+        ShaderBase::StandardShader shaderType = ShaderBase::STANDARD_DEFAULT;
 
         bool isFont        = false;
         bool pushTransform = true;
@@ -53,6 +52,9 @@ namespace love
 
     struct DrawCommand
     {
+        DrawCommand(const BufferBindings* buffers) : buffers(buffers)
+        {}
+
         PrimitiveType primitiveType = PRIMITIVE_TRIANGLES;
 
         int vertexStart   = 0;
@@ -61,6 +63,7 @@ namespace love
 
         TextureBase* texture = nullptr;
         CullMode cullMode    = CULL_NONE;
+        const BufferBindings* buffers;
 
         bool isFont = false;
     };

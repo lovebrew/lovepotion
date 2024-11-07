@@ -32,6 +32,7 @@ namespace love
 
     void Framebuffer::destroy()
     {
-        this->memory.destroy();
+        if (this->memory)
+            this->memory.destroy();
     }
 } // namespace love

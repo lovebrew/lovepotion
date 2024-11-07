@@ -39,7 +39,7 @@ namespace love
             auto* texture = graphics->newTexture(settings, nullptr);
             auto* data    = fontGetGlyphSheetTex(font, index);
 
-            texture->setHandleData(data);
+            texture->setHandleData((ptrdiff_t)data);
             texture->setSamplerState(this->samplerState);
 
             this->textures.emplace_back(texture, Acquire::NO_RETAIN);

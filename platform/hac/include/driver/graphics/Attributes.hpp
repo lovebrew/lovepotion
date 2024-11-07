@@ -29,22 +29,30 @@ namespace love
             DkVtxAttribState { 0, 0, POSITION_OFFSET, DkVtxAttribSize_2x32, DkVtxAttribType_Float, 0 },
             DkVtxAttribState { 0, 0, COLOR_OFFSET,    DkVtxAttribSize_4x32, DkVtxAttribType_Float, 0 }
         };
+
+        /* Textures*/
+        constexpr std::array<DkVtxBufferState, 1> TextureBufferState = {
+            DkVtxBufferState { sizeof(Vertex), 0 },
+        };
+
+        constexpr std::array<DkVtxAttribState, 3> TextureAttribState = {
+            DkVtxAttribState { 0, 0, POSITION_OFFSET, DkVtxAttribSize_2x32, DkVtxAttribType_Float, 0 },
+            DkVtxAttribState { 0, 0, TEXCOORD_OFFSET, DkVtxAttribSize_2x32, DkVtxAttribType_Float, 0 },
+            DkVtxAttribState { 0, 0, COLOR_OFFSET,    DkVtxAttribSize_4x32, DkVtxAttribType_Float, 0 }
+        };
         // clang-format on
 
-        static bool getAttributes(CommonFormat format, Attributes& out)
+        static void getAttributes(const bool isTexture, Attributes& out)
         {
-            switch (format)
+            if (!isTexture)
             {
-                case CommonFormat::XYf_RGBAf:
-                default:
-                {
-                    out.attributeState = PrimitiveAttribState;
-                    out.bufferState    = PrimitiveBufferState;
-                    return true;
-                }
+                out.attributeState = PrimitiveAttribState;
+                out.bufferState    = PrimitiveBufferState;
+                return;
             }
 
-            return false;
+            out.attributeState = TextureAttribState;
+            out.bufferState    = TextureBufferState;
         }
     } // namespace vertex
 } // namespace love

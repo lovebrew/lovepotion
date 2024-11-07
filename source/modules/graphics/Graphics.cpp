@@ -401,6 +401,89 @@ namespace love
         return data;
     }
 
+    void GraphicsBase::flushBatchedDraws()
+    {
+        BatchedDrawState& state = this->batchedDrawState;
+
+        if ((state.lastIndexCount == 0 && state.lastVertexCount == 0) || state.flushing)
+            return;
+
+        if ((state.indexCount == 0 && state.vertexCount == 0) || state.flushing)
+            return;
+
+        VertexAttributes attributes {};
+        BufferBindings buffers {};
+
+        size_t usedSizes[2] = { 0, 0 };
+
+        if (state.format != CommonFormat::NONE)
+        {
+            attributes.setCommonFormat(state.format, (uint8_t)0);
+
+            usedSizes[0] = state.lastVertexCount;
+
+            size_t offset = state.vertexBuffer->unmap(usedSizes[0]);
+            buffers.set(0, state.vertexBuffer, offset, state.vertexCount);
+
+            state.vertexBufferMap = MapInfo<Vertex>();
+        }
+
+        if (attributes.enableBits == 0)
+            return;
+
+        state.flushing = true;
+
+        // auto originalColor = this->getColor();
+        // if (attributes.isEnabled(ATTRIB_COLOR))
+        //     this->setColor(Color::WHITE);
+
+        if (state.pushTransform)
+            this->pushIdentityTransform();
+
+        if (state.lastIndexCount > 0)
+        {
+            usedSizes[1] = state.lastIndexCount;
+
+            DrawIndexedCommand command(&attributes, &buffers, state.indexBuffer);
+            command.primitiveType     = state.primitiveMode;
+            command.indexCount        = state.lastIndexCount;
+            command.indexType         = INDEX_UINT16;
+            command.indexBufferOffset = state.indexBuffer->unmap(usedSizes[1]);
+            command.texture           = state.texture;
+            command.isFont            = state.isFont;
+
+            this->draw(command);
+
+            state.indexBufferMap = MapInfo<uint16_t>();
+        }
+        else
+        {
+            DrawCommand command(&buffers);
+            command.primitiveType = state.primitiveMode;
+            command.vertexStart   = 0;
+            command.vertexCount   = state.lastVertexCount;
+            command.texture       = state.texture;
+
+            this->draw(command);
+        }
+
+        if (usedSizes[0] > 0)
+            state.vertexBuffer->markUsed(usedSizes[0]);
+
+        if (usedSizes[1] > 0)
+            state.indexBuffer->markUsed(usedSizes[1]);
+
+        if (state.pushTransform)
+            this->popTransform();
+
+        // if (attributes.isEnabled(ATTRIB_COLOR))
+        //     this->setColor(originalColor);
+
+        state.lastVertexCount = 0;
+        state.lastIndexCount  = 0;
+        state.flushing        = false;
+    }
+
     Quad* GraphicsBase::newQuad(Quad::Viewport viewport, double sourceWidth, double sourceHeight) const
     {
         return new Quad(viewport, sourceWidth, sourceHeight);
@@ -451,89 +534,6 @@ namespace love
                               FontBase::AlignMode align, const Matrix4& matrix)
     {
         font->printf(this, string, wrap, align, matrix, this->states.back().color);
-    }
-
-    void GraphicsBase::flushBatchedDraws()
-    {
-        BatchedDrawState& state = this->batchedDrawState;
-
-        if ((state.lastIndexCount == 0 && state.lastVertexCount == 0) || state.flushing)
-            return;
-
-        if ((state.indexCount == 0 && state.vertexCount == 0) || state.flushing)
-            return;
-
-        VertexAttributes attributes {};
-        BufferBindings buffers {};
-
-        size_t usedSizes[2] = { 0, 0 };
-
-        if (state.format != CommonFormat::NONE)
-        {
-            attributes.setCommonFormat(state.format, (uint8_t)0);
-
-            usedSizes[0] = state.lastVertexCount;
-
-            size_t offset = state.vertexBuffer->unmap(usedSizes[0]);
-            buffers.set(0, state.vertexBuffer, offset, state.vertexCount);
-
-            state.vertexBufferMap = MapInfo<Vertex>();
-        }
-
-        if (attributes.enableBits == 0)
-            return;
-
-        state.flushing = true;
-
-        // auto originalColor = this->getColor();
-        // if (attributes.isEnabled(ATTRIB_COLOR))
-        //     this->setColor(Color::WHITE);
-
-        if (state.pushTransform)
-            this->pushIdentityTransform();
-
-        if (state.indexCount > 0)
-        {
-            usedSizes[1] = state.lastIndexCount;
-
-            DrawIndexedCommand command(&attributes, &buffers, state.indexBuffer);
-            command.primitiveType     = state.primitiveMode;
-            command.indexCount        = state.lastIndexCount;
-            command.indexType         = INDEX_UINT16;
-            command.indexBufferOffset = state.indexBuffer->unmap(usedSizes[1]);
-            command.texture           = state.texture;
-            command.isFont            = state.isFont;
-
-            this->draw(command);
-
-            state.indexBufferMap = MapInfo<uint16_t>();
-        }
-        else
-        {
-            DrawCommand command {};
-            command.primitiveType = state.primitiveMode;
-            command.vertexStart   = 0;
-            command.vertexCount   = state.lastVertexCount;
-            command.texture       = state.texture;
-
-            this->draw(command);
-        }
-
-        if (usedSizes[0] > 0)
-            state.vertexBuffer->markUsed(usedSizes[0]);
-
-        if (usedSizes[1] > 0)
-            state.indexBuffer->markUsed(usedSizes[1]);
-
-        if (state.pushTransform)
-            this->popTransform();
-
-        // if (attributes.isEnabled(ATTRIB_COLOR))
-        //     this->setColor(originalColor);
-
-        state.lastVertexCount = 0;
-        state.lastIndexCount  = 0;
-        state.flushing        = false;
     }
 
     void GraphicsBase::flushBatchedDrawsGlobal()

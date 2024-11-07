@@ -31,7 +31,10 @@ namespace love
         this->ensureInFrame();
 
         this->context.rasterizer.setCullMode(DkFace_None);
-        this->context.rasterizer.setFrontFace(DkFrontFace_CCW);
+        this->context.depthStencil.setDepthTestEnable(true);
+        this->context.depthStencil.setDepthWriteEnable(true);
+        this->context.depthStencil.setDepthCompareOp(DkCompareOp_Always);
+
         this->context.color.setBlendEnable(0, true);
 
         this->initialized = true;
@@ -40,7 +43,9 @@ namespace love
     deko3d::~deko3d()
     {
         this->destroyFramebuffers();
-        this->uniformBuffer.destroy();
+
+        if (this->uniformBuffer)
+            this->uniformBuffer.destroy();
     }
 
     void deko3d::createFramebuffers()
@@ -95,7 +100,7 @@ namespace love
 
     void deko3d::clear(const Color& color)
     {
-        if (!this->context.boundFramebuffer)
+        if (!this->inFrame)
             return;
 
         this->commandBuffer.clearColor(0, DkColorMask_RGBA, color.r, color.g, color.b, color.a);
@@ -153,7 +158,7 @@ namespace love
             dk::ImageView depth { this->depthbuffer.getImage() };
             dk::ImageView target { framebuffer };
 
-            this->commandBuffer.bindRenderTargets(&target, &depth);
+            this->commandBuffer.bindRenderTargets(&target);
         }
     }
 
@@ -165,13 +170,10 @@ namespace love
             this->commandBuffer.bindIdxBuffer(DkIdxFormat_Uint16, buffer);
     }
 
-    void deko3d::drawIndexed(DkPrimitive primitive, uint32_t indexCount, uint32_t indexOffset, uint32_t instanceCount)
+    void deko3d::drawIndexed(DkPrimitive primitive, uint32_t indexCount, uint32_t indexOffset, uint32_t instanceCount, bool isTexture)
     {
         vertex::Attributes attributes {};
-        bool success = getAttributes(CommonFormat::XYf_RGBAf, attributes);
-
-        if (!success)
-            return;
+        vertex::getAttributes(isTexture, attributes);
 
         this->commandBuffer.bindVtxAttribState(attributes.attributeState);
         this->commandBuffer.bindVtxBufferState(attributes.bufferState);
@@ -179,12 +181,23 @@ namespace love
         this->commandBuffer.drawIndexed(primitive, indexCount, instanceCount, indexOffset, 0, 0);
     }
 
+    void deko3d::draw(DkPrimitive primitive, uint32_t vertexCount, uint32_t firstVertex)
+    {
+        vertex::Attributes attributes {};
+        vertex::getAttributes(false, attributes);
+
+        this->commandBuffer.bindVtxAttribState(attributes.attributeState);
+        this->commandBuffer.bindVtxBufferState(attributes.bufferState);
+
+        this->commandBuffer.draw(primitive, vertexCount, 1, firstVertex, 0);
+    }
+
     void deko3d::prepareDraw(GraphicsBase* graphics)
     {
         this->commandBuffer.bindRasterizerState(this->context.rasterizer);
+        this->commandBuffer.bindColorState(this->context.color);
+        this->commandBuffer.bindColorWriteState(this->context.colorWrite);
         this->commandBuffer.bindBlendStates(0, this->context.blend);
-
-        // this->commandBuffer.bindColorState(this->context.color);
 
         this->commandBuffer.pushConstants(this->uniformBuffer.getGpuAddr(),
                                     this->uniformBuffer.getSize(), 0, TRANSFORM_SIZE,
@@ -240,7 +253,7 @@ namespace love
         const auto blue  = (DkColorMask_B * mask.b);
         const auto alpha = (DkColorMask_A * mask.a);
 
-        this->context.colorWrite.setMask(0, (red + green + blue + alpha));
+        this->context.colorWrite.setMask(0, uint32_t(red + green + blue + alpha));
     }
 
     void deko3d::setBlendState(const BlendState& state)

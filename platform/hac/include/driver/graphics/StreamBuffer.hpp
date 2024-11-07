@@ -28,7 +28,8 @@ namespace love
 
         ~StreamBuffer()
         {
-            this->memory.destroy();
+            if (this->memory)
+                this->memory.destroy();
         }
 
         MapInfo<T> map(size_t)
