@@ -18,7 +18,7 @@ namespace love
             return index;
         }
 
-        void reset(uint32_t handle)
+        void deallocate(uint32_t handle)
         {
             auto index = 0;
 

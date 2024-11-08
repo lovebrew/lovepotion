@@ -47,6 +47,7 @@ namespace love
         }
 
         this->states.clear();
+        this->defaultFont.set(nullptr);
 
         if (this->batchedDrawState.vertexBuffer)
             this->batchedDrawState.vertexBuffer->release();

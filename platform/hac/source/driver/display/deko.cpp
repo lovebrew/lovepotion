@@ -1,6 +1,8 @@
 #include "driver/display/deko.hpp"
 #include "driver/graphics/Attributes.hpp"
 
+#include "modules/graphics/Texture.hpp"
+
 namespace love
 {
     deko3d::deko3d() :
@@ -12,8 +14,8 @@ namespace love
         images(CMemPool(this->device, GPU_USE_FLAGS, GPU_POOL_SIZE)),
         data(CMemPool(this->device, CPU_USE_FLAGS, CPU_POOL_SIZE)),
         code(CMemPool(this->device, SHADER_USE_FLAGS, SHADER_POOL_SIZE)),
-        framebufferSlot(-1),
-        context {}
+        context {},
+        framebufferSlot(-1)
     {}
 
     void deko3d::initialize()
@@ -36,6 +38,12 @@ namespace love
         this->context.depthStencil.setDepthCompareOp(DkCompareOp_Always);
 
         this->context.color.setBlendEnable(0, true);
+
+        this->imageSet.allocate(this->data);
+        this->imageSet.bindForImages(this->commandBuffer);
+
+        this->samplerSet.allocate(this->data);
+        this->samplerSet.bindForSamplers(this->commandBuffer);
 
         this->initialized = true;
     }
@@ -80,6 +88,7 @@ namespace love
         this->commandBuffer.clear();
         this->swapchain.destroy();
 
+        this->context.boundFramebuffer = nullptr;
         for (auto& framebuffer : this->framebuffers)
             framebuffer.destroy();
 
@@ -90,6 +99,9 @@ namespace love
     {
         if (!this->inFrame)
         {
+            if (!this->swapchain)
+                return;
+
             if (this->framebufferSlot < 0)
                 this->framebufferSlot = this->mainQueue.acquireImage(this->swapchain);
 
@@ -132,12 +144,14 @@ namespace love
     {
         if (registering)
         {
-            const auto handle = this->textureHandles.allocate();
+            const auto index = this->textureHandles.allocate();
+            const auto handle = dkMakeTextureHandle(index, index);
             texture->setHandleData(handle);
+
             return;
         }
 
-        this->textureHandles.reset((DkResHandle)texture->getHandle());
+        this->textureHandles.deallocate((uint32_t)texture->getHandle());
     }
 
     void deko3d::bindFramebuffer(dk::Image& framebuffer)
@@ -170,25 +184,42 @@ namespace love
             this->commandBuffer.bindIdxBuffer(DkIdxFormat_Uint16, buffer);
     }
 
-    void deko3d::drawIndexed(DkPrimitive primitive, uint32_t indexCount, uint32_t indexOffset, uint32_t instanceCount, bool isTexture)
+    void deko3d::setVertexAttributes(bool isTexture)
     {
         vertex::Attributes attributes {};
         vertex::getAttributes(isTexture, attributes);
 
         this->commandBuffer.bindVtxAttribState(attributes.attributeState);
         this->commandBuffer.bindVtxBufferState(attributes.bufferState);
+    }
 
+    void deko3d::bindTextureToUnit(TextureBase* texture, int unit)
+    {
+        if (!texture)
+            return;
+
+        const auto handle = (DkResHandle)texture->getHandle();
+        this->bindTextureToUnit(handle, unit);
+    }
+
+    void deko3d::bindTextureToUnit(DkResHandle texture, int unit)
+    {
+        if (this->context.descriptorsDirty)
+        {
+            this->commandBuffer.barrier(DkBarrier_Primitives, DkInvalidateFlags_Descriptors);
+            this->context.descriptorsDirty = false;
+        }
+
+        this->commandBuffer.bindTextures(DkStage_Fragment, 0, { texture });
+    }
+
+    void deko3d::drawIndexed(DkPrimitive primitive, uint32_t indexCount, uint32_t indexOffset, uint32_t instanceCount)
+    {
         this->commandBuffer.drawIndexed(primitive, indexCount, instanceCount, indexOffset, 0, 0);
     }
 
     void deko3d::draw(DkPrimitive primitive, uint32_t vertexCount, uint32_t firstVertex)
     {
-        vertex::Attributes attributes {};
-        vertex::getAttributes(false, attributes);
-
-        this->commandBuffer.bindVtxAttribState(attributes.attributeState);
-        this->commandBuffer.bindVtxBufferState(attributes.bufferState);
-
         this->commandBuffer.draw(primitive, vertexCount, 1, firstVertex, 0);
     }
 
@@ -299,6 +330,9 @@ namespace love
     void deko3d::setSamplerState(TextureBase* texture, const SamplerState&state)
     {
         auto* sampler = (dk::Sampler*)texture->getSamplerHandle();
+        auto descriptor = ((Texture*)texture)->getDescriptorHandle();
+        auto samplerDescriptor = ((Texture*)texture)->getSamplerDescriptorHandle();
+
         auto index = -1;
 
         if (!this->textureHandles.find((uint32_t)texture->getHandle(), index))
@@ -328,13 +362,12 @@ namespace love
 
         sampler->setWrapMode(wrapU, wrapV, wrapW);
 
-        // const auto descriptor = ((Texture*)texture)->getDescriptorHandle();
-        // this->imageSet.update(this->commandBuffer, index, descriptor);
+        this->imageSet.update(this->commandBuffer, index, descriptor);
 
-        // auto samplerDescriptor = ((Texture*)texture)->getSamplerDescriptorHandle();
-        // samplerDescriptor.initialize(*sampler);
+        samplerDescriptor.initialize(*sampler);
 
-        // this->samplerSet.update(this->commandBuffer, index, samplerDescriptor);
+        this->samplerSet.update(this->commandBuffer, index, samplerDescriptor);
+        this->context.descriptorsDirty = true;
     }
 
     static DkScissor dkScissorFromRect(const Rect& rect)

@@ -100,12 +100,12 @@ namespace love
             }
         }
 
-        dk::Device& getDevice()
+        dk::Device getDevice()
         {
             return this->device;
         }
 
-        dk::Queue& getQueue(QueueType type)
+        dk::Queue getQueue(QueueType type)
         {
             switch (type)
             {
@@ -121,8 +121,14 @@ namespace love
 
         void ensureInFrame();
 
+        void setVertexAttributes(bool isTexture);
+
+        void bindTextureToUnit(TextureBase* texture, int unit);
+
+        void bindTextureToUnit(DkResHandle texture, int unit);
+
         void drawIndexed(DkPrimitive primitive, uint32_t indexCount, uint32_t indexOffset,
-                         uint32_t instanceCount, bool isTexture);
+                         uint32_t instanceCount);
 
         void draw(DkPrimitive primitive, uint32_t vertexCount, uint32_t firstVertex);
 
@@ -227,8 +233,7 @@ namespace love
         static constexpr int RENDERTARGET_USE_FLAGS =
             DkImageFlags_UsageRender | DkImageFlags_UsagePresent | DkImageFlags_HwCompression;
 
-        static constexpr int COMMAND_SIZE        = 0x100000;
-        static constexpr int VERTEX_COMMAND_SIZE = 0x100000;
+        static constexpr int COMMAND_SIZE = 0x100000;
 
         void createFramebuffers();
 
@@ -243,12 +248,13 @@ namespace love
             dk::DepthStencilState depthStencil;
 
             dk::Image* boundFramebuffer;
+            bool descriptorsDirty;
         } context;
 
         struct Transform
         {
-            glm::mat4 projection;
             glm::mat4 modelView;
+            glm::mat4 projection;
         } transform;
 
         static constexpr auto TRANSFORM_SIZE = sizeof(Transform);

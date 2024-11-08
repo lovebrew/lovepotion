@@ -42,7 +42,7 @@ namespace love
         };
         // clang-format on
 
-        static void getAttributes(const bool isTexture, Attributes& out)
+        static void getAttributes(bool isTexture, Attributes& out)
         {
             if (!isTexture)
             {

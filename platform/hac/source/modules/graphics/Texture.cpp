@@ -1,6 +1,7 @@
 #include "driver/display/deko.hpp"
 
 #include "modules/graphics/Texture.hpp"
+#include <cstring>
 
 namespace love
 {
@@ -8,11 +9,11 @@ namespace love
     {
         out.x = (uint32_t)rectangle.x;
         out.y = (uint32_t)rectangle.y;
-        out.z = (uint32_t)0;
+        out.z = 0u;
 
         out.width  = (uint32_t)rectangle.w;
         out.height = (uint32_t)rectangle.h;
-        out.depth  = (uint32_t)1;
+        out.depth  = 1u;
     }
 
     static void updateTextureObject(dk::Image& image, CMemPool::Handle& memory,
@@ -23,43 +24,50 @@ namespace love
         if (!deko3d::getConstant(format, gpuFormat))
             throw love::Exception("Invalid image format.");
 
-        auto& pool      = d3d.getMemoryPool(deko3d::MEMORYPOOL_DATA);
-        auto tempMemory = pool.allocate(size, DK_IMAGE_LINEAR_STRIDE_ALIGNMENT);
+        auto& scratchPool = d3d.getMemoryPool(deko3d::MEMORYPOOL_DATA);
+        auto tempImageMem = scratchPool.allocate(size, DK_IMAGE_LINEAR_STRIDE_ALIGNMENT);
 
-        if (!tempMemory)
-            throw love::Exception("Failed to allocate temporary Texture memory.");
+        if (!tempImageMem)
+            throw love::Exception("Failed to allocate temporary image memory");
 
-        std::memcpy(tempMemory.getCpuAddr(), data, size);
+        std::memcpy(tempImageMem.getCpuAddr(), data, size);
 
-        const auto& device     = d3d.getDevice();
-        auto tempCommandBuffer = dk::CmdBufMaker { device }.create();
-        auto tempCommandMemory = pool.allocate(DK_MEMBLOCK_ALIGNMENT);
+        auto device      = d3d.getDevice();
+        auto tempCmdBuff = dk::CmdBufMaker { device }.create();
 
-        tempCommandBuffer.addMemory(tempCommandMemory.getMemBlock(), tempCommandMemory.getOffset(),
-                                    tempCommandMemory.getSize());
-        /* set the image layout */
-        dk::ImageLayout layout;
+        auto tempCmdMem = scratchPool.allocate(DK_MEMBLOCK_ALIGNMENT);
+        tempCmdBuff.addMemory(tempCmdMem.getMemBlock(), tempCmdMem.getOffset(), tempCmdMem.getSize());
+
+        dk::ImageLayout layout {};
         dk::ImageLayoutMaker { device }
             .setFlags(0)
             .setFormat(gpuFormat)
             .setDimensions(rect.w, rect.h)
             .initialize(layout);
 
+        auto& imagePool = d3d.getMemoryPool(deko3d::MEMORYPOOL_IMAGE);
+        memory          = imagePool.allocate(layout.getSize(), layout.getAlignment());
+
+        if (!memory)
+            throw love::Exception("Failed to allocate CMemPool::Handle");
+
         image.initialize(layout, memory.getMemBlock(), memory.getOffset());
+        descriptor.initialize(image);
 
         dk::ImageView view { image };
 
         DkImageRect dkRect {};
         dkImageRectFromRect(rect, dkRect);
 
-        tempCommandBuffer.copyBufferToImage({ tempMemory.getGpuAddr() }, view, dkRect);
+        tempCmdBuff.copyBufferToImage({ tempImageMem.getGpuAddr() }, view, dkRect);
 
-        auto& queue = d3d.getQueue(deko3d::QUEUE_TYPE_IMAGES);
-        queue.submitCommands(tempCommandBuffer.finishList());
-        queue.waitIdle();
+        auto imageQueue = d3d.getQueue(deko3d::QUEUE_TYPE_IMAGES);
 
-        tempCommandMemory.destroy();
-        tempMemory.destroy();
+        imageQueue.submitCommands(tempCmdBuff.finishList());
+        imageQueue.waitIdle();
+
+        tempCmdMem.destroy();
+        tempImageMem.destroy();
     }
 
     static void createFramebufferObject()
@@ -67,7 +75,13 @@ namespace love
 
     Texture::Texture(GraphicsBase* graphics, const Settings& settings, const Slices* data) :
         TextureBase(graphics, settings, data),
-        slices(settings.type)
+        slices(settings.type),
+        image {},
+        descriptor {},
+        sampler {},
+        samplerDescriptor {},
+        handle(0),
+        memory {}
     {
         if (data != nullptr)
             this->slices = *data;
@@ -75,7 +89,7 @@ namespace love
         if (!this->loadVolatile())
             throw love::Exception("Failed to create texture.");
 
-        this->slices.clear();
+        slices.clear();
     }
 
     Texture::~Texture()
@@ -85,9 +99,9 @@ namespace love
 
     bool Texture::loadVolatile()
     {
-        const auto& layout = this->image.getLayout();
-        if (layout.getSize() != 0)
-            return true;
+        // const auto& layout = this->image.getLayout();
+        // if (layout.getSize() != 0)
+        //     return true;
 
         if (this->parentView.texture != this)
         {
@@ -168,6 +182,7 @@ namespace love
             }
         }
 
+        d3d.registerTexture(this, true);
         this->setSamplerState(this->samplerState);
 
         if (this->slices.getMipmapCount() <= 1 && this->getMipmapsMode() != MIPMAPS_NONE)

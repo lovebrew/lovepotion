@@ -404,6 +404,9 @@ namespace love
     void Graphics::draw(const DrawIndexedCommand& command)
     {
         d3d.prepareDraw(this);
+        d3d.setVertexAttributes(command.texture != nullptr);
+        d3d.bindTextureToUnit(command.texture, 0);
+        d3d.setCullMode(command.cullMode);
 
         DkPrimitive primitive;
         deko3d::getConstant(command.primitiveType, primitive);
@@ -411,15 +414,17 @@ namespace love
         const auto indexCount    = command.indexCount;
         const auto offset        = command.indexBufferOffset;
         const auto instanceCount = command.instanceCount;
-        const auto isTexture     = command.texture != nullptr;
 
-        d3d.drawIndexed(primitive, indexCount, offset, instanceCount, isTexture);
+        d3d.drawIndexed(primitive, indexCount, offset, instanceCount);
         ++drawCalls;
     }
 
     void Graphics::draw(const DrawCommand& command)
     {
         d3d.prepareDraw(this);
+        d3d.setVertexAttributes(command.texture != nullptr);
+        d3d.bindTextureToUnit(command.texture, 0);
+        d3d.setCullMode(command.cullMode);
 
         DkPrimitive primitive;
         deko3d::getConstant(command.primitiveType, primitive);
