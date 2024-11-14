@@ -25,7 +25,7 @@ namespace love
     Shader::Shader()
     {}
 
-    Shader::Shader(StandardShader shader)
+    Shader::Shader(StandardShader shader) : ShaderBase(shader)
     {
         std::string error;
         const char* fragmentStage = nullptr;
@@ -33,25 +33,31 @@ namespace love
         switch (shader)
         {
             case STANDARD_DEFAULT:
+            {
                 fragmentStage = DEFAULT_FRAGMENT_SHADER;
                 break;
+            }
             case STANDARD_TEXTURE:
+            {
                 fragmentStage = DEFAULT_TEXTURE_SHADER;
                 break;
+            }
             case STANDARD_VIDEO:
+            {
                 fragmentStage = DEFAULT_VIDEO_SHADER;
                 break;
+            }
             default:
                 break;
         }
 
         if (!this->validate(this->program.vertex, DEFAULT_VERTEX_SHADER, error))
-            throw love::Exception("Invalid vertex shader: %s", error.c_str());
+            throw love::Exception("Invalid vertex shader: {:s}", error);
 
         error.clear();
 
         if (!this->validate(this->program.fragment, fragmentStage, error))
-            throw love::Exception("Invalid fragment shader: %s", error.c_str());
+            throw love::Exception("Invalid fragment shader: {:s}", error);
     }
 
     Shader::~Shader()
@@ -69,7 +75,6 @@ namespace love
             ++shaderSwitches;
 
             Shader::current = this;
-            shaderSwitches++;
         }
     }
 
@@ -80,11 +85,8 @@ namespace love
 
     void Shader::unloadVolatile()
     {
-        if (this->program.vertex.memory)
-            this->program.vertex.memory.destroy();
-
-        if (this->program.fragment.memory)
-            this->program.fragment.memory.destroy();
+        this->program.vertex.memory.destroy();
+        this->program.fragment.memory.destroy();
     }
 
     void Shader::updateBuiltinUniforms(GraphicsBase* graphics)

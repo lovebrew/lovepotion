@@ -22,7 +22,8 @@
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 
-#define MAX_OBJECTS 0x400
+#define MAX_OBJECTS       0x400
+#define MAX_RENDERTARGETS 2
 
 namespace love
 {
@@ -54,7 +55,7 @@ namespace love
 
         dk::Image& getInternalBackbuffer();
 
-        void bindFramebuffer(dk::Image& target);
+        void bindFramebuffer(dk::Image* target = nullptr);
 
         void present();
 
@@ -78,7 +79,7 @@ namespace love
 
         void useProgram(const dk::Shader& vertex, const dk::Shader& fragment);
 
-        void bindBuffer(BufferUsage usage, DkGpuAddr buffer, size_t size);
+        void bindBuffer(BufferUsage usage, CMemPool::Handle& memory);
 
         void onModeChanged()
         {
@@ -171,6 +172,12 @@ namespace love
             { SamplerState::FILTER_NEAREST, DkFilter_Nearest }
         );
 
+        ENUMMAP_DECLARE(MipFilterModes, SamplerState::MipmapFilterMode, DkMipFilter,
+            { SamplerState::MIPMAP_FILTER_LINEAR,  DkMipFilter_Linear  },
+            { SamplerState::MIPMAP_FILTER_NEAREST, DkMipFilter_Nearest },
+            { SamplerState::MIPMAP_FILTER_NONE,    DkMipFilter_None    }
+        );
+
         ENUMMAP_DECLARE(WrapModes, SamplerState::WrapMode, DkWrapMode,
             { SamplerState::WRAP_CLAMP,           DkWrapMode_Clamp          },
             { SamplerState::WRAP_CLAMP_ZERO,      DkWrapMode_ClampToBorder  },
@@ -184,7 +191,7 @@ namespace love
             { PIXELFORMAT_RG8_UNORM,        DkImageFormat_RG8_Unorm           },
             { PIXELFORMAT_RGBA8_UNORM,      DkImageFormat_RGBA8_Unorm         },
             { PIXELFORMAT_RGB565_UNORM,     DkImageFormat_RGB565_Unorm        },
-            { PIXELFORMAT_RGBA8_sRGB, DkImageFormat_RGBA8_Unorm_sRGB    },
+            { PIXELFORMAT_RGBA8_sRGB,       DkImageFormat_RGBA8_Unorm_sRGB    },
             { PIXELFORMAT_DXT1_UNORM,       DkImageFormat_RGBA_BC1            },
             { PIXELFORMAT_DXT3_UNORM,       DkImageFormat_RGBA_BC2            },
             { PIXELFORMAT_DXT5_UNORM,       DkImageFormat_RGBA_BC3            },
@@ -259,7 +266,7 @@ namespace love
 
         static constexpr auto TRANSFORM_SIZE = sizeof(Transform);
 
-        CMemPool::Handle uniformBuffer;
+        CMemPool::Handle uniform;
 
         dk::UniqueDevice device;
 
@@ -275,11 +282,11 @@ namespace love
 
         int framebufferSlot;
 
-        Framebuffer framebuffers[0x02];
+        Framebuffer framebuffers[MAX_RENDERTARGETS];
         Framebuffer depthbuffer;
 
         CCmdMemRing<2> commands;
-        std::array<DkImage const*, 2> targets;
+        std::array<DkImage const*, MAX_RENDERTARGETS> targets;
 
         BitwiseAlloc<MAX_OBJECTS> textureHandles;
         CDescriptorSet<MAX_OBJECTS> imageSet;

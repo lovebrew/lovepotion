@@ -75,11 +75,6 @@ namespace love
             this->frameGPUReadOffset = 0;
         }
 
-        /*
-        ** Advance to the next frame.
-        */
-        // virtual void nextFrame() = 0;
-
       protected:
         StreamBufferBase(BufferUsage usage, size_t size) :
             bufferSize(size),

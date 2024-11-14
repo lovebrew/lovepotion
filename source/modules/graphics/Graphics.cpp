@@ -409,9 +409,6 @@ namespace love
         if ((state.lastIndexCount == 0 && state.lastVertexCount == 0) || state.flushing)
             return;
 
-        if ((state.indexCount == 0 && state.vertexCount == 0) || state.flushing)
-            return;
-
         VertexAttributes attributes {};
         BufferBindings buffers {};
 
@@ -452,6 +449,9 @@ namespace love
             command.indexBufferOffset = state.indexBuffer->unmap(usedSizes[1]);
             command.texture           = state.texture;
             command.isFont            = state.isFont;
+
+            debugVertices((Vertex*)state.vertexBuffer->getData(), state.lastVertexCount);
+            debugIndices((uint16_t*)state.indexBuffer->getData(), state.lastIndexCount);
 
             this->draw(command);
 

@@ -1,7 +1,31 @@
 #include "modules/graphics/vertex.hpp"
 
+#include <cstdio>
+
 namespace love
 {
+    void debugVertices(Vertex* vertices, size_t count)
+    {
+        for (size_t i = 0; i < count; i++)
+        {
+            const auto& v = vertices[i];
+
+            std::printf("Vertex %zu:\n", i);
+            std::printf("  Position: %.2f, %.2f\n", v.x, v.y);
+            std::printf("  Texture Coordinates: %f, %f\n", v.s, v.t);
+            std::printf("  Color: %.2f, %.2f, %.2f, %.2f\n", v.color.r, v.color.g, v.color.b, v.color.a);
+        }
+    }
+
+    void debugIndices(uint16_t* indices, size_t count)
+    {
+        std::printf("Indices (%zu): ", count);
+        for (size_t index = 0; index < count; index++)
+            std::printf("%hu ", indices[index]);
+
+        std::printf("\n");
+    }
+
     int getIndexCount(TriangleIndexMode mode, int vertexCount)
     {
         switch (mode)

@@ -242,17 +242,9 @@ namespace love
     static constexpr size_t TEXCOORD_OFFSET = offsetof(Vertex, s);
     static constexpr size_t COLOR_OFFSET    = offsetof(Vertex, color);
 
-    inline void DEBUG_VERTEX(const Vertex& v)
-    {
-        std::printf("Position: %.2f, %.2f\n", v.x, v.y);
-        std::printf("Texture Coordinates: %f, %f\n", v.s, v.t);
-        std::printf("Color: %.2f, %.2f, %.2f, %.2f\n", v.color.r, v.color.g, v.color.b, v.color.a);
-    }
+    void debugVertices(Vertex* vertices, size_t count);
 
-    inline void DEBUG_VERTEX(const Vertex* v)
-    {
-        DEBUG_VERTEX(*v);
-    }
+    void debugIndices(uint16_t* indices, size_t count);
 
     inline CommonFormat getSinglePositionFormat(bool is2D)
     {

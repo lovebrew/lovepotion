@@ -27,8 +27,8 @@ namespace love
 
         const auto& caps = graphics->getCapabilities();
 
-        bool indexBuffer  = usageFlags & BUFFERUSAGE_INDEX;
-        bool vertexBuffer = usageFlags & BUFFERUSAGE_VERTEX;
+        bool indexBuffer  = usageFlags & BUFFERUSAGEFLAG_INDEX;
+        bool vertexBuffer = usageFlags & BUFFERUSAGEFLAG_VERTEX;
 
         size_t offset             = 0;
         size_t stride             = 0;
@@ -78,7 +78,7 @@ namespace love
             this->dataMembers.push_back(member);
         }
 
-        stride = alignUp(offset, structureAlignment);
+        // stride = alignUp(offset, structureAlignment);
 
         if (size != 0)
         {
@@ -183,6 +183,8 @@ namespace love
                     { getConstant(ATTRIB_TEXCOORD), DATAFORMAT_FLOAT_VEC2 },
                     { getConstant(ATTRIB_COLOR), DATAFORMAT_UNORM8_VEC4 },
                 };
+            default:
+                break;
         }
 
         return {};

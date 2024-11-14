@@ -25,12 +25,12 @@ namespace love
 
         ptrdiff_t getSamplerHandle() const override;
 
-        dk::ImageDescriptor getDescriptorHandle()
+        dk::ImageDescriptor& getDescriptorHandle()
         {
             return this->descriptor;
         }
 
-        dk::SamplerDescriptor getSamplerDescriptorHandle()
+        dk::SamplerDescriptor& getSamplerDescriptor()
         {
             return this->samplerDescriptor;
         }

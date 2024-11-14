@@ -28,8 +28,7 @@ namespace love
 
         ~StreamBuffer()
         {
-            if (this->memory)
-                this->memory.destroy();
+            this->memory.destroy();
         }
 
         MapInfo<T> map(size_t)
@@ -42,6 +41,11 @@ namespace love
         }
 
         size_t unmap(size_t);
+
+        void* getData() const
+        {
+            return this->memory.getCpuAddr();
+        }
 
         ptrdiff_t getHandle() const
         {

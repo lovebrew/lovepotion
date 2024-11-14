@@ -122,8 +122,6 @@ namespace love
 
     void Graphics::clear(OptionalColor color, OptionalInt stencil, OptionalDouble depth)
     {
-        d3d.bindFramebuffer(d3d.getInternalBackbuffer());
-
         if (color.hasValue)
         {
             bool hasIntegerFormat = false;
@@ -147,6 +145,8 @@ namespace love
             }
         }
 
+        d3d.bindFramebuffer();
+
         if (color.hasValue || stencil.hasValue || depth.hasValue)
             this->flushBatchedDraws();
 
@@ -162,8 +162,6 @@ namespace love
         if (colors.size() == 0 && !stencil.hasValue && !depth.hasValue)
             return;
 
-        d3d.bindFramebuffer(d3d.getInternalBackbuffer());
-
         int numColors = (int)colors.size();
 
         const auto& targets       = this->states.back().renderTargets.colors;
@@ -176,6 +174,8 @@ namespace love
             this->clear(colors.size() > 0 ? colors[0] : OptionalColor(), stencil, depth);
             return;
         }
+
+        d3d.bindFramebuffer();
 
         this->flushBatchedDraws();
 
@@ -306,9 +306,9 @@ namespace love
         bool isWindow = targets.getFirstTarget().texture == nullptr;
 
         if (isWindow)
-            d3d.bindFramebuffer(d3d.getInternalBackbuffer());
+            d3d.bindFramebuffer();
         else
-            d3d.bindFramebuffer(*(dk::Image*)targets.getFirstTarget().texture->getRenderTargetHandle());
+            d3d.bindFramebuffer((dk::Image*)targets.getFirstTarget().texture->getRenderTargetHandle());
 
         d3d.setViewport({ 0, 0, pixelWidth, pixelHeight });
 
@@ -385,9 +385,6 @@ namespace love
 
         if (!Shader::current)
             Shader::standardShaders[Shader::STANDARD_DEFAULT]->attach();
-
-        // this->backbufferChanged(width, height, pixelWidth, pixelHeight, backBufferStencil, backBufferDepth,
-        //                         msaa);
 
         return true;
     }

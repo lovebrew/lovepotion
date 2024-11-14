@@ -411,14 +411,10 @@ namespace love
         }
     }
 
-    static constexpr bool pow2 = (Console::is(Console::CTR) ? true : false);
-
     void TextureBase::uploadImageData(ImageDataBase* data, int level, int slice, int x, int y)
     {
         Rect rectangle = { x, y, data->getWidth(), data->getHeight() };
-
-        const auto size = getPixelFormatSliceSize(this->format, data->getWidth(), data->getHeight(), pow2);
-        this->uploadByteData(data->getData(), size, level, slice, rectangle);
+        this->uploadByteData(data->getData(), data->getSize(), level, slice, rectangle);
     }
 
     void TextureBase::replacePixels(ImageDataBase* data, int slice, int mipmap, int x, int y,
@@ -459,6 +455,8 @@ namespace love
         if (rectSizeInvalid || (rect.x + rect.w) > mipW || (rect.y + rect.h) > mipH)
             throw love::Exception(E_INVALID_RECT_DIMENSIONS, rect.x, rect.y, rect.w, rect.h, mipW, mipH);
 
+        GraphicsBase::flushBatchedDrawsGlobal();
+
         this->uploadImageData(data, mipmap, slice, x, y);
 
         if (reloadMipmaps && mipmap == 0 && this->getMipmapCount() > 1)
@@ -475,6 +473,8 @@ namespace love
 
         if (graphics != nullptr && graphics->isRenderTargetActive(this))
             return;
+
+        GraphicsBase::flushBatchedDrawsGlobal();
 
         this->uploadByteData(data, size, mipmap, slice, rect);
 
@@ -508,6 +508,8 @@ namespace love
                     state.mipmapFilter = SamplerState::MIPMAP_FILTER_NEAREST;
             }
         }
+
+        GraphicsBase::flushBatchedDrawsGlobal();
 
         return state;
     }

@@ -23,16 +23,16 @@ namespace love
         if (this->initialized)
             return;
 
-        this->uniformBuffer       = this->data.allocate(TRANSFORM_SIZE, DK_UNIFORM_BUF_ALIGNMENT);
+        this->uniform             = this->data.allocate(TRANSFORM_SIZE, DK_UNIFORM_BUF_ALIGNMENT);
         this->transform.modelView = glm::mat4(1.0f);
 
         this->commands.allocate(this->data, COMMAND_SIZE);
         this->commandBuffer = dk::CmdBufMaker { this->device }.create();
 
         this->createFramebuffers();
-        this->ensureInFrame();
 
         this->context.rasterizer.setCullMode(DkFace_None);
+
         this->context.depthStencil.setDepthTestEnable(true);
         this->context.depthStencil.setDepthWriteEnable(true);
         this->context.depthStencil.setDepthCompareOp(DkCompareOp_Always);
@@ -40,9 +40,11 @@ namespace love
         this->context.color.setBlendEnable(0, true);
 
         this->imageSet.allocate(this->data);
-        this->imageSet.bindForImages(this->commandBuffer);
-
         this->samplerSet.allocate(this->data);
+
+        this->ensureInFrame();
+
+        this->imageSet.bindForImages(this->commandBuffer);
         this->samplerSet.bindForSamplers(this->commandBuffer);
 
         this->initialized = true;
@@ -51,21 +53,19 @@ namespace love
     deko3d::~deko3d()
     {
         this->destroyFramebuffers();
-
-        if (this->uniformBuffer)
-            this->uniformBuffer.destroy();
+        this->uniform.destroy();
     }
 
     void deko3d::createFramebuffers()
     {
-        const auto& info = getScreenInfo()[0];
+        const auto info = getScreenInfo()[0];
 
         this->depthbuffer.create(info, this->device, this->images, true);
 
         for (size_t index = 0; index < this->targets.size(); ++index)
         {
             this->framebuffers[index].create(info, this->device, this->images, false);
-            this->targets[index] = &this->framebuffers[index].getImage();
+            this->targets[index] = this->framebuffers[index].getImage();
         }
 
         this->swapchain = dk::SwapchainMaker { this->device, nwindowGetDefault(), this->targets }.create();
@@ -99,12 +99,7 @@ namespace love
     {
         if (!this->inFrame)
         {
-            if (!this->swapchain)
-                return;
-
-            if (this->framebufferSlot < 0)
-                this->framebufferSlot = this->mainQueue.acquireImage(this->swapchain);
-
+            this->context.descriptorsDirty = false;
             this->commands.begin(this->commandBuffer);
             this->inFrame = true;
         }
@@ -126,18 +121,20 @@ namespace love
         this->commandBuffer.clearDepthStencil(true, depth, mask, stencil);
     }
 
-    dk::Image& deko3d::getInternalBackbuffer()
-    {
-        this->ensureInFrame();
-        return this->framebuffers[this->framebufferSlot].getImage();
-    }
+    // dk::Image& deko3d::getInternalBackbuffer()
+    // {
+    //     this->ensureInFrame();
+    //     return this->framebuffers[this->framebufferSlot].getImage();
+    // }
 
     void deko3d::useProgram(const dk::Shader& vertex, const dk::Shader& fragment)
     {
+        this->ensureInFrame();
+
         // clang-format off
         this->commandBuffer.bindShaders(DkStageFlag_GraphicsMask, { &vertex, &fragment });
-        this->commandBuffer.bindUniformBuffer(DkStage_Vertex, 0, this->uniformBuffer.getGpuAddr(), this->uniformBuffer.getSize());
-        // clang-format off
+        this->commandBuffer.bindUniformBuffer(DkStage_Vertex, 0, this->uniform.getGpuAddr(), this->uniform.getSize());
+        // clang-format on
     }
 
     void deko3d::registerTexture(TextureBase* texture, bool registering)
@@ -145,43 +142,47 @@ namespace love
         if (registering)
         {
             const auto index = this->textureHandles.allocate();
-            const auto handle = dkMakeTextureHandle(index, index);
-            texture->setHandleData(handle);
-
+            texture->setHandleData(dkMakeTextureHandle(index, index));
             return;
         }
 
         this->textureHandles.deallocate((uint32_t)texture->getHandle());
     }
 
-    void deko3d::bindFramebuffer(dk::Image& framebuffer)
+    void deko3d::bindFramebuffer(dk::Image* framebuffer)
     {
         if (!this->swapchain)
             return;
 
+        if (this->framebufferSlot < 0)
+            this->framebufferSlot = this->mainQueue.acquireImage(this->swapchain);
+
+        if (!framebuffer)
+            framebuffer = this->framebuffers[this->framebufferSlot].getImage();
+
         bool bindingModified = false;
 
-        if (this->context.boundFramebuffer != &framebuffer)
+        if (this->context.boundFramebuffer != framebuffer)
         {
             bindingModified                = true;
-            this->context.boundFramebuffer = &framebuffer;
+            this->context.boundFramebuffer = framebuffer;
         }
 
         if (bindingModified)
         {
-            dk::ImageView depth { this->depthbuffer.getImage() };
-            dk::ImageView target { framebuffer };
+            dk::ImageView depth { *this->depthbuffer.getImage() };
+            dk::ImageView target { *framebuffer };
 
-            this->commandBuffer.bindRenderTargets(&target);
+            this->commandBuffer.bindRenderTargets(&target, &depth);
         }
     }
 
-    void deko3d::bindBuffer(BufferUsage usage, DkGpuAddr buffer, size_t size)
+    void deko3d::bindBuffer(BufferUsage usage, CMemPool::Handle& handle)
     {
         if (usage == BUFFERUSAGE_VERTEX)
-            this->commandBuffer.bindVtxBuffer(0, buffer, size);
+            this->commandBuffer.bindVtxBuffer(0, handle.getGpuAddr(), handle.getSize());
         else if (usage == BUFFERUSAGE_INDEX)
-            this->commandBuffer.bindIdxBuffer(DkIdxFormat_Uint16, buffer);
+            this->commandBuffer.bindIdxBuffer(DkIdxFormat_Uint16, handle.getGpuAddr());
     }
 
     void deko3d::setVertexAttributes(bool isTexture)
@@ -209,11 +210,12 @@ namespace love
             this->commandBuffer.barrier(DkBarrier_Primitives, DkInvalidateFlags_Descriptors);
             this->context.descriptorsDirty = false;
         }
-
-        this->commandBuffer.bindTextures(DkStage_Fragment, 0, { texture });
+        std::printf("Texture Handle id: %u\n", texture);
+        this->commandBuffer.bindTextures(DkStage_Fragment, 0, texture);
     }
 
-    void deko3d::drawIndexed(DkPrimitive primitive, uint32_t indexCount, uint32_t indexOffset, uint32_t instanceCount)
+    void deko3d::drawIndexed(DkPrimitive primitive, uint32_t indexCount, uint32_t indexOffset,
+                             uint32_t instanceCount)
     {
         this->commandBuffer.drawIndexed(primitive, indexCount, instanceCount, indexOffset, 0, 0);
     }
@@ -230,9 +232,8 @@ namespace love
         this->commandBuffer.bindColorWriteState(this->context.colorWrite);
         this->commandBuffer.bindBlendStates(0, this->context.blend);
 
-        this->commandBuffer.pushConstants(this->uniformBuffer.getGpuAddr(),
-                                    this->uniformBuffer.getSize(), 0, TRANSFORM_SIZE,
-                                    &this->transform);
+        this->commandBuffer.pushConstants(this->uniform.getGpuAddr(), this->uniform.getSize(), 0,
+                                          TRANSFORM_SIZE, &this->transform);
     }
 
     void deko3d::present()
@@ -319,7 +320,6 @@ namespace love
         this->context.blend.setColorBlendOp(operationRGB);
         this->context.blend.setAlphaBlendOp(operationA);
 
-        // Blend factors
         this->context.blend.setSrcColorBlendFactor(sourceColor);
         this->context.blend.setSrcAlphaBlendFactor(sourceAlpha);
 
@@ -327,11 +327,13 @@ namespace love
         this->context.blend.setDstAlphaBlendFactor(destAlpha);
     }
 
-    void deko3d::setSamplerState(TextureBase* texture, const SamplerState&state)
+    void deko3d::setSamplerState(TextureBase* texture, const SamplerState& state)
     {
-        auto* sampler = (dk::Sampler*)texture->getSamplerHandle();
-        auto descriptor = ((Texture*)texture)->getDescriptorHandle();
-        auto samplerDescriptor = ((Texture*)texture)->getSamplerDescriptorHandle();
+        this->ensureInFrame();
+
+        auto* sampler         = (dk::Sampler*)texture->getSamplerHandle();
+        auto& imageDescriptor = ((Texture*)texture)->getDescriptorHandle();
+        // auto& samplerDescriptor = ((Texture*)texture)->getSamplerDescriptor();
 
         auto index = -1;
 
@@ -346,7 +348,11 @@ namespace love
         if (!deko3d::getConstant(state.minFilter, minFilter))
             return;
 
-        sampler->setFilter(minFilter, magFilter);
+        DkMipFilter mipFilter;
+        if (!deko3d::getConstant(state.mipmapFilter, mipFilter))
+            return;
+
+        sampler->setFilter(minFilter, magFilter, mipFilter);
 
         DkWrapMode wrapU;
         if (!deko3d::getConstant(state.wrapU, wrapU))
@@ -362,67 +368,48 @@ namespace love
 
         sampler->setWrapMode(wrapU, wrapV, wrapW);
 
-        this->imageSet.update(this->commandBuffer, index, descriptor);
-
+        dk::SamplerDescriptor samplerDescriptor {};
         samplerDescriptor.initialize(*sampler);
-
+        std::printf("updating index %u\n", index);
+        this->imageSet.update(this->commandBuffer, index, imageDescriptor);
         this->samplerSet.update(this->commandBuffer, index, samplerDescriptor);
+
         this->context.descriptorsDirty = true;
     }
 
-    static DkScissor dkScissorFromRect(const Rect& rect)
+    template<typename T>
+    T dkRectFromRect(const Rect& rect)
     {
-        DkScissor scissor {};
+        T value {};
+        value.x      = rect.x;
+        value.y      = rect.y;
+        value.width  = rect.w;
+        value.height = rect.h;
 
-        scissor.x      = (uint32_t)rect.x;
-        scissor.y      = (uint32_t)rect.y;
-        scissor.width  = (uint32_t)rect.w;
-        scissor.height = (uint32_t)rect.h;
-
-        return scissor;
+        return value;
     }
 
-    void deko3d::setScissor(const Rect& scissor)
+    void deko3d::setScissor(const Rect& rect)
     {
         this->ensureInFrame();
-        DkScissor _scissor {};
 
-        if (scissor == Rect::EMPTY)
-            _scissor = dkScissorFromRect(this->context.scissor);
-        else
-            _scissor = dkScissorFromRect(scissor);
+        const auto scissor  = rect == Rect::EMPTY ? this->context.scissor : rect;
+        DkScissor dkScissor = dkRectFromRect<DkScissor>(scissor);
 
-        this->commandBuffer.setScissors(0, { _scissor });
+        this->commandBuffer.setScissors(0, dkScissor);
     }
 
-    static DkViewport dkViewportFromRect(const Rect& rect)
-    {
-        DkViewport viewport {};
-
-        viewport.x      = (float)rect.x;
-        viewport.y      = (float)rect.y;
-        viewport.width  = (float)rect.w;
-        viewport.height = (float)rect.h;
-        viewport.near   = Framebuffer::Z_NEAR;
-        viewport.far    = Framebuffer::Z_FAR;
-
-        return viewport;
-    }
-
-    void deko3d::setViewport(const Rect& viewport)
+    void deko3d::setViewport(const Rect& rect)
     {
         this->ensureInFrame();
-        DkViewport _viewport {};
 
-        if (viewport == Rect::EMPTY)
-            _viewport = dkViewportFromRect(this->context.viewport);
-        else
-            _viewport = dkViewportFromRect(viewport);
+        const auto viewport   = rect == Rect::EMPTY ? this->context.viewport : rect;
+        DkViewport dkViewport = dkRectFromRect<DkViewport>(viewport);
 
-        this->commandBuffer.setViewports(0, { _viewport });
+        this->commandBuffer.setViewports(0, dkViewport);
 
-        const auto ortho = glm::ortho(0.0f, (float)viewport.w, (float)viewport.h, 0.0f, -10.0f, 10.0f);
-        this->transform.projection = ortho;
+        this->transform.projection =
+            glm::ortho(0.0f, (float)viewport.w, (float)viewport.h, 0.0f, -10.0f, 10.0f);
     }
 
     deko3d d3d;

@@ -7,14 +7,14 @@ namespace love
     template<>
     size_t StreamBuffer<Vertex>::unmap(size_t)
     {
-        d3d.bindBuffer(this->usage, this->memory.getGpuAddr(), this->memory.getSize());
+        d3d.bindBuffer(this->usage, this->memory);
         return this->index;
     }
 
     template<>
     size_t StreamBuffer<uint16_t>::unmap(size_t)
     {
-        d3d.bindBuffer(this->usage, this->memory.getGpuAddr(), this->memory.getSize());
+        d3d.bindBuffer(this->usage, this->memory);
         return this->index;
     }
 } // namespace love

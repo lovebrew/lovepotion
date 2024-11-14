@@ -1161,25 +1161,25 @@ int Wrap_Graphics::newMesh(lua_State* L)
 {
     luax_checkgraphicscreated(L);
 
-    int firstArgType = lua_type(L, 1);
-    if (firstArgType != LUA_TTABLE && firstArgType != LUA_TNUMBER)
-        return luax_typeerror(L, 1, "table or number expected.");
+    // int firstArgType = lua_type(L, 1);
+    // if (firstArgType != LUA_TTABLE && firstArgType != LUA_TNUMBER)
+    //     return luax_typeerror(L, 1, "table or number expected.");
 
-    Mesh* mesh = nullptr;
+    // Mesh* mesh = nullptr;
 
-    int secondArgType = lua_type(L, 2);
+    // int secondArgType = lua_type(L, 2);
 
-    if (firstArgType == LUA_TTABLE &&
-        (secondArgType == LUA_TTABLE || secondArgType == LUA_TNUMBER || secondArgType == LUA_TUSERDATA))
-    {
-    }
-    else
-        mesh = newStandardMesh(L);
+    // if (firstArgType == LUA_TTABLE &&
+    //     (secondArgType == LUA_TTABLE || secondArgType == LUA_TNUMBER || secondArgType == LUA_TUSERDATA))
+    // {
+    // }
+    // else
+    //     mesh = newStandardMesh(L);
 
-    luax_pushtype(L, mesh);
-    mesh->release();
+    // luax_pushtype(L, mesh);
+    // mesh->release();
 
-    return 1;
+    return 0;
 }
 
 int Wrap_Graphics::newTextBatch(lua_State* L)
