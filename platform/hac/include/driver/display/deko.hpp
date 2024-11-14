@@ -285,7 +285,7 @@ namespace love
         Framebuffer framebuffers[MAX_RENDERTARGETS];
         Framebuffer depthbuffer;
 
-        CCmdMemRing<2> commands;
+        CCmdMemRing<MAX_RENDERTARGETS> commands;
         std::array<DkImage const*, MAX_RENDERTARGETS> targets;
 
         BitwiseAlloc<MAX_OBJECTS> textureHandles;

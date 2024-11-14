@@ -53,6 +53,10 @@ namespace love
                 result = new Message("focus", args);
                 break;
             }
+            case SUBTYPE_RESIZE:
+                args.emplace_back(event.resize.width);
+                args.emplace_back(event.resize.height);
+                result = new Message("resize", args);
             default:
                 break;
         }

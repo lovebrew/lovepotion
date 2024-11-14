@@ -6,6 +6,7 @@
 namespace love
 {
     deko3d::deko3d() :
+        context {},
         transform {},
         device(dk::DeviceMaker {}.setFlags(DkDeviceFlags_DepthMinusOneToOne).create()),
         mainQueue(dk::QueueMaker { this->device }.setFlags(DkQueueFlags_Graphics).create()),
@@ -14,7 +15,6 @@ namespace love
         images(CMemPool(this->device, GPU_USE_FLAGS, GPU_POOL_SIZE)),
         data(CMemPool(this->device, CPU_USE_FLAGS, CPU_POOL_SIZE)),
         code(CMemPool(this->device, SHADER_USE_FLAGS, SHADER_POOL_SIZE)),
-        context {},
         framebufferSlot(-1)
     {}
 
@@ -210,7 +210,7 @@ namespace love
             this->commandBuffer.barrier(DkBarrier_Primitives, DkInvalidateFlags_Descriptors);
             this->context.descriptorsDirty = false;
         }
-        std::printf("Texture Handle id: %u\n", texture);
+
         this->commandBuffer.bindTextures(DkStage_Fragment, 0, texture);
     }
 
@@ -231,6 +231,9 @@ namespace love
         this->commandBuffer.bindColorState(this->context.color);
         this->commandBuffer.bindColorWriteState(this->context.colorWrite);
         this->commandBuffer.bindBlendStates(0, this->context.blend);
+
+        if (!this->uniform)
+            return;
 
         this->commandBuffer.pushConstants(this->uniform.getGpuAddr(), this->uniform.getSize(), 0,
                                           TRANSFORM_SIZE, &this->transform);
@@ -370,7 +373,7 @@ namespace love
 
         dk::SamplerDescriptor samplerDescriptor {};
         samplerDescriptor.initialize(*sampler);
-        std::printf("updating index %u\n", index);
+
         this->imageSet.update(this->commandBuffer, index, imageDescriptor);
         this->samplerSet.update(this->commandBuffer, index, samplerDescriptor);
 

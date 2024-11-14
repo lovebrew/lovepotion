@@ -54,6 +54,8 @@ namespace love
 
         if (this->batchedDrawState.indexBuffer)
             this->batchedDrawState.indexBuffer->release();
+
+        Volatile::unloadAll();
     }
 
     void GraphicsBase::resetProjection()
@@ -222,10 +224,12 @@ namespace love
         if (this->batchedDrawState.vertexCount > 0)
             stats.drawCalls++;
 
-        stats.drawCallsBatched = this->drawCallsBatched;
-        stats.textures         = TextureBase::textureCount;
-        stats.textureMemory    = TextureBase::totalGraphicsMemory;
-        stats.shaderSwitches   = ShaderBase::shaderSwitches;
+        stats.drawCallsBatched  = this->drawCallsBatched;
+        stats.textures          = TextureBase::textureCount;
+        stats.textureMemory     = TextureBase::totalGraphicsMemory;
+        stats.shaderSwitches    = ShaderBase::shaderSwitches;
+        stats.cpuProcessingTime = GraphicsBase::cpuProcessingTime;
+        stats.gpuDrawingTime    = GraphicsBase::gpuDrawingTime;
 
         return stats;
     }
@@ -449,9 +453,6 @@ namespace love
             command.indexBufferOffset = state.indexBuffer->unmap(usedSizes[1]);
             command.texture           = state.texture;
             command.isFont            = state.isFont;
-
-            debugVertices((Vertex*)state.vertexBuffer->getData(), state.lastVertexCount);
-            debugIndices((uint16_t*)state.indexBuffer->getData(), state.lastIndexCount);
 
             this->draw(command);
 

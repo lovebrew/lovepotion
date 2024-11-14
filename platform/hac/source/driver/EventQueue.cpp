@@ -1,3 +1,5 @@
+#include "common/screen.hpp"
+
 #include "driver/EventQueue.hpp"
 
 #include "modules/joystick/JoystickModule.hpp"
@@ -60,7 +62,13 @@ namespace love
                 }
                 case AppletMessage_OperationModeChanged:
                 {
+                    auto info = love::getScreenInfo(Screen(0));
+                    EventQueue::getInstance().sendResize(info.width, info.height);
+
+                    break;
                 }
+                default:
+                    break;
             }
         }
     }
