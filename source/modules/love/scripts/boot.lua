@@ -173,7 +173,7 @@ function love.init()
             timer = true,
             joystick = true,
             touch = true,
-            image = false,
+            image = true,
             graphics = true,
             audio = true,
             math = true,
@@ -181,7 +181,7 @@ function love.init()
             sensor = true,
             sound = true,
             system = true,
-            font = false,
+            font = true,
             thread = true,
             window = true,
             video = false,
@@ -315,8 +315,6 @@ function love.init()
             local success, msg = pcall(require, "love." .. v)
             if v == "audio" and not success and msg:find("ndsp") then
                 error(msg)
-            else
-                print(msg)
             end
         end
     end

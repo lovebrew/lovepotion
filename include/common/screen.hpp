@@ -22,7 +22,7 @@ namespace love
 
     static constexpr inline Screen INVALID_SCREEN = (Screen)-1;
     static constexpr inline Screen DEFAULT_SCREEN = (Screen)0;
-    inline Screen currentScreen                   = INVALID_SCREEN;
+    inline Screen currentScreen                   = DEFAULT_SCREEN;
 
     std::span<ScreenInfo> getScreenInfo();
 
@@ -35,7 +35,7 @@ namespace love
         return info[id];
     }
 
-    const inline Screen getScreenId(std::string_view name)
+    inline Screen getScreenId(std::string_view name)
     {
         const auto& info = getScreenInfo();
 
@@ -46,5 +46,14 @@ namespace love
         }
 
         return INVALID_SCREEN;
+    }
+
+    inline void setScreen(Screen id)
+    {
+        const auto& info = getScreenInfo();
+
+        id = (Screen)std::clamp<int8_t>(id, 0, info.size() - 1);
+
+        currentScreen = id;
     }
 } // namespace love

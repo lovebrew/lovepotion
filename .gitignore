@@ -7,3 +7,6 @@ target/
 *.3dsx
 *.nro
 *.wuhb
+*.py
+__pycache__/
+todo.md

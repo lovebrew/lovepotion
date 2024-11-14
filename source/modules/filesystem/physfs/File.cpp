@@ -6,8 +6,6 @@
 #include <cstring>
 #include <physfs.h>
 
-#include <utility/logfile.hpp>
-
 namespace love
 {
     static bool setupWriteDirectory()

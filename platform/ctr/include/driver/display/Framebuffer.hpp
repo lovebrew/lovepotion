@@ -18,8 +18,6 @@ namespace love
 
         void destroy();
 
-        void setViewport(const Rect& viewport);
-
         void setScissor(const Rect& scissor);
 
         C3D_RenderTarget* get() const
@@ -37,13 +35,15 @@ namespace love
             return this->projection;
         }
 
+        static void calculateBounds(const Rect& bounds, Rect& out, const int width, const int height);
+
       private:
-        static constexpr auto FORMAT = GPU_RB_DEPTH16;
+        static constexpr auto DEPTH_FORMAT = GPU_RB_DEPTH16;
+        static constexpr auto COLOR_FORMAT = GPU_RB_RGBA8;
 
         static constexpr auto DISPLAY_TRANSFER_FLAGS =
             GX_TRANSFER_FLIP_VERT(0) | GX_TRANSFER_OUT_TILED(0) | GX_TRANSFER_RAW_COPY(0) |
-            GX_TRANSFER_IN_FORMAT(GX_TRANSFER_FMT_RGBA8) |
-            GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGB8) |
+            GX_TRANSFER_IN_FORMAT(GX_TRANSFER_FMT_RGBA8) | GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGB8) |
             GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_NO);
 
         C3D_RenderTarget* target;

@@ -67,7 +67,7 @@ int Wrap_Joystick::getJoystickType(lua_State* L)
     auto* self = luax_checkjoystick(L, 1);
 
     std::string_view type = "Unknown";
-    Joystick::getConstant(self->getJoystickType(), type);
+    JoystickBase::getConstant(self->getJoystickType(), type);
 
     luax_pushstring(L, type);
 
@@ -106,7 +106,7 @@ int Wrap_Joystick::getAxis(lua_State* L)
     auto* self = luax_checkjoystick(L, 1);
     int axis   = luaL_checkinteger(L, 2) - 1;
 
-    auto current = (Joystick::GamepadAxis)axis;
+    auto current = (JoystickBase::GamepadAxis)axis;
     lua_pushnumber(L, self->getAxis(current));
 
     return 1;
@@ -144,7 +144,7 @@ int Wrap_Joystick::isDown(lua_State* L)
     if (argc == 0)
         luaL_checkinteger(L, 2);
 
-    std::vector<Joystick::GamepadButton> buttons {};
+    std::vector<JoystickBase::GamepadButton> buttons {};
     buttons.reserve(argc);
 
     if (isTable)
@@ -154,7 +154,7 @@ int Wrap_Joystick::isDown(lua_State* L)
             lua_rawgeti(L, 2, index + 1);
 
             int button = luaL_checkinteger(L, -1) - 1;
-            buttons.push_back(Joystick::GamepadButton(button));
+            buttons.push_back(JoystickBase::GamepadButton(button));
             lua_pop(L, 1);
         }
     }
@@ -163,7 +163,7 @@ int Wrap_Joystick::isDown(lua_State* L)
         for (int index = 0; index < argc; index++)
         {
             int button = luaL_checkinteger(L, index + 2) - 1;
-            buttons.push_back(Joystick::GamepadButton(button));
+            buttons.push_back(JoystickBase::GamepadButton(button));
         }
     }
 
@@ -205,7 +205,7 @@ int Wrap_Joystick::getGamepadType(lua_State* L)
     auto* self = luax_checkjoystick(L, 1);
 
     std::string_view type = "Unknown";
-    Joystick::getConstant(self->getGamepadType(), type);
+    JoystickBase::getConstant(self->getGamepadType(), type);
 
     luax_pushstring(L, type);
 
@@ -217,9 +217,9 @@ int Wrap_Joystick::getGamepadAxis(lua_State* L)
     auto* self       = luax_checkjoystick(L, 1);
     const char* name = luaL_checkstring(L, 2);
 
-    Joystick::GamepadAxis axis;
-    if (!Joystick::getConstant(name, axis))
-        return luax_enumerror(L, "gamepad axis", Joystick::GamepadButtons, name);
+    JoystickBase::GamepadAxis axis;
+    if (!JoystickBase::getConstant(name, axis))
+        return luax_enumerror(L, "gamepad axis", JoystickBase::GamepadButtons, name);
 
     lua_pushnumber(L, self->getAxis(axis));
 
@@ -236,10 +236,10 @@ int Wrap_Joystick::isGamepadDown(lua_State* L)
     if (argc == 0)
         luaL_checkstring(L, 2);
 
-    std::vector<Joystick::GamepadButton> buttons {};
+    std::vector<JoystickBase::GamepadButton> buttons {};
     buttons.reserve(argc);
 
-    Joystick::GamepadButton button;
+    JoystickBase::GamepadButton button;
 
     if (isTable)
     {
@@ -248,8 +248,8 @@ int Wrap_Joystick::isGamepadDown(lua_State* L)
             lua_rawgeti(L, 2, index + 1);
             const char* string = luaL_checkstring(L, -1);
 
-            if (!Joystick::getConstant(string, button))
-                return luax_enumerror(L, "gamepad button", Joystick::GamepadButtons, string);
+            if (!JoystickBase::getConstant(string, button))
+                return luax_enumerror(L, "gamepad button", JoystickBase::GamepadButtons, string);
 
             buttons.push_back(button);
             lua_pop(L, 1);
@@ -261,8 +261,8 @@ int Wrap_Joystick::isGamepadDown(lua_State* L)
         {
             const char* string = luaL_checkstring(L, index + 2);
 
-            if (!Joystick::getConstant(string, button))
-                return luax_enumerror(L, "gamepad button", Joystick::GamepadButtons, string);
+            if (!JoystickBase::getConstant(string, button))
+                return luax_enumerror(L, "gamepad button", JoystickBase::GamepadButtons, string);
 
             buttons.push_back(button);
         }
@@ -319,7 +319,7 @@ int Wrap_Joystick::setVibration(lua_State* L)
 
     luax_pushboolean(L, success);
 
-    return 0;
+    return 1;
 }
 
 int Wrap_Joystick::getVibration(lua_State* L)
@@ -430,6 +430,49 @@ static constexpr luaL_Reg functions[] = {
     { "getSensorData",           Wrap_Joystick::getSensorData           },
     { "getConnectedIndex",       Wrap_JoystickModule::getIndex          }
 };
+
+#if !defined(__WIIU__)
+static constexpr std::span<luaL_Reg> extFunctions = {};
+#else
+#include "modules/joystick/kpad/Joystick.hpp"
+
+int Wrap_Joystick::getPosition(lua_State*L)
+{
+    auto* base = luax_checkjoystick(L, 1);
+    const auto type = base->getGamepadType();
+
+    if (type != GAMEPAD_TYPE_NINTENDO_WII_REMOTE && type != GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK)
+        return luaL_error(L, "Invalid controller! Must be of type Wii Remote");
+
+    auto position = ((kpad::Joystick*)base)->getPosition();
+
+    lua_pushnumber(L, position.x);
+    lua_pushnumber(L, position.y);
+
+    return 2;
+}
+
+int Wrap_Joystick::getAngle(lua_State*L)
+{
+    auto* base = luax_checkjoystick(L, 1);
+    const auto type = base->getGamepadType();
+
+    if (type != GAMEPAD_TYPE_NINTENDO_WII_REMOTE && type != GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK)
+        return luaL_error(L, "Invalid controller! Must be of type Wii Remote");
+
+    auto angle = ((kpad::Joystick*)base)->getAngle();
+
+    lua_pushnumber(L, angle.x);
+    lua_pushnumber(L, angle.y);
+
+    return 2;
+}
+
+static constexpr luaL_Reg extFunctions[] = {
+    { "getPosition", Wrap_Joystick::getPosition },
+    { "getAngle",    Wrap_Joystick::getAngle    }
+};
+#endif
 // clang-format on
 
 namespace love
@@ -441,6 +484,6 @@ namespace love
 
     int open_joystick(lua_State* L)
     {
-        return luax_register_type(L, &JoystickBase::type, functions);
+        return luax_register_type(L, &JoystickBase::type, functions, extFunctions);
     }
 } // namespace love

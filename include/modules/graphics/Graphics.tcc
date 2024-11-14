@@ -9,8 +9,19 @@
 #include "common/int.hpp"
 #include "common/pixelformat.hpp"
 
+#include "modules/font/Font.tcc"
+#include "modules/math/MathModule.hpp"
+
+#include "modules/graphics/Font.tcc"
+#include "modules/graphics/Mesh.hpp"
+#include "modules/graphics/Shader.tcc"
+#include "modules/graphics/TextBatch.hpp"
+#include "modules/graphics/Texture.tcc"
 #include "modules/graphics/Volatile.hpp"
 #include "modules/graphics/renderstate.hpp"
+#include "modules/graphics/samplerstate.hpp"
+
+#include "driver/graphics/DrawCommand.hpp"
 
 #include <string>
 #include <vector>
@@ -25,27 +36,42 @@ namespace love
 
     using OptionalColor = Optional<Color>;
 
-    static bool gammaCorrect = false;
-
-    inline void setGammaCorrect(bool enable)
+    inline void gammaCorrectColor(Color& color)
     {
-        gammaCorrect = enable;
+        if (love::isGammaCorrect())
+        {
+            color.r = love::gammaToLinear(color.r);
+            color.g = love::gammaToLinear(color.g);
+            color.b = love::gammaToLinear(color.b);
+        }
     }
 
-    inline bool isGammaCorrect()
+    inline void unGammaCorrectColor(Color& color)
     {
-        return gammaCorrect;
+        if (love::isGammaCorrect())
+        {
+            color.r = love::linearToGamma(color.r);
+            color.g = love::linearToGamma(color.g);
+            color.b = love::linearToGamma(color.b);
+        }
     }
 
-    void gammaCorrectColor(Color& color);
+    inline Color gammaCorrectColor(const Color& color)
+    {
+        Color result = color;
+        gammaCorrectColor(result);
 
-    void unGammaCorrectColor(Color& color);
+        return result;
+    }
 
-    Color gammaCorrectColor(const Color& color);
+    inline Color unGammaCorrectColor(const Color& color)
+    {
+        Color result = color;
+        unGammaCorrectColor(result);
 
-    Color unGammaCorrectColor(const Color& color);
+        return result;
+    }
 
-    template<class T>
     class GraphicsBase : public Module
     {
       public:
@@ -81,6 +107,48 @@ namespace love
             LINE_JOIN_MAX_ENUM
         };
 
+        enum Feature
+        {
+            FEATURE_MULTI_RENDER_TARGET_FORMATS,
+            FEATURE_CLAMP_ZERO,
+            FEATURE_CLAMP_ONE,
+            FEATURE_BLEND_MINMAX,
+            FEATURE_LIGHTEN, // Deprecated
+            FEATURE_FULL_NPOT,
+            FEATURE_PIXEL_SHADER_HIGHP,
+            FEATURE_SHADER_DERIVATIVES,
+            FEATURE_GLSL3,
+            FEATURE_GLSL4,
+            FEATURE_INSTANCING,
+            FEATURE_TEXEL_BUFFER,
+            FEATURE_INDEX_BUFFER_32BIT,
+            FEATURE_COPY_BUFFER,
+            FEATURE_COPY_BUFFER_TO_TEXTURE,
+            FEATURE_COPY_TEXTURE_TO_BUFFER,
+            FEATURE_COPY_RENDER_TARGET_TO_BUFFER,
+            FEATURE_MIPMAP_RANGE,
+            FEATURE_INDIRECT_DRAW,
+            FEATURE_MAX_ENUM
+        };
+
+        enum SystemLimit
+        {
+            LIMIT_POINT_SIZE,
+            LIMIT_TEXTURE_SIZE,
+            LIMIT_VOLUME_TEXTURE_SIZE,
+            LIMIT_CUBE_TEXTURE_SIZE,
+            LIMIT_TEXTURE_LAYERS,
+            LIMIT_TEXEL_BUFFER_SIZE,
+            LIMIT_SHADER_STORAGE_BUFFER_SIZE,
+            LIMIT_THREADGROUPS_X,
+            LIMIT_THREADGROUPS_Y,
+            LIMIT_THREADGROUPS_Z,
+            LIMIT_RENDER_TARGETS,
+            LIMIT_TEXTURE_MSAA,
+            LIMIT_ANISOTROPY,
+            LIMIT_MAX_ENUM
+        };
+
         enum StackType
         {
             STACK_ALL,
@@ -92,6 +160,13 @@ namespace love
         {
             TEMPORARY_RT_DEPTH   = (1 << 0),
             TEMPORARY_RT_STENCIL = (1 << 1)
+        };
+
+        struct Capabilities
+        {
+            double limits[LIMIT_MAX_ENUM];
+            bool features[FEATURE_MAX_ENUM];
+            bool textureTypes[TEXTURE_MAX_ENUM];
         };
 
         struct RendererInfo
@@ -113,6 +188,138 @@ namespace love
             int buffers;
             int64_t textureMemory;
             int64_t bufferMemory;
+            float cpuProcessingTime;
+            float gpuDrawingTime;
+        };
+
+        class TempTransform
+        {
+          public:
+            TempTransform(GraphicsBase* graphics) : graphics(graphics)
+            {
+                graphics->pushTransform();
+            }
+
+            TempTransform(GraphicsBase* graphics, const Matrix4& transform) : graphics(graphics)
+            {
+                graphics->pushTransform();
+                graphics->transformStack.back() *= transform;
+            }
+
+            ~TempTransform()
+            {
+                graphics->popTransform();
+            }
+
+          private:
+            GraphicsBase* graphics;
+        };
+
+        struct ScreenshotInfo;
+        typedef void (*ScreenshotCallback)(const ScreenshotInfo* info, ImageData* i, void* ud);
+
+        struct ScreenshotInfo
+        {
+            ScreenshotCallback callback = nullptr;
+            void* data                  = nullptr;
+        };
+
+        struct RenderTargetStrongRef;
+
+        struct RenderTarget
+        {
+            TextureBase* texture;
+            int slice;
+            int mipmap;
+
+            RenderTarget(TextureBase* texture, int slice = 0, int mipmap = 0) :
+                texture(texture),
+                slice(slice),
+                mipmap(mipmap)
+            {}
+
+            RenderTarget() : texture(nullptr), slice(0), mipmap(0)
+            {}
+
+            bool operator!=(const RenderTarget& other) const
+            {
+                return this->texture != other.texture || this->slice != other.slice ||
+                       this->mipmap != other.mipmap;
+            }
+
+            bool operator!=(const RenderTargetStrongRef& other) const
+            {
+                return this->texture != other.texture.get() || this->slice != other.slice ||
+                       this->mipmap != other.mipmap;
+            }
+        };
+
+        struct RenderTargetStrongRef
+        {
+            StrongRef<TextureBase> texture;
+            int slice  = 0;
+            int mipmap = 0;
+
+            RenderTargetStrongRef(TextureBase* texture, int slice = 0, int mipmap = 0) :
+                texture(texture),
+                slice(slice),
+                mipmap(mipmap)
+            {}
+
+            bool operator!=(const RenderTargetStrongRef& other) const
+            {
+                return this->texture.get() != other.texture.get() || this->slice != other.slice ||
+                       this->mipmap != other.mipmap;
+            }
+
+            bool operator!=(const RenderTarget& other)
+            {
+                return this->texture.get() != other.texture || this->slice != other.slice ||
+                       this->mipmap != other.mipmap;
+            }
+        };
+
+        struct RenderTargetsStrongRef
+        {
+            std::vector<RenderTargetStrongRef> colors;
+            RenderTargetStrongRef depthStencil;
+            uint32_t temporaryFlags;
+
+            RenderTargetsStrongRef() : depthStencil(nullptr), temporaryFlags(0)
+            {}
+        };
+
+        struct RenderTargets
+        {
+            std::vector<RenderTarget> colors;
+            RenderTarget depthStencil;
+            uint32_t temporaryFlags;
+
+            RenderTargets() : depthStencil(nullptr), temporaryFlags(0)
+            {}
+
+            const RenderTarget& getFirstTarget() const
+            {
+                return this->colors.empty() ? this->depthStencil : this->colors[0];
+            }
+
+            bool operator==(const RenderTargets& other) const
+            {
+                size_t numColors = this->colors.size();
+                if (numColors != other.colors.size())
+                    return false;
+
+                for (size_t index = 0; index < numColors; index++)
+                {
+                    if (this->colors[index] != other.colors[index])
+                        return false;
+                }
+
+                if (this->depthStencil != other.depthStencil || this->temporaryFlags != other.temporaryFlags)
+                    return false;
+
+                return true;
+            }
         };
 
         struct DisplayState
@@ -120,8 +327,8 @@ namespace love
             DisplayState()
             {}
 
-            Color color           = Color::WHITE;
-            Color backgroundColor = Color::BLACK;
+            Color color           = Color(1.0f, 1.0f, 1.0f, 1.0f);
+            Color backgroundColor = Color(0.0f, 0.0f, 0.0f, 1.0f);
 
             BlendState blend = computeBlendState(BLEND_ALPHA, BLENDALPHA_MULTIPLY);
 
@@ -142,143 +349,36 @@ namespace love
             CullMode meshCullMode = CULL_NONE;
             Winding winding       = WINDING_CCW;
 
-            // StrongRef<Font> font;
-            // StrongRef<Shader> shader;
+            StrongRef<FontBase> font;
+            StrongRef<ShaderBase> shader;
 
-            // RenderTargetsStrongRef renderTargets;
+            RenderTargetsStrongRef renderTargets;
 
             ColorChannelMask colorMask;
 
             bool useCustomProjection = false;
             Matrix4 customProjection;
 
-            // SamplerState defaultSampleState = SamplerState();
+            SamplerState defaultSamplerState = SamplerState();
         };
 
-        GraphicsBase(const char* name) :
-            Module(M_GRAPHICS, name),
-            width(0),
-            height(0),
-            pixelWidth(0),
-            pixelHeight(0),
-            created(false),
-            active(true),
-            deviceProjectionMatrix()
-        {
-            this->transformStack.reserve(16);
-            this->transformStack.push_back(Matrix4());
+        GraphicsBase(const char* name);
 
-            this->pixelScaleStack.reserve(16);
-            this->pixelScaleStack.push_back(1.0);
+        virtual ~GraphicsBase();
 
-            this->states.reserve(10);
-            this->states.push_back(DisplayState());
-        }
+        void restoreState(const DisplayState& state);
 
-        virtual ~GraphicsBase()
-        {
-            this->states.clear();
-        }
+        void restoreStateChecked(const DisplayState& state);
 
-        void restoreState(const DisplayState& state)
-        {
-            this->setColor(state.color);
-            this->setBackgroundColor(state.backgroundColor);
+        bool isRenderTargetActive() const;
 
-            this->setBlendState(state.blend);
+        bool isRenderTargetActive(TextureBase* texture) const;
 
-            this->setLineWidth(state.lineWidth);
-            this->setLineStyle(state.lineStyle);
-            this->setLineJoin(state.lineJoin);
-
-            this->setPointSize(state.pointSize);
-
-            if (state.scissor)
-                this->setScissor(state.scissorRect);
-            else
-                this->setScissor();
-
-            this->setMeshCullMode(state.meshCullMode);
-            this->setFrontFaceWinding(state.winding);
-
-            // this->setFont(state.font.get());
-            // this->setShader(state.shader.get());
-            // this->setRenderTargets(state.renderTargets);
-
-            // this->setStencilState(state.stencil);
-            // this->setDepthMode(state.depthTest, state.depthWrite);
-
-            this->setColorMask(state.colorMask);
-
-            // this->setDefaultSamplerState(state.defaultSampleState);
-
-            if (state.useCustomProjection)
-                this->updateDeviceProjection(state.customProjection);
-            else
-                this->resetProjection();
-        }
-
-        void restoreStateChecked(const DisplayState& state)
-        {
-            const auto& current = this->states.back();
-
-            if (state.color != current.color)
-                this->setColor(state.color);
-
-            this->setBackgroundColor(state.backgroundColor);
-
-            if (state.blend != current.blend)
-                this->setBlendState(state.blend);
-
-            this->setLineWidth(state.lineWidth);
-            this->setLineStyle(state.lineStyle);
-            this->setLineJoin(state.lineJoin);
-
-            if (state.pointSize != current.pointSize)
-                this->setPointSize(state.pointSize);
-
-            if (state.scissor != current.scissor ||
-                (state.scissor && !(state.scissorRect != current.scissorRect)))
-            {
-                if (state.scissor)
-                    this->setScissor(state.scissorRect);
-                else
-                    this->setScissor();
-            }
-
-            this->setMeshCullMode(state.meshCullMode);
-
-            if (state.winding != current.winding)
-                this->setFrontFaceWinding(state.winding);
-
-            // this->setFont(state.font.get());
-            // this->setShader(state.shader.get());
-
-            // if (this->stencil != state.stencil)
-            //     this->setStencilState(state.stencil);
-
-            // if (this->depthTest != state.depthTest || this->depthWrite != state.depthWrite)
-            //     this->setDepthMode(state.depthTest, state.depthWrite);
-
-            if (state.colorMask != current.colorMask)
-                this->setColorMask(state.colorMask);
-
-            // this->setDefaultSamplerState(state.defaultSampleState);
-
-            if (state.useCustomProjection)
-                this->updateDeviceProjection(state.customProjection);
-            else if (current.useCustomProjection)
-                this->resetProjection();
-        }
-
-        /* TODO: implement when they exist */
-        bool isRenderTargetActive() const
-        {
-            return false;
-        }
+        bool isRenderTargetActive(TextureBase* texture, int slice) const;
 
         void setActive(bool active)
         {
+            this->flushBatchedDraws();
             this->active = active;
         }
 
@@ -302,62 +402,43 @@ namespace love
             this->states.back().backgroundColor = color;
         }
 
-        void setScissor(const Rect& scissor)
-        {
-            auto& state = this->states.back();
-
-            Rect rect {};
-            rect.x = scissor.x;
-            rect.y = scissor.y;
-            rect.w = std::max(0, scissor.w);
-            rect.h = std::max(0, scissor.h);
-
-            static_cast<T*>(this)->setScissorImpl(scissor);
-
-            state.scissorRect = rect;
-            state.scissor     = true;
-        }
-
-        void setScissor()
-        {
-            this->states.back().scissor = false;
-            static_cast<T*>(this)->setScissorImpl();
-        }
-
-        void intersectScissor(const Rect& scissor)
-        {
-            auto current = this->states.back().scissorRect;
-
-            if (!this->states.back().scissor)
-            {
-                current.x = 0;
-                current.y = 0;
-
-                current.w = std::numeric_limits<int>::max();
-                current.h = std::numeric_limits<int>::max();
-            }
-
-            int x1 = std::max(current.x, scissor.x);
-            int y1 = std::max(current.y, scissor.y);
-            int x2 = std::min(current.x + current.w, scissor.x + scissor.w);
-            int y2 = std::min(current.y + current.h, scissor.y + scissor.h);
-
-            Rect newScisssor = { x1, y1, std::max(0, x2 - x1), std::max(0, y2 - y1) };
-            this->setScissor(newScisssor);
-        }
-
-        bool getScissor(Rect& scissor) const
-        {
-            const auto& state = this->states.back();
-
-            scissor = state.scissorRect;
-            return state.scissor;
-        }
-
         Color getBackgroundColor() const
         {
             return this->states.back().backgroundColor;
         }
+
+        void setFont(FontBase* font)
+        {
+            this->states.back().font.set(font);
+        }
+
+        FontBase* getFont()
+        {
+            this->checkSetDefaultFont();
+            return this->states.back().font.get();
+        }
+
+        const SamplerState& getDefaultSamplerState() const
+        {
+            return this->states.back().defaultSamplerState;
+        }
+
+        void setDefaultSamplerState(const SamplerState& state)
+        {
+            this->states.back().defaultSamplerState = state;
+        }
+
+        virtual void setScissor(const Rect& scissor) = 0;
+
+        virtual void setScissor() = 0;
+
+        void setShader();
+
+        void setShader(ShaderBase* shader);
+
+        void intersectScissor(const Rect& scissor);
+
+        bool getScissor(Rect& scissor) const;
 
         void setMeshCullMode(CullMode mode)
         {
@@ -369,52 +450,55 @@ namespace love
             return this->states.back().meshCullMode;
         }
 
-        void setFrontFaceWinding(Winding winding)
-        {
-            static_cast<T*>(this)->setFrontFaceWindingImpl(winding);
-            this->states.back().winding = winding;
-        }
+        virtual void setFrontFaceWinding(Winding winding) = 0;
 
-        Winding getFrontFaceWinding() const
-        {
-            return this->states.back().winding;
-        }
+        Winding getFrontFaceWinding() const;
 
-        void setColorMask(ColorChannelMask mask)
-        {
-            static_cast<T*>(this)->setColorMaskImpl(mask);
-            this->states.back().colorMask = mask;
-        }
+        virtual void setColorMask(ColorChannelMask mask) = 0;
 
-        ColorChannelMask getColorMask() const
-        {
-            return this->states.back().colorMask;
-        }
+        ColorChannelMask getColorMask() const;
 
-        void setBlendMode(BlendMode mode, BlendAlpha alphaMode)
-        {
-            if (alphaMode == BLENDALPHA_MULTIPLY && !isAlphaMultiplyBlendSupported(mode))
-            {
-                std::string_view modeName = "unknown";
-                love::getConstant(mode, modeName);
+        void setBlendMode(BlendMode mode, BlendAlpha alphaMode);
 
-                throw love::Exception("The '{}' blend mode must be used with premultiplied alpha.",
-                                      modeName);
-            }
+        Quad* newQuad(Quad::Viewport viewport, double sourceWidth, double sourceHeight) const;
 
-            this->setBlendState(computeBlendState(mode, alphaMode));
-        }
+        virtual TextureBase* newTexture(const TextureBase::Settings& settings,
+                                        const TextureBase::Slices* data = nullptr) = 0;
+
+        virtual FontBase* newFont(Rasterizer* data) = 0;
+
+        virtual FontBase* newDefaultFont(int size, const Rasterizer::Settings& settings) = 0;
+
+        Mesh* newMesh(int vertexCount, PrimitiveType mode);
+
+        TextBatch* newTextBatch(FontBase* font, const std::vector<ColoredString>& text = {});
+
+        void checkSetDefaultFont();
+
+        void print(const std::vector<ColoredString>& string, const Matrix4& matrix);
+
+        void print(const std::vector<ColoredString>& string, FontBase* font, const Matrix4& matrix);
+
+        void printf(const std::vector<ColoredString>& string, float wrap, FontBase::AlignMode align,
+                    const Matrix4& matrix);
+
+        void printf(const std::vector<ColoredString>& string, FontBase* font, float wrap,
+                    FontBase::AlignMode align, const Matrix4& matrix);
+
+        virtual void initCapabilities() = 0;
+
+        TextureBase* getDefaultTexture(TextureBase* texture);
+
+        TextureBase* getDefaultTexture(TextureType type, DataBaseType dataType);
 
         BlendMode getBlendMode(BlendAlpha& alphaMode) const
         {
             return computeBlendMode(this->states.back().blend, alphaMode);
         }
 
-        void setBlendState(const BlendState& blend)
-        {
-            static_cast<T*>(this)->setBlendStateImpl(blend);
-            this->states.back().blend = blend;
-        }
+        virtual void setBlendState(const BlendState& blend) = 0;
+
+        virtual void captureScreenshot(const ScreenshotInfo& info) = 0;
 
         const BlendState& getBlendState() const
         {
@@ -451,95 +535,46 @@ namespace love
             return this->states.back().lineJoin;
         }
 
-        void setPointSize(float size)
-        {
-            this->states.back().pointSize = size;
-        }
+        virtual void setPointSize(float size) = 0;
 
         float getPointSize() const
         {
             return this->states.back().pointSize;
         }
 
-        PixelFormat getSizedFormat(PixelFormat format)
+        Capabilities getCapabilities() const
         {
-            switch (format)
-            {
-                case PIXELFORMAT_NORMAL:
-                    if (isGammaCorrect())
-                        return PIXELFORMAT_RGBA8_sRGB;
-                    else
-                        return PIXELFORMAT_RGBA8_UNORM;
-                case PIXELFORMAT_HDR:
-                    return PIXELFORMAT_RGBA16_FLOAT;
-                default:
-                    return format;
-            }
+            return this->capabilities;
         }
 
-        // bool isPixelFormatSupported(PixelFormat format, uint32_t usage)
-        // {
-        //     format = getSizedFormat(format);
+        PixelFormat getSizedFormat(PixelFormat format);
 
-        //     bool readable = (usage & PIXELFORMATUSAGEFLAGS_SAMPLE) != 0;
-        //     return (usage & pixelFormatUsage[format][readable ? 1 : 0]) == usage;
-        // }
+        RendererInfo getRendererInfo() const;
 
-        RendererInfo getRendererInfo() const
-        {
+        BatchedVertexData requestBatchedDraw(const BatchedDrawCommand& command);
 
-            RendererInfo info { .name    = __RENDERER_NAME__,
-                                .version = __RENDERER_VERSION__,
-                                .vendor  = __RENDERER_VENDOR__,
-                                .device  = __RENDERER_DEVICE__ };
+        void flushBatchedDraws();
 
-            return info;
-        }
+        static void flushBatchedDrawsGlobal();
 
-        Stats getStats() const
-        {
-            Stats stats {};
+        void advanceStreamBuffers();
 
-            return stats;
-        }
+        static void advanceStreamBuffersGlobal();
+
+        virtual void draw(const DrawIndexedCommand& command) = 0;
+
+        virtual void draw(const DrawCommand& command) = 0;
+
+        Stats getStats() const;
 
         size_t getStackDepth() const
         {
             return this->stackTypeStack.size();
         }
 
-        void push(StackType type = STACK_TRANSFORM)
-        {
-            if (this->getStackDepth() == MAX_USER_STACK_DEPTH)
-                throw love::Exception("Maximum stack depth reached (more pushes than pops?)");
+        void push(StackType type = STACK_TRANSFORM);
 
-            this->pushTransform();
-            this->pixelScaleStack.push_back(this->pixelScaleStack.back());
-
-            if (type == STACK_ALL)
-                this->states.push_back(this->states.back());
-
-            this->stackTypeStack.push_back(type);
-        }
-
-        void pop()
-        {
-            if (this->getStackDepth() < 1)
-                throw love::Exception("Minimum stack depth reached (more pops than pushes?)");
-
-            this->popTransform();
-            this->pixelScaleStack.pop_back();
-
-            if (this->stackTypeStack.back() == STACK_ALL)
-            {
-                DisplayState state = this->states[this->states.size() - 2];
-                this->restoreStateChecked(state);
-
-                this->states.pop_back();
-            }
-
-            this->stackTypeStack.pop_back();
-        }
+        void pop();
 
         const Matrix4& getTransform() const
         {
@@ -588,40 +623,17 @@ namespace love
             this->pixelScaleStack.back() = 1.0;
         }
 
-        void applyTransform(const Matrix4& transform)
-        {
-            Matrix4& current = this->transformStack.back();
-            current *= transform;
+        int getWidth() const;
 
-            float sx, sy;
-            current.getApproximateScale(sx, sy);
-            this->pixelScaleStack.back() *= (sx + sy) / 2.0;
-        }
+        int getHeight() const;
 
-        void replaceTransform(const Matrix4& transform)
-        {
-            this->transformStack.back() = transform;
+        void applyTransform(const Matrix4& transform);
 
-            float sx, sy;
-            transform.getApproximateScale(sx, sy);
-            this->pixelScaleStack.back() = (sx + sy) / 2.0;
-        }
+        void replaceTransform(const Matrix4& transform);
 
-        Vector2 transformPoint(Vector2 point) const
-        {
-            Vector2 result {};
-            this->transformStack.back().transformXY(&result, &point, 1);
+        Vector2 transformPoint(Vector2 point) const;
 
-            return result;
-        }
-
-        Vector2 inverseTransformPoint(Vector2 point) const
-        {
-            Vector2 result {};
-            this->transformStack.back().inverse().transformXY(&result, &point, 1);
-
-            return result;
-        }
+        Vector2 inverseTransformPoint(Vector2 point) const;
 
         void updateDeviceProjection(const Matrix4& projection)
         {
@@ -633,76 +645,72 @@ namespace love
             return this->deviceProjectionMatrix;
         }
 
-        void resetProjection()
+        void resetProjection();
+
+        void reset();
+
+        virtual void clear(OptionalColor color, OptionalInt stencil, OptionalDouble depth) = 0;
+
+        virtual void clear(const std::vector<OptionalColor>& colors, OptionalInt stencil,
+                           OptionalDouble depth) = 0;
+
+        virtual void present(void* screenshotCallbackData) = 0;
+
+        virtual bool setMode(int width, int height, int pixelwidth, int pixelheight, bool backbufferstencil,
+                             bool backbufferdepth, int msaa) = 0;
+
+        virtual void unsetMode() = 0;
+
+        virtual void setActiveScreen()
+        {}
+
+        virtual void setRenderTargetsInternal(const RenderTargets& targets, int pixelWidth, int pixelHeight,
+                                              bool hasSRGBTexture) = 0;
+
+        virtual bool isPixelFormatSupported(PixelFormat format, uint32_t usage) = 0;
+
+        double getCurrentDPIScale() const;
+
+        double getScreenDPIScale() const;
+
+        void polyline(std::span<const Vector2> vertices);
+
+        void polygon(DrawMode mode, std::span<const Vector2> vertices, bool skipLastFilledVertex = true);
+
+        void rectangle(DrawMode mode, float x, float y, float w, float h);
+
+        void rectangle(DrawMode mode, float x, float y, float w, float h, float rx, float ry, int points);
+
+        void rectangle(DrawMode mode, float x, float y, float w, float h, float rx, float ry);
+
+        void circle(DrawMode mode, float x, float y, float radius, int points);
+
+        void circle(DrawMode mode, float x, float y, float radius);
+
+        void ellipse(DrawMode mode, float x, float y, float a, float b, int points);
+
+        void ellipse(DrawMode mode, float x, float y, float a, float b);
+
+        void arc(DrawMode mode, ArcMode arcMode, float x, float y, float radius, float angle1, float angle2,
+                 int points);
+
+        void arc(DrawMode mode, ArcMode arcMode, float x, float y, float radius, float angle1, float angle2);
+
+        void points(const Vector2* points, const Color* colors, int count);
+
+        void draw(Drawable* drawable, const Matrix4& matrix);
+
+        void draw(TextureBase* texture, Quad* quad, const Matrix4& matrix);
+
+        template<typename T>
+        T* getScratchBuffer(size_t count)
         {
-            auto& state = this->states.back();
+            size_t bytes = count * sizeof(T);
 
-            state.useCustomProjection = false;
-            this->updateDeviceProjection(Matrix4::ortho(0.0f, 0, 0, 0.0f, -10.0f, 10.0f));
-        }
+            if (this->scratchBuffer.size() < bytes)
+                this->scratchBuffer.resize(bytes);
 
-        void reset()
-        {
-            DisplayState state {};
-            this->restoreState(state);
-
-            this->origin();
-        }
-
-        void clear(OptionalColor color, OptionalInt stencil, OptionalDouble depth)
-        {
-            static_cast<T*>(this)->clearImpl(color, stencil, depth);
-        }
-
-        void clear(const std::vector<OptionalColor>& colors, OptionalInt stencil,
-                   OptionalDouble depth)
-        {
-            if (colors.size() == 0 && !stencil.hasValue && !depth.hasValue)
-                return;
-
-            const int numColors = (int)colors.size();
-
-            if (numColors <= 1)
-            {
-                this->clear(colors.size() > 0 ? colors[0] : OptionalColor(), stencil, depth);
-                return;
-            }
-        }
-
-        void present()
-        {
-            static_cast<T*>(this)->presentImpl();
-        }
-
-        bool setMode(int width, int height, int pixelWidth, int pixelHeight, bool backBufferStencil,
-                     bool backBufferDepth, int msaa)
-        {
-            static_cast<T*>(this)->setModeImpl(width, height, pixelWidth, pixelHeight,
-                                               backBufferStencil, backBufferDepth, msaa);
-
-            this->created = true;
-
-            if (!Volatile::loadAll())
-                std::printf("Failed to load all volatile objects.\n");
-
-            this->restoreState(this->states.back());
-
-            return true;
-        }
-
-        void unsetMode()
-        {
-            static_cast<T*>(this)->unsetModeImpl();
-        }
-
-        double getCurrentDPIScale()
-        {
-            return 1.0;
-        }
-
-        double getScreenDPIScale()
-        {
-            return 1.0;
+            return (T*)this->scratchBuffer.data();
         }
 
         // clang-format off
@@ -734,7 +742,12 @@ namespace love
         );
         // clang-format on
 
+      private:
+        TextureBase* defaultTextures[TEXTURE_MAX_ENUM];
+
       protected:
+        int calculateEllipsePoints(float a, float b) const;
+
         bool created;
         bool active;
 
@@ -751,5 +764,20 @@ namespace love
 
         int pixelWidth;
         int pixelHeight;
+
+        int drawCallsBatched;
+        int drawCalls;
+
+        BatchedDrawState batchedDrawState;
+        std::vector<uint8_t> scratchBuffer;
+
+        float cpuProcessingTime;
+        float gpuDrawingTime;
+
+        Capabilities capabilities;
+
+        StrongRef<FontBase> defaultFont;
+
+        std::vector<ScreenshotInfo> pendingScreenshotCallbacks;
     };
 } // namespace love

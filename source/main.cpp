@@ -98,7 +98,8 @@ static DoneAction runLove(char** argv, int argc, int& result, love::Variant& res
     {
         if (lua_type(L, index) == LUA_TSTRING && strcmp(lua_tostring(L, index), "restart") == 0)
             action = DONE_RESTART;
-        else if (lua_isnumber(L, index))
+
+        if (lua_isnumber(L, index))
             result = lua_tonumber(L, index);
 
         if (index < lua_gettop(L))

@@ -15,39 +15,35 @@ namespace love
     {
       public:
         InvalidFormatException(int channels, int bitdepth) :
-            Exception("{:d}-channel Sources with {:d} bits per sample are not supported.", channels,
-                      bitdepth)
+            Exception(E_INVALID_AUDIO_FORMAT, channels, bitdepth)
         {}
     };
 
     class QueueFormatMismatchException : public love::Exception
     {
       public:
-        QueueFormatMismatchException() :
-            Exception("Queued sound data must have same format as sound Source.")
+        QueueFormatMismatchException() : Exception(E_QUEUE_FORMAT_MISMATCH)
         {}
     };
 
     class QueueTypeMismatchException : public love::Exception
     {
       public:
-        QueueTypeMismatchException() :
-            Exception("Only queueable Sources can be queued with sound data.")
+        QueueTypeMismatchException() : Exception(E_QUEUE_TYPE_MISMATCH)
         {}
     };
 
     class QueueMalformedLengthException : public love::Exception
     {
       public:
-        QueueMalformedLengthException(int bytes) :
-            Exception("Data length must be a multiple of sample size ({:d} bytes).", bytes)
+        QueueMalformedLengthException(int bytes) : Exception(E_QUEUE_LENGTH_MALFORMED, bytes)
         {}
     };
 
     class QueueLoopingException : public love::Exception
     {
       public:
-        QueueLoopingException() : Exception("Queueable Sources can not be looped.")
+        QueueLoopingException() : Exception(E_QUEUE_CANNOT_BE_LOOPED)
         {}
     };
 
@@ -78,10 +74,7 @@ namespace love
 
         // clang-format off
         for (int index = 0; index < this->buffers; index++)
-        {
-            std::printf("Creating buffer %d\n", index);
             this->streamBuffers.push_back(DigitalSound::getInstance().createBuffer(decoder->getSize(), this->channels));
-        }
         // clang-format on
     }
 
@@ -105,6 +98,7 @@ namespace love
     }
 
     Source::Source(const Source& other) :
+        Object(other),
         sourceType(other.sourceType),
         pool(other.pool),
         valid(false),
@@ -492,9 +486,9 @@ namespace love
         {
             case TYPE_STATIC:
             {
-                const auto size     = this->staticBuffer->getSize();
-                const auto nsamples = ((size / this->channels) / (this->bitDepth / 8)) -
-                                      (this->offsetSamples / this->channels);
+                const auto size = this->staticBuffer->getSize();
+                const auto nsamples =
+                    ((size / this->channels) / (this->bitDepth / 8)) - (this->offsetSamples / this->channels);
 
                 return (unit == UNIT_SAMPLES) ? nsamples : (nsamples / this->sampleRate);
             }
@@ -540,7 +534,7 @@ namespace love
 
     void Source::setLooping(bool looping)
     {
-        if (this->sourceType == TYPE_STREAM)
+        if (this->sourceType == TYPE_QUEUE)
             throw QueueLoopingException();
 
         if (this->valid && this->sourceType == TYPE_STATIC)
@@ -620,7 +614,7 @@ namespace love
 
         if (decoded > 0)
         {
-            DigitalSound::getInstance().setLooping(buffer, this->looping);
+            // DigitalSound::getInstance().setLooping(buffer, this->looping);
 
             const int samples = int((decoded / this->channels) / (this->bitDepth / 8));
             DigitalSound::getInstance().prepare(buffer, decoder->getBuffer(), decoded, samples);

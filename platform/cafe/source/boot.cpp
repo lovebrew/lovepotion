@@ -20,29 +20,29 @@
 
 #include <sysapp/launch.h>
 
-#include "utility/logfile.hpp"
-
 namespace love
 {
     // clang-format off
-    static constexpr std::array<const Service, 6> services =
+    static constexpr std::array<const Service, 5> services =
     {{
         { "procUI", BIND(ProcUIInit, OSSavesDone_ReadyToRelease), &ProcUIShutdown },
         { "vpad",   BIND(VPADInit),                               &VPADShutdown   },
         { "kpad",   BIND(KPADInit),                               &KPADShutdown   },
         { "ac",     BIND(ACInitialize),                           &ACFinalize     },
-        { "fs",     BIND(FSInit),                                 &FSShutdown     },
-        { "bsp",    BIND(bspInitializeShimInterface),             []() { }        }
+        { "fs",     BIND(FSInit),                                 &FSShutdown     }
+        // { "bsp",    BIND(bspInitializeShimInterface),             []() { }        }
     }};
     // clang-format on
 
     uint32_t Console::mainCoreId = 0;
     bool Console::mainCoreIdSet  = false;
 
+    static constexpr const char* DEFAULT_PATH = "fs:/vol/external01/lovepotion.wuhb";
+
     std::string getApplicationPath(const std::string& argv0)
     {
         if (argv0 == "embedded boot.lua")
-            return "fs:/vol/external01/lovepotion.wuhb";
+            return DEFAULT_PATH;
 
         OSDynLoad_Module module;
         const auto type  = OS_DYNLOAD_EXPORT_FUNC;
@@ -62,20 +62,23 @@ namespace love
             }
         }
 
-        return std::string {};
+        return DEFAULT_PATH;
     }
 
     int preInit()
     {
         /* we aren't running Aroma */
-        if (getApplicationPath().empty())
-            return -1;
+        // if (getApplicationPath().empty())
+        //     return -1;
 
         for (const auto& service : services)
         {
             if (!service.init().success())
                 return -1;
         }
+
+        WPADEnableWiiRemote(true);
+        WPADEnableURCC(true);
 
         Console::setMainCoreId(OSGetCoreId());
 

@@ -39,10 +39,15 @@ source/boot.cpp
 source/common/screen.cpp
 source/driver/audio/DigitalSound.cpp
 source/driver/display/Framebuffer.cpp
-source/driver/display/Renderer.cpp
+source/driver/display/citro3d.cpp
 source/driver/EventQueue.cpp
 source/modules/audio/Source.cpp
+source/modules/font/BCFNTRasterizer.cpp
+source/modules/font/Font.cpp
 source/modules/graphics/Graphics.cpp
+source/modules/graphics/Shader.cpp
+source/modules/graphics/Texture.cpp
+source/modules/graphics/Font.cpp
 source/modules/joystick/Joystick.cpp
 source/modules/joystick/JoystickModule.cpp
 source/modules/keyboard/Keyboard.cpp

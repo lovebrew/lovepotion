@@ -96,13 +96,47 @@ namespace love
 
     bool luax_optboolean(lua_State* L, int index, bool default_value);
 
+    inline float luax_tofloat(lua_State* L, int idx)
+    {
+        return static_cast<float>(lua_tonumber(L, idx));
+    }
+
+    inline float luax_checkfloat(lua_State* L, int index)
+    {
+        return static_cast<float>(luaL_checknumber(L, index));
+    }
+
+    inline lua_Number luax_checknumberclamped(lua_State* L, int index, double minv, double maxv)
+    {
+        return std::min(std::max(luaL_checknumber(L, index), minv), maxv);
+    }
+
+    inline lua_Number luax_optnumberclamped(lua_State* L, int index, double minv, double maxv, double def)
+    {
+        return std::min(std::max(luaL_optnumber(L, index, def), minv), maxv);
+    }
+
+    inline lua_Number luax_checknumberclamped01(lua_State* L, int index)
+    {
+        return std::min(std::max(luaL_checknumber(L, index), 0.0), 1.0);
+    }
+
+    inline lua_Number luax_optnumberclamped01(lua_State* L, int index, double def)
+    {
+        return std::min(std::max(luaL_optnumber(L, index, def), 0.0), 1.0);
+    }
+
     std::string luax_tostring(lua_State* L, int index);
 
     std::string luax_checkstring(lua_State* L, int index);
 
-    bool luax_boolflag(lua_State* L, int index, const char* name, bool default_value);
+    int luax_checkintflag(lua_State* L, int tableIndex, const char* key);
 
     int luax_intflag(lua_State* L, int index, const char* name, int default_value);
+
+    bool luax_checkboolflag(lua_State* L, int tableIndex, const char* key);
+
+    bool luax_boolflag(lua_State* L, int index, const char* name, bool default_value);
 
     void luax_pushstring(lua_State* L, std::string_view string);
 
@@ -264,6 +298,8 @@ namespace love
                          const Type& type);
 
     lua_Number luax_checknumberclamped01(lua_State* L, int index);
+
+    Reference* luax_refif(lua_State* L, int type);
 
     // #endregion
 

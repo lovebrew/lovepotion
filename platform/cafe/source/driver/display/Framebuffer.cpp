@@ -3,19 +3,25 @@
 
 #include <gx2/swap.h>
 
+#include <malloc.h>
+
 namespace love
 {
-    Framebuffer::Framebuffer() :
-        target {},
-        depth {},
-        modelView(1.0f),
-        projection(1.0f),
-        scanBuffer(nullptr),
-        scanBufferSize(0)
-    {}
+    Framebuffer::Framebuffer() : target {}, depth {}, scanBuffer(nullptr), scanBufferSize(0)
+    {
+        this->uniform = (Uniform*)memalign(GX2_UNIFORM_BLOCK_ALIGNMENT, sizeof(Uniform));
+
+        this->uniform->modelView  = glm::mat4(1.0f);
+        this->uniform->projection = glm::mat4(1.0f);
+
+        this->tmpModel = glm::mat4(1.0f);
+    }
 
     void Framebuffer::destroy()
-    {}
+    {
+        std::free(this->uniform);
+        this->uniform = nullptr;
+    }
 
     bool Framebuffer::allocateScanBuffer(MEMHeapHandle handle)
     {
@@ -29,12 +35,12 @@ namespace love
 
         if (this->id == GX2_SCAN_TARGET_TV)
         {
-            const auto mode = (GX2TVRenderMode)this->mode;
+            const auto mode = (GX2TVRenderMode)this->renderMode;
             GX2SetTVBuffer(this->scanBuffer, this->scanBufferSize, mode, FORMAT, BUFFER_MODE);
         }
         else
         {
-            const auto mode = (GX2DrcRenderMode)this->mode;
+            const auto mode = (GX2DrcRenderMode)this->renderMode;
             GX2SetDRCBuffer(this->scanBuffer, this->scanBufferSize, mode, FORMAT, BUFFER_MODE);
         }
 
@@ -73,7 +79,7 @@ namespace love
 
     void Framebuffer::copyScanBuffer()
     {
-        GX2CopyColorBufferToScanBuffer(&this->target, (GX2ScanTarget)this->mode);
+        GX2CopyColorBufferToScanBuffer(&this->target, this->id);
     }
 
     void Framebuffer::create(const ScreenInfo& info)
@@ -95,8 +101,7 @@ namespace love
 
             GX2CalcTVSize(mode, FORMAT, BUFFER_MODE, &this->scanBufferSize, &unknown);
             GX2SetTVScale(info.width, info.height);
-
-            this->mode = mode;
+            this->renderMode = mode;
         }
         else
         {
@@ -105,16 +110,31 @@ namespace love
 
             GX2CalcDRCSize(mode, FORMAT, BUFFER_MODE, &this->scanBufferSize, &unknown);
             GX2SetDRCScale(info.width, info.height);
-
-            this->mode = mode;
+            this->renderMode = mode;
         }
 
+        this->id     = (GX2ScanTarget)info.id;
         this->width  = info.width;
         this->height = info.height;
-        this->id     = info.id;
 
         this->viewport = { 0, 0, info.width, info.height };
         this->scissor  = { 0, 0, info.width, info.height };
+
+        this->ortho = glm::ortho(0.0f, (float)info.width, (float)info.height, 0.0f, Z_NEAR, Z_FAR);
+
+        /* glm::value_ptr lets us access the data linearly rather than an XxY matrix */
+        uint32_t* dstModel = (uint32_t*)glm::value_ptr(this->uniform->modelView);
+        uint32_t* dstProj  = (uint32_t*)glm::value_ptr(this->uniform->projection);
+
+        const size_t count = sizeof(glm::mat4) / sizeof(uint32_t);
+
+        uint32_t* model = (uint32_t*)glm::value_ptr(this->tmpModel);
+        for (size_t index = 0; index < count; index++)
+            dstModel[index] = __builtin_bswap32(model[index]);
+
+        uint32_t* projection = (uint32_t*)glm::value_ptr(this->ortho);
+        for (size_t index = 0; index < count; index++)
+            dstProj[index] = __builtin_bswap32(projection[index]);
     }
 
     void Framebuffer::setScissor(const Rect& scissor)
@@ -134,7 +154,6 @@ namespace love
         else
             this->viewport = viewport;
 
-        GX2SetViewport(this->viewport.x, this->viewport.y, this->viewport.w, this->viewport.h,
-                       Z_NEAR, Z_FAR);
+        GX2SetViewport(this->viewport.x, this->viewport.y, this->viewport.w, this->viewport.h, Z_NEAR, Z_FAR);
     }
 } // namespace love

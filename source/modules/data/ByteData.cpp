@@ -52,7 +52,7 @@ namespace love
     void ByteData::create()
     {
         if (this->size == 0)
-            throw love::Exception("ByteData size must be greater than 0.");
+            throw love::Exception(E_DATA_SIZE_MUST_BE_POSITIVE);
 
         try
         {

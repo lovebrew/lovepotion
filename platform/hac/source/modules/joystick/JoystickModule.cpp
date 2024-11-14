@@ -1,4 +1,5 @@
 #include "modules/joystick/JoystickModule.hpp"
+#include "modules/joystick/Joystick.hpp"
 
 #include <switch.h>
 

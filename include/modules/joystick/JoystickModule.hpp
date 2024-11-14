@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/Module.hpp"
-#include "modules/joystick/Joystick.hpp"
+#include "modules/joystick/Joystick.tcc"
 
 #include <list>
 #include <map>

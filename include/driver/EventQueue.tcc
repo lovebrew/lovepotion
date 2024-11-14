@@ -3,7 +3,7 @@
 #include "common/Singleton.tcc"
 #include "events.hpp"
 
-#include "modules/joystick/Joystick.hpp"
+#include "modules/joystick/Joystick.tcc"
 
 #include <list>
 #include <memory>

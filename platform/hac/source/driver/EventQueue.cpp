@@ -1,3 +1,5 @@
+#include "common/screen.hpp"
+
 #include "driver/EventQueue.hpp"
 
 #include "modules/joystick/JoystickModule.hpp"
@@ -8,17 +10,17 @@ namespace love
 {
     EventQueue::EventQueue() : EventQueueBase<EventQueue>()
     {
-        for (int index = 0; index < 0x08; index++)
-        {
-            auto player = HidNpadIdType(HidNpadIdType_No1 + index);
-            hidAcquireNpadStyleSetUpdateEventHandle(player, &this->padStyleUpdates[index], true);
-        }
+        // for (int index = 0; index < 0x08; index++)
+        // {
+        //     auto player = HidNpadIdType(HidNpadIdType_No1 + index);
+        //     hidAcquireNpadStyleSetUpdateEventHandle(player, &this->padStyleUpdates[index], true);
+        // }
     }
 
     EventQueue::~EventQueue()
     {
-        for (int index = 0; index < 0x08; index++)
-            eventClose(&this->padStyleUpdates[index]);
+        // for (int index = 0; index < 0x08; index++)
+        //    eventClose(&this->padStyleUpdates[index]);
     }
 
     static void checkFocus()
@@ -60,7 +62,13 @@ namespace love
                 }
                 case AppletMessage_OperationModeChanged:
                 {
+                    auto info = love::getScreenInfo(Screen(0));
+                    EventQueue::getInstance().sendResize(info.width, info.height);
+
+                    break;
                 }
+                default:
+                    break;
             }
         }
     }
@@ -74,16 +82,16 @@ namespace love
 
         int current = JOYSTICK_MODULE()->getJoystickCount();
 
-        for (int index = 0; index < 0x08; index++)
-        {
-            if (R_SUCCEEDED(eventWait(&this->padStyleUpdates[index], 0)))
-            {
-                int newCount = JOYSTICK_MODULE()->getJoystickCount();
+        // for (int index = 0; index < 0x08; index++)
+        // {
+        //     if (R_SUCCEEDED(eventWait(&this->padStyleUpdates[index], 0)))
+        //     {
+        //         int newCount = JOYSTICK_MODULE()->getJoystickCount();
 
-                if (newCount != current)
-                    this->sendJoystickStatus(newCount > current, index);
-            }
-        }
+        //         if (newCount != current)
+        //             this->sendJoystickStatus(newCount > current, index);
+        //     }
+        // }
 
         for (int index = 0; index < current; index++)
         {
@@ -92,25 +100,26 @@ namespace love
             if (joystick == nullptr)
                 continue;
 
+            const auto id = joystick->getID();
             joystick->update();
 
-            for (int input = 0; input < Joystick::GAMEPAD_BUTTON_MAX_ENUM; input++)
+            for (int input = 0; input < JoystickBase::GAMEPAD_BUTTON_MAX_ENUM; input++)
             {
-                std::vector<Joystick::GamepadButton> inputs = { Joystick::GamepadButton(input) };
+                std::vector<JoystickBase::GamepadButton> inputs = { JoystickBase::GamepadButton(input) };
 
                 if (joystick->isDown(inputs))
-                    this->sendGamepadButtonEvent(SUBTYPE_GAMEPADDOWN, 0, input);
+                    this->sendGamepadButtonEvent(SUBTYPE_GAMEPADDOWN, id, input);
 
                 if (joystick->isUp(inputs))
-                    this->sendGamepadButtonEvent(SUBTYPE_GAMEPADUP, 0, input);
+                    this->sendGamepadButtonEvent(SUBTYPE_GAMEPADUP, id, input);
             }
 
-            for (int input = 0; input < Joystick::GAMEPAD_AXIS_MAX_ENUM; input++)
+            for (int input = 0; input < JoystickBase::GAMEPAD_AXIS_MAX_ENUM; input++)
             {
-                if (joystick->isAxisChanged(Joystick::GamepadAxis(input)))
+                if (joystick->isAxisChanged(JoystickBase::GamepadAxis(input)))
                 {
-                    float value = joystick->getAxis(Joystick::GamepadAxis(input));
-                    this->sendGamepadAxisEvent(0, input, value);
+                    float value = joystick->getAxis(JoystickBase::GamepadAxis(input));
+                    this->sendGamepadAxisEvent(id, input, value);
                 }
             }
 
@@ -120,7 +129,7 @@ namespace love
                     continue;
 
                 auto data = joystick->getSensorData(Sensor::SensorType(input));
-                this->sendGamepadSensorEvent(0, input, data);
+                this->sendGamepadSensorEvent(id, input, data);
             }
         }
     }

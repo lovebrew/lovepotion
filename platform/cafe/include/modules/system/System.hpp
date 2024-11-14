@@ -14,7 +14,7 @@
 
 extern "C"
 {
-    typedef enum USCLanguage
+    enum USCLanguage
     {
         USCLanguage_JA = 0,
         USCLanguage_EN = 1,

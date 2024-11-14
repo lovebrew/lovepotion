@@ -1,13 +1,17 @@
 #include "common/luax.hpp"
 #include "common/version.hpp"
 
+#include <luasocket.hpp>
+
 #include "modules/love/love.hpp"
 
 #include "modules/audio/wrap_Audio.hpp"
 #include "modules/data/wrap_DataModule.hpp"
 #include "modules/event/wrap_Event.hpp"
 #include "modules/filesystem/wrap_Filesystem.hpp"
+#include "modules/font/wrap_Font.hpp"
 #include "modules/graphics/wrap_Graphics.hpp"
+#include "modules/image/wrap_Image.hpp"
 #include "modules/joystick/wrap_JoystickModule.hpp"
 #include "modules/keyboard/wrap_Keyboard.hpp"
 #include "modules/math/wrap_MathModule.hpp"
@@ -21,13 +25,16 @@
 
 #include "boot.hpp"
 
+// #region DEBUG CONSOLE
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
+#include <sys/select.h>
 #include <sys/socket.h>
 
 #if defined(__WIIU__)
     #include <unistd.h>
 #endif
+// #endregion
 
 #include <stdio.h>
 #include <string.h>
@@ -49,14 +56,16 @@ static constexpr char nogame_lua[] = {
 };
 
 // clang-format off
-static constexpr std::array<const luaL_Reg, 19> modules =
+static constexpr std::array<const luaL_Reg, 21> modules =
 {{
     { "love.audio",      Wrap_Audio::open          },
     { "love.data",       Wrap_DataModule::open     },
     { "love.event",      Wrap_Event::open          },
     { "love.filesystem", Wrap_Filesystem::open     },
+    { "love.font",       Wrap_FontModule::open     },
     { "love.graphics",   Wrap_Graphics::open       },
     { "love.joystick",   Wrap_JoystickModule::open },
+    { "love.image",      Wrap_Image::open          },
     { "love.keyboard",   Wrap_Keyboard::open       },
     { "love.math",       Wrap_MathModule::open     },
     { "love.sensor",     Wrap_Sensor::open         },
@@ -72,8 +81,6 @@ static constexpr std::array<const luaL_Reg, 19> modules =
     { "love.boot",       love_openBoot             }
 }};
 // clang-format on
-
-#include "utility/logfile.hpp"
 
 const char* love_getVersion()
 {
@@ -141,6 +148,37 @@ static int love_setDeprecationOutput(lua_State* L)
     return 0;
 }
 
+static constexpr const char* ERROR_PANIC = "PANIC: unprotected error in call to Lua API (%s)";
+
+/*
+ * If an error happens outside any protected environment, Lua calls a panic function and then calls
+ * exit(EXIT_FAILURE), thus exiting the host application. We want to inform the user of the error.
+ * However, this will only be informative via the console.
+ */
+static int love_atpanic(lua_State* L)
+{
+    char message[0x80] {};
+    snprintf(message, sizeof(message), ERROR_PANIC, lua_tostring(L, -1));
+
+    printf("%s\n", message);
+    return 0;
+}
+
+// #if __DEBUG__
+// static void love_atcpanic()
+// {
+//     try
+//     {
+//         throw;
+//     }
+//     catch (const std::exception& e)
+//     {
+//         std::printf("Uncaught exception: %s", e.what());
+//         std::exit(EXIT_FAILURE);
+//     }
+// }
+// #endif
+
 static void luax_addcompatibilityalias(lua_State* L, const char* module, const char* name, const char* alias)
 {
     lua_getglobal(L, module);
@@ -207,6 +245,9 @@ int love_initialize(lua_State* L)
     lua_pushstring(L, __OS__);
     lua_setfield(L, -2, "_os");
 
+    lua_pushstring(L, __CONSOLE__);
+    lua_setfield(L, -2, "_console");
+
     lua_pushcfunction(L, love_setDeprecationOutput);
     lua_setfield(L, -2, "setDeprecationOutput");
 
@@ -221,9 +262,15 @@ int love_initialize(lua_State* L)
     luax_addcompatibilityalias(L, "string", "gmatch", "gfind");
 #endif
 
-    // love::luasocket::preload(L);
+    love::luasocket::preload(L);
     love::luax_preload(L, luaopen_luautf8, "utf8");
     love::luax_preload(L, luaopen_https, "https");
+
+    lua_atpanic(L, love_atpanic);
+
+#if __DEBUG__
+    // std::set_terminate(love_atcpanic);
+#endif
 
     return 1;
 }
@@ -232,7 +279,7 @@ int love_initialize(lua_State* L)
  * @brief Initializes the console output.
  *
  * Users will need to use telnet on Windows or netcat on Linux/macOS:
- * `telnet/netcat 192.168.x.x 8000`
+ * `telnet/nc 192.168.x.x 8000`
  */
 
 #define SEND(sockfd, s) send(sockfd, s, strlen(s), 0)
@@ -264,6 +311,31 @@ int love_openConsole(lua_State* L)
 
     if (listen(lsockfd, 5) < 0)
     {
+        love::luax_pushboolean(L, false);
+        close(lsockfd);
+        return 1;
+    }
+
+    fd_set set;
+    FD_ZERO(&set);
+    FD_SET(lsockfd, &set);
+
+    struct timeval timeout;
+    timeout.tv_sec  = 10;
+    timeout.tv_usec = 0;
+
+    const auto result = select(lsockfd + 1, &set, NULL, NULL, &timeout);
+
+    if (result == -1)
+    {
+        // select(...) failed
+        love::luax_pushboolean(L, false);
+        close(lsockfd);
+        return 1;
+    }
+    else if (result == 0)
+    {
+        // timeout occurred
         love::luax_pushboolean(L, false);
         close(lsockfd);
         return 1;

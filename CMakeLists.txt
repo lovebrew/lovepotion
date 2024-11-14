@@ -27,6 +27,8 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 set(APP_TITLE  "LÖVE Potion")
 set(APP_AUTHOR "LÖVEBrew Team")
 
+file(COPY libraries/luasocket DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(APP_TITLE "LÖVE Potion (${COMMIT_HASH})")
     target_compile_definitions(${PROJECT_NAME} PRIVATE __DEBUG__=1)
@@ -46,7 +48,6 @@ target_compile_options(${PROJECT_NAME} PRIVATE
     -Wall -Wno-psabi -Wextra ${COMPILE_OPTIMIZATION}
     $<$<COMPILE_LANGUAGE:CXX>:-fexceptions -fno-rtti>
 )
-
 
 if(NINTENDO_3DS)
     add_subdirectory(platform/ctr)
@@ -76,6 +77,12 @@ if(NINTENDO_3DS)
 
     set(APP_LIBS citro3d)
     set(OUTPUT_FILENAME "${PROJECT_NAME}.3dsx")
+
+    target_sources(${PROJECT_NAME} PRIVATE
+        source/modules/image/magpie/T3XHandler.cpp
+    )
+
+    execute_process(COMMAND patch -d ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket -N -i ${PROJECT_SOURCE_DIR}/platform/ctr/libraries/luasocket.patch)
 endif()
 
 if (NINTENDO_SWITCH)
@@ -108,6 +115,29 @@ if (NINTENDO_SWITCH)
     )
 
     set(OUTPUT_FILENAME "${PROJECT_NAME}.nro")
+
+    target_sources(${PROJECT_NAME} PRIVATE
+        source/modules/image/magpie/ASTCHandler.cpp
+        source/modules/image/magpie/ddsHandler.cpp
+        source/modules/image/magpie/JPGHandler.cpp
+        source/modules/image/magpie/KTXHandler.cpp
+        source/modules/image/magpie/PKMHandler.cpp
+        source/modules/image/magpie/PNGHandler.cpp
+        source/modules/font/freetype/Font.cpp
+        source/modules/font/freetype/TrueTypeRasterizer.cpp
+        source/modules/graphics/freetype/Font.cpp
+    )
+
+    add_library(ddsparse
+        libraries/ddsparse/ddsparse.cpp
+        libraries/ddsparse/ddsparse.h
+        libraries/ddsparse/ddsinfo.h
+    )
+
+    find_package(Freetype REQUIRED)
+    target_link_libraries(${PROJECT_NAME} PRIVATE Freetype::Freetype bz2 png turbojpeg ddsparse)
+
+    execute_process(COMMAND patch -d ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket -N -i ${PROJECT_SOURCE_DIR}/platform/hac/libraries/luasocket.patch)
 endif()
 
 if (NINTENDO_WIIU)
@@ -135,6 +165,29 @@ if (NINTENDO_WIIU)
     )
 
     set(OUTPUT_FILENAME "${PROJECT_NAME}.wuhb")
+
+    target_sources(${PROJECT_NAME} PRIVATE
+        source/modules/image/magpie/ASTCHandler.cpp
+        source/modules/image/magpie/ddsHandler.cpp
+        source/modules/image/magpie/JPGHandler.cpp
+        source/modules/image/magpie/KTXHandler.cpp
+        source/modules/image/magpie/PKMHandler.cpp
+        source/modules/image/magpie/PNGHandler.cpp
+        source/modules/font/freetype/Font.cpp
+        source/modules/font/freetype/TrueTypeRasterizer.cpp
+        source/modules/graphics/freetype/Font.cpp
+    )
+
+    add_library(ddsparse
+        libraries/ddsparse/ddsparse.cpp
+        libraries/ddsparse/ddsparse.h
+        libraries/ddsparse/ddsinfo.h
+    )
+
+    find_package(Freetype REQUIRED)
+    target_link_libraries(${PROJECT_NAME} PRIVATE Freetype::Freetype bz2 png turbojpeg ddsparse)
+
+    execute_process(COMMAND patch -d ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket -N -i ${PROJECT_SOURCE_DIR}/platform/cafe/libraries/luasocket.patch)
 endif()
 
 add_custom_target(test
@@ -170,6 +223,47 @@ add_library(lua53
     libraries/lua53/lutf8lib.h
 )
 target_link_libraries(lua53 PRIVATE PkgConfig::lua51)
+
+add_library(luasocket
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/luasocket.hpp
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/luasocket.cpp
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/auxiliar.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/auxiliar.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/buffer.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/buffer.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/compat.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/compat.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/except.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/except.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/inet.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/inet.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/io.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/io.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/ltn12.lua
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/luasocket.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/luasocket.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/mime.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/mime.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/options.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/options.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/pierror.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/select.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/select.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/smtp.lua
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/socket.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/tcp.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/tcp.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/timeout.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/timeout.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/udp.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/udp.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/usocket.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/usocket.h
+)
+target_link_libraries(luasocket PRIVATE PkgConfig::lua51)
+target_include_directories(luasocket PRIVATE
+    libraries/lua53
+)
 
 FetchContent_Declare(lua-https
     GIT_REPOSITORY https://github.com/love2d/lua-https
@@ -282,7 +376,7 @@ endif()
 
 # link everything else
 target_link_libraries(${PROJECT_NAME} PRIVATE
-    ${APP_LIBS} z luabit lua53 ogg modplug lua-https
+    ${APP_LIBS} z luabit lua53 ogg modplug lua-https luasocket
 )
 
 
@@ -292,25 +386,30 @@ include_directories(
     libraries/dr
     libraries/lua53
     libraries/noise1234
+    libraries/luasocket
     libraries/physfs
     libraries/wuff
     libraries/utf8
+    libraries/ddsparse
 )
 
 # find source -type f -name \*.cpp | clip
 target_sources(${PROJECT_NAME} PRIVATE
+source/main.cpp
 source/common/b64.cpp
 source/common/Data.cpp
+source/common/float.cpp
 source/common/luax.cpp
 source/common/Matrix.cpp
 source/common/Message.cpp
 source/common/Module.cpp
 source/common/Object.cpp
 source/common/pixelformat.cpp
+source/common/Reference.cpp
 source/common/Stream.cpp
 source/common/types.cpp
 source/common/Variant.cpp
-source/main.cpp
+source/utility/guid.cpp
 source/modules/audio/Audio.cpp
 source/modules/audio/Pool.cpp
 source/modules/audio/Source.cpp
@@ -321,8 +420,6 @@ source/modules/data/CompressedData.cpp
 source/modules/data/DataModule.cpp
 source/modules/data/DataStream.cpp
 source/modules/data/DataView.cpp
-source/modules/data/misc/Compressor.cpp
-source/modules/data/misc/HashFunction.cpp
 source/modules/data/wrap_ByteData.cpp
 source/modules/data/wrap_CompressedData.cpp
 source/modules/data/wrap_Data.cpp
@@ -331,14 +428,45 @@ source/modules/data/wrap_DataView.cpp
 source/modules/event/Event.cpp
 source/modules/event/wrap_Event.cpp
 source/modules/filesystem/FileData.cpp
-source/modules/filesystem/physfs/File.cpp
-source/modules/filesystem/physfs/Filesystem.cpp
 source/modules/filesystem/wrap_File.cpp
 source/modules/filesystem/wrap_FileData.cpp
 source/modules/filesystem/wrap_Filesystem.cpp
+source/modules/font/Font.cpp
+source/modules/font/GlyphData.cpp
+source/modules/font/Rasterizer.cpp
+source/modules/font/TextShaper.cpp
+source/modules/font/GenericShaper.cpp
+source/modules/font/wrap_Font.cpp
+source/modules/font/wrap_Rasterizer.cpp
+source/modules/font/wrap_GlyphData.cpp
+source/modules/graphics/Buffer.cpp
+source/modules/graphics/Graphics.cpp
+source/modules/graphics/FontBase.cpp
+source/modules/graphics/Mesh.cpp
+source/modules/graphics/Polyline.cpp
+source/modules/graphics/wrap_Mesh.cpp
+source/modules/graphics/TextBatch.cpp
 source/modules/graphics/renderstate.cpp
+source/modules/graphics/samplerstate.cpp
+source/modules/graphics/Shader.cpp
+source/modules/graphics/Quad.cpp
 source/modules/graphics/Volatile.cpp
+source/modules/graphics/vertex.cpp
 source/modules/graphics/wrap_Graphics.cpp
+source/modules/graphics/wrap_Texture.cpp
+source/modules/graphics/wrap_TextBatch.cpp
+source/modules/graphics/wrap_Font.cpp
+source/modules/graphics/wrap_Quad.cpp
+source/modules/graphics/Texture.cpp
+source/modules/image/CompressedImageData.cpp
+source/modules/image/CompressedSlice.cpp
+source/modules/image/FormatHandler.cpp
+source/modules/image/Image.cpp
+source/modules/image/ImageData.cpp
+source/modules/image/ImageDataBase.cpp
+source/modules/image/wrap_CompressedImageData.cpp
+source/modules/image/wrap_Image.cpp
+source/modules/image/wrap_ImageData.cpp
 source/modules/joystick/JoystickModule.cpp
 source/modules/joystick/wrap_Joystick.cpp
 source/modules/joystick/wrap_JoystickModule.cpp
@@ -355,11 +483,6 @@ source/modules/math/wrap_Transform.cpp
 source/modules/sensor/Sensor.cpp
 source/modules/sensor/wrap_Sensor.cpp
 source/modules/sound/Decoder.cpp
-source/modules/sound/lullaby/FLACDecoder.cpp
-source/modules/sound/lullaby/ModPlugDecoder.cpp
-source/modules/sound/lullaby/MP3Decoder.cpp
-source/modules/sound/lullaby/VorbisDecoder.cpp
-source/modules/sound/lullaby/WaveDecoder.cpp
 source/modules/sound/Sound.cpp
 source/modules/sound/SoundData.cpp
 source/modules/sound/wrap_Decoder.cpp
@@ -378,5 +501,13 @@ source/modules/timer/wrap_Timer.cpp
 source/modules/touch/Touch.cpp
 source/modules/touch/wrap_Touch.cpp
 source/modules/window/wrap_Window.cpp
-source/utility/guid.cpp
+source/modules/data/misc/Compressor.cpp
+source/modules/data/misc/HashFunction.cpp
+source/modules/filesystem/physfs/File.cpp
+source/modules/filesystem/physfs/Filesystem.cpp
+source/modules/sound/lullaby/FLACDecoder.cpp
+source/modules/sound/lullaby/ModPlugDecoder.cpp
+source/modules/sound/lullaby/MP3Decoder.cpp
+source/modules/sound/lullaby/VorbisDecoder.cpp
+source/modules/sound/lullaby/WaveDecoder.cpp
 )

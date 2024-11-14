@@ -3,6 +3,7 @@
 
 #include "common/Module.hpp"
 #include "common/Object.hpp"
+#include "common/Reference.hpp"
 
 #include <cmath>
 #include <cstring>
@@ -617,6 +618,25 @@ namespace love
         lua_pushlstring(L, string, sizeof(void*));
     }
 
+    bool luax_checkboolflag(lua_State* L, int tableIndex, const char* key)
+    {
+        lua_getfield(L, tableIndex, key);
+
+        bool result = false;
+
+        if (lua_type(L, -1) != LUA_TBOOLEAN)
+        {
+            auto error = std::format("expected boolean field '{:s}' in table", key);
+            luaL_argerror(L, tableIndex, error.c_str());
+        }
+        else
+            result = luax_toboolean(L, -1);
+
+        lua_pop(L, 1);
+
+        return result;
+    }
+
     bool luax_boolflag(lua_State* L, int index, const char* name, bool default_value)
     {
         lua_getfield(L, index, name);
@@ -627,6 +647,25 @@ namespace love
             result = default_value;
         else
             result = lua_toboolean(L, -1) != 0;
+
+        lua_pop(L, 1);
+
+        return result;
+    }
+
+    int luax_checkintflag(lua_State* L, int tableIndex, const char* key)
+    {
+        lua_getfield(L, tableIndex, key);
+
+        int result = 0;
+
+        if (!lua_isnumber(L, -1))
+        {
+            auto error = std::format("expected integer field '{:s}' in table", key);
+            luaL_argerror(L, tableIndex, error.c_str());
+        }
+        else
+            result = luaL_checkinteger(L, -1);
 
         lua_pop(L, 1);
 
@@ -816,11 +855,6 @@ namespace love
         lua_pop(L, 1);
     }
 
-    lua_Number luax_checknumberclamped01(lua_State* L, int index)
-    {
-        return std::clamp((float)luaL_checknumber(L, index), 0.0f, 1.0f);
-    }
-
     // #endregion
 
     // #region Registry
@@ -956,5 +990,17 @@ namespace love
         return 1;
     }
 
+    Reference* luax_refif(lua_State* L, int type)
+    {
+        Reference* r = nullptr;
+
+        // Create a reference only if the test succeeds.
+        if (lua_type(L, -1) == type)
+            r = new Reference(L);
+        else // Pop the value manually if it fails (done by Reference if it succeeds).
+            lua_pop(L, 1);
+
+        return r;
+    }
     // #endregion
 } // namespace love

@@ -20,8 +20,6 @@ namespace love
 
     std::string getApplicationPath(const std::string& argv0);
 
-    static bool mcuHwcInited = false;
-
     int preInit();
 
     bool mainLoop(lua_State* L, int argc, int* nres);

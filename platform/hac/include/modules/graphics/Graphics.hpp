@@ -4,45 +4,72 @@
 
 namespace love
 {
-    class Graphics : public GraphicsBase<Graphics>
+    class Graphics : public GraphicsBase
     {
       public:
         Graphics();
 
-        void backbufferChanged(int width, int height, int pixelWidth, int pixelHeight,
-                               bool backBufferStencil, bool backBufferDepth, int msaa);
+        void backbufferChanged(int width, int height, int pixelWidth, int pixelHeight, bool backBufferStencil,
+                               bool backBufferDepth, int msaa);
 
         void backbufferChanged(int width, int height, int pixelWidth, int pixelHeight)
         {
-            this->backbufferChanged(width, height, pixelWidth, pixelHeight,
-                                    this->backBufferHasStencil, this->backBufferHasDepth,
-                                    this->requestedBackbufferMSAA);
+            this->backbufferChanged(width, height, pixelWidth, pixelHeight, this->backBufferHasStencil,
+                                    this->backBufferHasDepth, this->requestedBackbufferMSAA);
         }
 
-        void clearImpl(OptionalColor color, OptionalInt depth, OptionalDouble stencil);
+        virtual void initCapabilities() override;
 
-        using GraphicsBase<Graphics>::clear;
+        virtual void captureScreenshot(const ScreenshotInfo& info) override;
 
-        void presentImpl();
+        virtual void clear(OptionalColor color, OptionalInt stencil, OptionalDouble depth) override;
 
-        void setScissorImpl(const Rect& scissor);
+        virtual void clear(const std::vector<OptionalColor>& colors, OptionalInt stencil,
+                           OptionalDouble depth) override;
 
-        void setScissorImpl();
+        virtual void present(void* screenshotCallbackData) override;
 
-        void setFrontFaceWindingImpl(Winding winding);
+        virtual void setScissor(const Rect& scissor) override;
 
-        void setColorMaskImpl(ColorChannelMask mask);
+        virtual void setScissor() override;
 
-        void setBlendStateImpl(const BlendState& state);
+        virtual void setFrontFaceWinding(Winding winding) override;
 
-        void getRendererInfoImpl(RendererInfo& info) const;
+        virtual void setColorMask(ColorChannelMask mask) override;
 
-        bool setModeImpl(int width, int height, int pixelWidth, int pixelHeight,
-                         bool backBufferStencil, bool backBufferDepth, int msaa);
+        virtual void setBlendState(const BlendState& state) override;
+
+        virtual void setPointSize(float size) override;
+
+        virtual FontBase* newFont(Rasterizer* data) override;
+
+        virtual FontBase* newDefaultFont(int size, const Rasterizer::Settings& settings) override;
+
+        // clang-format off
+        virtual TextureBase* newTexture(const TextureBase::Settings& settings, const TextureBase::Slices* data = nullptr) override;
+        // clang-format on
+
+        virtual bool setMode(int width, int height, int pixelWidth, int pixelHeight, bool backBufferStencil,
+                             bool backBufferDepth, int msaa) override;
+
+        virtual void setRenderTargetsInternal(const RenderTargets& targets, int pixelWidth, int pixelHeight,
+                                              bool hasSRGBTexture) override;
+
+        virtual bool isPixelFormatSupported(PixelFormat format, uint32_t usage) override;
+
+        void draw(const DrawIndexedCommand& command) override;
+
+        void draw(const DrawCommand& command) override;
+
+        using GraphicsBase::draw;
 
         bool isActive() const;
 
-        void unsetModeImpl();
+        virtual void unsetMode() override;
+
+        void setActiveScreen() override;
+
+        void setViewport(int x, int y, int width, int height);
 
       private:
         bool backBufferHasStencil;

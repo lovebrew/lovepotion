@@ -54,7 +54,7 @@ namespace love
 
     JoystickBase* JoystickModule::addJoystick(int64_t deviceId)
     {
-        if (deviceId < 0 || (size_t)deviceId >= joystick::getJoystickCount())
+        if (deviceId < 0 || (int)deviceId >= joystick::getJoystickCount())
             return nullptr;
 
         std::string guid       = this->getDeviceGUID(deviceId);
@@ -71,11 +71,9 @@ namespace love
             }
         }
 
-        // TODO: make a method (or use define info)
-        // for when Wii U handles are dealt with (WPADHandle, VPADHandle classes)
         if (!joystick)
         {
-            joystick = new Joystick(this->joysticks.size());
+            joystick = love::joystick::openJoystick(this->joysticks.size());
             this->joysticks.push_back(joystick);
         }
 

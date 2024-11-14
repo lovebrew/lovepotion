@@ -2,23 +2,29 @@
 
 #include "common/Singleton.tcc"
 
+#include "modules/graphics/Graphics.tcc"
+#include "modules/graphics/Shader.tcc"
 #include "modules/graphics/renderstate.hpp"
 
+#include "modules/graphics/vertex.hpp"
+
 #include <array>
+#include <vector>
 
 namespace love
 {
-    template<class T>
-    class RendererBase : public Singleton<T>
+    class RendererBase
     {
       public:
-        enum RENDERER_INFO
+        RendererBase()
+        {}
+
+        virtual void prepareDraw(GraphicsBase* graphics) = 0;
+
+        bool isInFrame() const
         {
-            RENDERER_INFO_NAME,
-            RENDERER_INFO_VERSION,
-            RENDERER_INFO_VENDOR,
-            RENDERER_INFO_DEVICE
-        };
+            return this->inFrame;
+        }
 
       protected:
         struct ContextBase

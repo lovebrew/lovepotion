@@ -1,3 +1,5 @@
+#pragma once
+
 #include <cstring>
 #include <gx2/display.h>
 

@@ -53,6 +53,10 @@ namespace love
                 result = new Message("focus", args);
                 break;
             }
+            case SUBTYPE_RESIZE:
+                args.emplace_back((double)event.resize.width);
+                args.emplace_back((double)event.resize.height);
+                result = new Message("resize", args);
             default:
                 break;
         }
@@ -175,7 +179,7 @@ namespace love
             }
             case SUBTYPE_GAMEPADAXIS:
             {
-                if (!Joystick::getConstant((Joystick::GamepadAxis)event.gamepadAxis.axis, name))
+                if (!JoystickBase::getConstant((JoystickBase::GamepadAxis)event.gamepadAxis.axis, name))
                     break;
 
                 joystick = module->getJoystickFromID(event.gamepadAxis.which);
@@ -194,7 +198,7 @@ namespace love
             case SUBTYPE_GAMEPADUP:
             {
                 // clang-format off
-                if (!Joystick::getConstant((Joystick::GamepadButton)event.gamepadButton.button, name))
+                if (!JoystickBase::getConstant((JoystickBase::GamepadButton)event.gamepadButton.button, name))
                     break;
                 // clang-format on
 
@@ -255,6 +259,9 @@ namespace love
                 break;
             case TYPE_GAMEPAD:
                 message = convertJoystickEvent(event, args);
+                break;
+            case TYPE_WINDOW:
+                message = convertWindowEvent(event, args);
                 break;
             default:
                 break;

@@ -53,6 +53,10 @@ namespace love
             GAMEPAD_BUTTON_DPAD_DOWN,
             GAMEPAD_BUTTON_DPAD_LEFT,
             GAMEPAD_BUTTON_DPAD_RIGHT,
+            GAMEPAD_BUTTON_MISC1,
+            GAMEPAD_BUTTON_MISC2,
+            GAMEPAD_BUTTON_Z, //< Nunchuk only
+            GAMEPAD_BUTTON_C, //< Nunchuk only
             GAMEPAD_BUTTON_MAX_ENUM
         };
 
@@ -188,21 +192,25 @@ namespace love
 
         // clang-format off
         STRINGMAP_DECLARE(GamepadButtons, GamepadButton,
-            { "a",             GAMEPAD_BUTTON_A              },
-            { "b",             GAMEPAD_BUTTON_B              },
-            { "x",             GAMEPAD_BUTTON_X              },
-            { "y",             GAMEPAD_BUTTON_Y              },
-            { "back",          GAMEPAD_BUTTON_BACK           },
-            { "guide",         GAMEPAD_BUTTON_GUIDE          },
-            { "start",         GAMEPAD_BUTTON_START          },
-            { "leftstick",     GAMEPAD_BUTTON_LEFTSTICK      },
-            { "rightstick",    GAMEPAD_BUTTON_RIGHTSTICK     },
-            { "leftshoulder",  GAMEPAD_BUTTON_LEFTSHOULDER   },
-            { "rightshoulder", GAMEPAD_BUTTON_RIGHTSHOULDER  },
-            { "dpup",          GAMEPAD_BUTTON_DPAD_UP        },
-            { "dpdown",        GAMEPAD_BUTTON_DPAD_DOWN      },
-            { "dpleft",        GAMEPAD_BUTTON_DPAD_LEFT      },
-            { "dpright",       GAMEPAD_BUTTON_DPAD_RIGHT     }
+            { "a",             GAMEPAD_BUTTON_A             },
+            { "b",             GAMEPAD_BUTTON_B             },
+            { "x",             GAMEPAD_BUTTON_X             },
+            { "y",             GAMEPAD_BUTTON_Y             },
+            { "back",          GAMEPAD_BUTTON_BACK          },
+            { "guide",         GAMEPAD_BUTTON_GUIDE         },
+            { "start",         GAMEPAD_BUTTON_START         },
+            { "leftstick",     GAMEPAD_BUTTON_LEFTSTICK     },
+            { "rightstick",    GAMEPAD_BUTTON_RIGHTSTICK    },
+            { "leftshoulder",  GAMEPAD_BUTTON_LEFTSHOULDER  },
+            { "rightshoulder", GAMEPAD_BUTTON_RIGHTSHOULDER },
+            { "dpup",          GAMEPAD_BUTTON_DPAD_UP       },
+            { "dpdown",        GAMEPAD_BUTTON_DPAD_DOWN     },
+            { "dpleft",        GAMEPAD_BUTTON_DPAD_LEFT     },
+            { "dpright",       GAMEPAD_BUTTON_DPAD_RIGHT    },
+            { "misc1",         GAMEPAD_BUTTON_MISC1         },
+            { "misc2",         GAMEPAD_BUTTON_MISC2         },
+            { "z",             GAMEPAD_BUTTON_Z             }, //< Nunchuk only
+            { "c",             GAMEPAD_BUTTON_C             }  //< Nunchuk only
         );
 
         STRINGMAP_DECLARE(GamepadAxes, GamepadAxis,
@@ -215,29 +223,29 @@ namespace love
         );
 
         STRINGMAP_DECLARE(InputTypes, InputType,
-            { "axis",   INPUT_TYPE_AXIS    },
-            { "button", INPUT_TYPE_BUTTON  },
-            { "hat",    INPUT_TYPE_HAT     }
+            { "axis",   INPUT_TYPE_AXIS   },
+            { "button", INPUT_TYPE_BUTTON },
+            { "hat",    INPUT_TYPE_HAT    }
         );
 
         STRINGMAP_DECLARE(GamepadTypes, GamepadType,
-            { "unknown",           GAMEPAD_TYPE_UNKNOWN                      },
-            { "3ds",               GAMEPAD_TYPE_NINTENDO_3DS                 },
-            { "3dsxl",             GAMEPAD_TYPE_NINTENDO_3DS_XL              },
-            { "new3ds",            GAMEPAD_TYPE_NEW_NINTENDO_3DS             },
-            { "new3dsxl",          GAMEPAD_TYPE_NEW_NINTENDO_3DS_XL          },
-            { "2ds",               GAMEPAD_TYPE_NINTENDO_2DS                 },
-            { "new2dsxl",          GAMEPAD_TYPE_NEW_NINTENDO_2DS_XL          },
-            { "wiiremote",         GAMEPAD_TYPE_NINTENDO_WII_REMOTE          },
-            { "wiiremotenunchuck", GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUCK },
-            { "wiiclassic",        GAMEPAD_TYPE_NINTENDO_WII_CLASSIC         },
-            { "wiiugamepad",       GAMEPAD_TYPE_NINTENDO_WII_U_GAMEPAD       },
-            { "wiiupro",           GAMEPAD_TYPE_NINTENDO_WII_U_PRO           },
-            { "switchhandheld",    GAMEPAD_TYPE_NINTENDO_SWITCH_HANDHELD     },
-            { "switchpro",         GAMEPAD_TYPE_NINTENDO_SWITCH_PRO          },
-            { "joyconleft",        GAMEPAD_TYPE_JOYCON_LEFT                  },
-            { "joyconright",       GAMEPAD_TYPE_JOYCON_RIGHT                 },
-            { "joyconpair",        GAMEPAD_TYPE_JOYCON_PAIR                  }
+            { "unknown",           GAMEPAD_TYPE_UNKNOWN                     },
+            { "3ds",               GAMEPAD_TYPE_NINTENDO_3DS                },
+            { "3dsxl",             GAMEPAD_TYPE_NINTENDO_3DS_XL             },
+            { "new3ds",            GAMEPAD_TYPE_NEW_NINTENDO_3DS            },
+            { "new3dsxl",          GAMEPAD_TYPE_NEW_NINTENDO_3DS_XL         },
+            { "2ds",               GAMEPAD_TYPE_NINTENDO_2DS                },
+            { "new2dsxl",          GAMEPAD_TYPE_NEW_NINTENDO_2DS_XL         },
+            { "wiiremote",         GAMEPAD_TYPE_NINTENDO_WII_REMOTE         },
+            { "wiiremotenunchuk",  GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK },
+            { "wiiclassic",        GAMEPAD_TYPE_NINTENDO_WII_CLASSIC        },
+            { "wiiugamepad",       GAMEPAD_TYPE_NINTENDO_WII_U_GAMEPAD      },
+            { "wiiupro",           GAMEPAD_TYPE_NINTENDO_WII_U_PRO          },
+            { "switchhandheld",    GAMEPAD_TYPE_NINTENDO_SWITCH_HANDHELD    },
+            { "switchpro",         GAMEPAD_TYPE_NINTENDO_SWITCH_PRO         },
+            { "joyconleft",        GAMEPAD_TYPE_JOYCON_LEFT                 },
+            { "joyconright",       GAMEPAD_TYPE_JOYCON_RIGHT                },
+            { "joyconpair",        GAMEPAD_TYPE_JOYCON_PAIR                 }
         );
 
         STRINGMAP_DECLARE(JoystickTypes, JoystickType,
@@ -260,11 +268,7 @@ namespace love
             return std::clamp(value / MAX_AXIS_VALUE, -1.0f, 1.0f);
         }
 
-        JoystickBase(int id) :
-            joystickType(JOYSTICK_TYPE_UNKNOWN),
-            instanceId(-1),
-            id(id),
-            sensors()
+        JoystickBase(int id) : joystickType(JOYSTICK_TYPE_UNKNOWN), instanceId(-1), id(id), sensors()
         {
             this->sensors[Sensor::SENSOR_ACCELEROMETER] = false;
             this->sensors[Sensor::SENSOR_GYROSCOPE]     = false;

@@ -8,8 +8,7 @@ namespace love
     Framebuffer::~Framebuffer()
     {}
 
-    void Framebuffer::create(const ScreenInfo& info, dk::Device& device, CMemPool& images,
-                             bool depth)
+    void Framebuffer::create(const ScreenInfo& info, dk::Device& device, CMemPool& images, bool depth)
     {
         const auto flags  = depth ? BASE_FLAGS : MAIN_FLAGS;
         const auto format = depth ? DkImageFormat_Z24S8 : DkImageFormat_RGBA8_Unorm;
@@ -33,6 +32,7 @@ namespace love
 
     void Framebuffer::destroy()
     {
-        this->memory.destroy();
+        if (this->memory)
+            this->memory.destroy();
     }
 } // namespace love

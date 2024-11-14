@@ -1,6 +1,7 @@
 #pragma once
 
 #include <climits> // for CHAR_BIT
+#include <cstdio>
 #include <cstdlib> // for rand() and RAND_MAX
 
 #include <algorithm>
@@ -40,14 +41,14 @@
 #define LOVE_TODEG(x)   (float)(x * LOVE_M_TODEG)
 
 /* 3DS Texture Limits */
-#define LOVE_TEX3DS_MIN (size_t)0x08
-#define LOVE_TEX3DS_MAX (size_t)0x400
+#define LOVE_TEX3DS_MIN (size_t)8
+#define LOVE_TEX3DS_MAX (size_t)1024
 
 namespace love
 {
     struct Rect
     {
-        static constexpr int EMPTY[4] = { 0, 0, 0, 0 };
+        static constexpr int EMPTY[4] = { -1, -1, -1, -1 };
 
         int x, y, w, h;
 

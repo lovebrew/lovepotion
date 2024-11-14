@@ -1,8 +1,6 @@
 #include "modules/joystick/Joystick.hpp"
 #include "utility/guid.hpp"
 
-#include "utility/logfile.hpp"
-
 namespace love
 {
     Joystick::Joystick(int id) : JoystickBase(id)

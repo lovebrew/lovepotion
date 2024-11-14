@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/luax.hpp"
-#include "modules/joystick/Joystick.hpp"
+#include "modules/joystick/Joystick.tcc"
 
 namespace love
 {
@@ -67,4 +67,8 @@ namespace Wrap_Joystick
     int setSensorEnabled(lua_State* L);
 
     int getSensorData(lua_State* L);
+
+    int getPosition(lua_State* L);
+
+    int getAngle(lua_State* L);
 } // namespace Wrap_Joystick

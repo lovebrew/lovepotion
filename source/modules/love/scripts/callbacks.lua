@@ -204,26 +204,10 @@ end
 -----------------------------------------------------------
 
 -- we need to fix some bugs/inconsistencies on Wii U
-local is_wii_u = love._os == "Cafe"
+-- local is_wii_u = love._os == "Cafe"
 
--- Checks if `love.draw("gamepad")` should fire
--- This happens only when the software keyboard is shown
--- For some reason the software keyboard has some kind of depth testing enabled
-local function shouldDraw(screen)
-    if not is_wii_u then
-        return true
-    end
-
-    -- when gamepad and keyboard shown, do not draw
-    if screen == "gamepad" and love.keyboard.hasTextInput() then
-        return false
-    end
-    -- when tv, always draw
-    return true
-end
-
-local function get3DDepth(screen)
-    if love._console ~= "3ds" then
+local function get_3d_depth(screen)
+    if love._console ~= "3DS" then
         return nil
     end
 
@@ -236,6 +220,8 @@ local function get3DDepth(screen)
 
     return depth
 end
+
+-- local copyCurrentScanBuffer = love.graphics.copyCurrentScanBuffer or function() end
 
 function love.run()
     if love.load then
@@ -279,16 +265,18 @@ function love.run()
 
         if love.graphics and love.graphics.isActive() then
             local screens = love.graphics.getScreens()
-
+            
             for _, screen in ipairs(screens) do
-                love.graphics.origin()
-
                 love.graphics.setActiveScreen(screen)
+
+                love.graphics.origin()
                 love.graphics.clear(love.graphics.getBackgroundColor())
 
-                if love.draw and shouldDraw(screen) then
-                    love.draw(screen, get3DDepth(screen))
+                if love.draw then
+                    love.draw(screen, get_3d_depth(screen))
                 end
+
+                love.graphics.copyCurrentScanBuffer()
             end
 
             love.graphics.present()

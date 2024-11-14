@@ -15,14 +15,14 @@ namespace love
     // clang-format off
     static constexpr std::array<const Service, 8> services =
     {{
-        { "bsd",         BIND(socketInitializeDefault),                           &socketExit  },
-        { "pl:u",        BIND(plInitialize, PlServiceType_User),                  &plExit      },
-        { "acc:a",       BIND(accountInitialize, AccountServiceType_Application), &accountExit },
-        { "set",         BIND(setInitialize),                                     &setExit     },
-        { "set:sys",     BIND(setsysInitialize),                                  &setsysExit  },
-        { "psm",         BIND(psmInitialize),                                     &psmExit     },
-        { "friend:u",    BIND(friendsInitialize, FriendsServiceType_User),        &friendsExit },
-        { "nifm:u",      BIND(nifmInitialize,    NifmServiceType_User),           &nifmExit    }
+        { "bsd",      BIND(socketInitializeDefault),                                  &socketExit  },
+        { "pl:u",     BIND(plInitialize,             PlServiceType_User),             &plExit      },
+        { "acc:a",    BIND(accountInitialize,        AccountServiceType_Application), &accountExit },
+        { "set",      BIND(setInitialize),                                            &setExit     },
+        { "set:sys",  BIND(setsysInitialize),                                         &setsysExit  },
+        { "psm",      BIND(psmInitialize),                                            &psmExit     },
+        { "friend:u", BIND(friendsInitialize,        FriendsServiceType_User),        &friendsExit },
+        { "nifm:u",   BIND(nifmInitialize,           NifmServiceType_User),           &nifmExit    }
     }};
     // clang-format on
 
@@ -65,6 +65,7 @@ namespace love
         }
 
         padConfigureInput(8, HidNpadStyleSet_NpadStandard);
+        hidInitializeTouchScreen();
 
         romfsInit();
 

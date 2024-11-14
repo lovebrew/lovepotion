@@ -41,6 +41,8 @@ static std::filesystem::path translatePath(const std::filesystem::path& input)
         return path.replace_extension(".t3x");
     else if (std::find(fonts.begin(), fonts.end(), input.extension()) != fonts.end())
         return path.replace_extension(".bcfnt");
+
+    return path;
 }
 
 int Wrap_Filesystem::init(lua_State* L)
@@ -332,8 +334,8 @@ int Wrap_Filesystem::createDirectory(lua_State* L)
 
 int Wrap_Filesystem::remove(lua_State* L)
 {
-    const char* path = luaL_checkstring(L, 1);
-    luax_pushboolean(L, instance()->remove(path));
+    auto path = translatePath(luaL_checkstring(L, 1));
+    luax_pushboolean(L, instance()->remove(path.c_str()));
 
     return 1;
 }
@@ -349,17 +351,17 @@ int Wrap_Filesystem::read(lua_State* L)
         start         = 2;
     }
 
-    const char* filename = luaL_checkstring(L, start + 0);
-    int64_t length       = luaL_optinteger(L, start + 1, -1);
+    auto filename  = translatePath(luaL_checkstring(L, start + 0));
+    int64_t length = luaL_optinteger(L, start + 1, -1);
 
     FileData* data = nullptr;
 
     try
     {
         if (length >= 0)
-            data = instance()->read(filename, length);
+            data = instance()->read(filename.c_str(), length);
         else
-            data = instance()->read(filename);
+            data = instance()->read(filename.c_str());
     }
     catch (love::Exception& e)
     {
@@ -469,8 +471,8 @@ int Wrap_Filesystem::lines(lua_State* L)
 
 int Wrap_Filesystem::exists(lua_State* L)
 {
-    const char* filename = luaL_checkstring(L, 1);
-    luax_pushboolean(L, instance()->exists(filename));
+    auto filename = translatePath(luaL_checkstring(L, 1));
+    luax_pushboolean(L, instance()->exists(filename.c_str()));
 
     return 1;
 }
@@ -532,7 +534,7 @@ int Wrap_Filesystem::load(lua_State* L)
 
 int Wrap_Filesystem::getInfo(lua_State* L)
 {
-    const char* filepath = luaL_checkstring(L, 1);
+    auto filepath = translatePath(luaL_checkstring(L, 1));
     Filesystem::Info info {};
 
     int start       = 2;
@@ -547,7 +549,7 @@ int Wrap_Filesystem::getInfo(lua_State* L)
         start++;
     }
 
-    if (instance()->getInfo(filepath, info))
+    if (instance()->getInfo(filepath.c_str(), info))
     {
         if (filterType != Filesystem::FILETYPE_MAX_ENUM && info.type != filterType)
         {
@@ -768,11 +770,11 @@ namespace love
 
         if (lua_isstring(L, index))
         {
-            const char* filename = luaL_checkstring(L, index);
+            auto filename = translatePath(luaL_checkstring(L, index));
 
             try
             {
-                result = instance()->openFile(filename, File::MODE_CLOSED);
+                result = instance()->openFile(filename.c_str(), File::MODE_CLOSED);
             }
             catch (love::Exception& e)
             {

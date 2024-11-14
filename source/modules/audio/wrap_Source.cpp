@@ -140,7 +140,7 @@ int Wrap_Source::setLooping(lua_State* L)
     auto* self   = luax_checksource(L, 1);
     bool looping = luax_checkboolean(L, 2);
 
-    self->setLooping(looping);
+    luax_catchexcept(L, [&]() { self->setLooping(looping); });
 
     return 0;
 }
