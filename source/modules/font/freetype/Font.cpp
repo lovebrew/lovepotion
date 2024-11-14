@@ -46,7 +46,7 @@ namespace love
         if (FT_Init_FreeType(&this->library) != 0)
             throw love::Exception("Error initializing FreeType library.");
 
-        // this->defaultFontData.set(loadSystemFontByType(), Acquire::NO_RETAIN);
+        this->defaultFontData.set(loadSystemFontByType(), Acquire::NO_RETAIN);
     }
 
     FontModule::~FontModule()
