@@ -54,8 +54,8 @@ namespace love
                 break;
             }
             case SUBTYPE_RESIZE:
-                args.emplace_back(event.resize.width);
-                args.emplace_back(event.resize.height);
+                args.emplace_back((double)event.resize.width);
+                args.emplace_back((double)event.resize.height);
                 result = new Message("resize", args);
             default:
                 break;
@@ -259,6 +259,9 @@ namespace love
                 break;
             case TYPE_GAMEPAD:
                 message = convertJoystickEvent(event, args);
+                break;
+            case TYPE_WINDOW:
+                message = convertWindowEvent(event, args);
                 break;
             default:
                 break;
