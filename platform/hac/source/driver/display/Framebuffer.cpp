@@ -13,26 +13,19 @@ namespace love
         const auto flags  = depth ? BASE_FLAGS : MAIN_FLAGS;
         const auto format = depth ? DkImageFormat_Z24S8 : DkImageFormat_RGBA8_Unorm;
 
+        dk::ImageLayout layout {};
         dk::ImageLayoutMaker { device }
             .setFlags(flags)
             .setFormat(format)
             .setDimensions(info.width, info.height)
-            .initialize(this->layout);
+            .initialize(layout);
 
-        const auto layoutSize = this->layout.getSize();
-        const auto alignment  = this->layout.getAlignment();
-
-        this->memory = images.allocate(layoutSize, alignment);
-
-        const auto& memoryBlock = this->memory.getMemBlock();
-        auto memoryOffset       = this->memory.getOffset();
-
-        this->image.initialize(this->layout, memoryBlock, memoryOffset);
+        this->memory = images.allocate(layout.getSize(), layout.getAlignment());
+        this->image.initialize(layout, this->memory.getMemBlock(), this->memory.getOffset());
     }
 
     void Framebuffer::destroy()
     {
-        if (this->memory)
-            this->memory.destroy();
+        this->memory.destroy();
     }
 } // namespace love

@@ -7,12 +7,12 @@ namespace love
     // clang-format off
     inline constinit ScreenInfo HANDHELD_MODE[0x01] =
     {
-        { 0, 0, "default", 1280, 720 },
+        { 0, 0, "default", 1280, 720 }
     };
 
     inline constinit ScreenInfo DOCKED_MODE[0x01] =
     {
-        { 0, 0, "default", 1920, 1080 },
+        { 0, 0, "default", 1920, 1080 }
     };
     // clang-format on
 

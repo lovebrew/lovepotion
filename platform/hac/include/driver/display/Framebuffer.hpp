@@ -31,6 +31,5 @@ namespace love
 
         dk::Image image;
         CMemPool::Handle memory;
-        dk::ImageLayout layout;
     };
 } // namespace love

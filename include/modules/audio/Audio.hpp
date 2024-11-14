@@ -26,6 +26,8 @@ namespace love
 
         bool play(Source* source);
 
+        void stop();
+
         void stop(Source* source);
 
         void pause(Source* source);
@@ -33,6 +35,14 @@ namespace love
         void setVolume(float volume);
 
         float getVolume() const;
+
+        static bool play(const std::vector<Source*>& sources);
+
+        static void stop(const std::vector<Source*>& sources);
+
+        static void pause(const std::vector<Source*>& sources);
+
+        std::vector<Source*> pause();
 
       private:
         Pool* pool;

@@ -71,14 +71,39 @@ namespace love
         return source->play();
     }
 
+    bool Audio::play(const std::vector<Source*>& sources)
+    {
+        return Source::play(sources);
+    }
+
+    void Audio::stop()
+    {
+        Source::stop(this->pool);
+    }
+
     void Audio::stop(Source* source)
     {
         source->stop();
     }
 
+    void Audio::stop(const std::vector<Source*>& sources)
+    {
+        Source::stop(sources);
+    }
+
     void Audio::pause(Source* source)
     {
         source->pause();
+    }
+
+    void Audio::pause(const std::vector<Source*>& sources)
+    {
+        Source::pause(sources);
+    }
+
+    std::vector<Source*> Audio::pause()
+    {
+        return Source::pause(this->pool);
     }
 
     void Audio::setVolume(float volume)

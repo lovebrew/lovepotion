@@ -13,5 +13,9 @@ namespace Wrap_Audio
 
     int stop(lua_State* L);
 
+    int setVolume(lua_State* L);
+
+    int getVolume(lua_State* L);
+
     int open(lua_State* L);
 } // namespace Wrap_Audio
