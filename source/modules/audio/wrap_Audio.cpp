@@ -115,7 +115,7 @@ int Wrap_Audio::stop(lua_State* L)
 {
     if (lua_isnone(L, 1))
         instance()->stop();
-    if (lua_istable(L, 1))
+    else if (lua_istable(L, 1))
         instance()->stop(readSourceList(L, 1));
     else if (lua_gettop(L) > 1)
         instance()->stop(readSourceVararg(L, 1));

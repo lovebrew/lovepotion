@@ -164,20 +164,20 @@ static int love_atpanic(lua_State* L)
     return 0;
 }
 
-// #if __DEBUG__
-// static void love_atcpanic()
-// {
-//     try
-//     {
-//         throw;
-//     }
-//     catch (const std::exception& e)
-//     {
-//         std::printf("Uncaught exception: %s", e.what());
-//         std::exit(EXIT_FAILURE);
-//     }
-// }
-// #endif
+#if __DEBUG__
+static void love_atcpanic()
+{
+    try
+    {
+        throw;
+    }
+    catch (const std::exception& e)
+    {
+        std::printf("Uncaught exception: %s", e.what());
+        std::exit(EXIT_FAILURE);
+    }
+}
+#endif
 
 static void luax_addcompatibilityalias(lua_State* L, const char* module, const char* name, const char* alias)
 {
@@ -269,7 +269,7 @@ int love_initialize(lua_State* L)
     lua_atpanic(L, love_atpanic);
 
 #if __DEBUG__
-    // std::set_terminate(love_atcpanic);
+    std::set_terminate(love_atcpanic);
 #endif
 
     return 1;

@@ -79,7 +79,7 @@ namespace love
         return (this->userdata == nullptr) ? (CFNT_s*)data->getData() : this->userdata;
     }
 
-    BCFNTRasterizer::BCFNTRasterizer(Data* data, int size)
+    BCFNTRasterizer::BCFNTRasterizer(Data* data, int size) : userdata(nullptr)
     {
         this->dpiScale = 1.0f;
         this->size     = std::floor(size * this->dpiScale + 0.5f);
@@ -87,6 +87,7 @@ namespace love
         if (this->size == 0)
             throw love::Exception("Invalid font size: {:d}", this->size);
 
+        /* if data wasn't a sysfont, this is zero */
         if (linearGetSize(data->getData()) == 0)
         {
             this->userdata = (CFNT_s*)linearAlloc(data->getSize());
