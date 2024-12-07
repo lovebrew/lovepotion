@@ -30,7 +30,7 @@ namespace love
 
         const auto currentByteSize = this->buffer.size() * sizeof(FontBase::GlyphVertex);
 
-        if (dataSize > 0 && (!this->vertexBuffer || (offset + dataSize) > currentByteSize))
+        if (dataSize > 0 && ((offset + dataSize) > currentByteSize))
         {
             size_t newSize = (size_t(offset + dataSize * 1.5)) / sizeof(FontBase::GlyphVertex);
 

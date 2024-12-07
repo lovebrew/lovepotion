@@ -1,5 +1,9 @@
 #include "modules/window/wrap_Window.hpp"
 
+static constexpr char wrap_Window_lua[] = {
+#include "modules/window/wrap_Window.lua"
+};
+
 using namespace love;
 
 #define instance() (Module::getInstance<Window>(Module::M_WINDOW))
@@ -420,12 +424,12 @@ int Wrap_Window::showMessageBox(lua_State* L)
 
     if (lua_istable(L, 3))
     {
-        size_t numButtons = std::clamp<size_t>(luax_objlen(L, 3), 0, 2);
+        size_t buttonCount = std::clamp<size_t>(luax_objlen(L, 3), 0, 2);
 
-        if (numButtons == 0)
+        if (buttonCount == 0)
             return luaL_error(L, "Must have at least one messagebox button.");
 
-        for (size_t index = 0; index < numButtons; index++)
+        for (size_t index = 0; index < buttonCount; index++)
         {
             lua_rawgeti(L, 3, index + 1);
             data.buttons.push_back(luaL_checkstring(L, -1));
@@ -452,7 +456,21 @@ int Wrap_Window::showMessageBox(lua_State* L)
 
         data.attachToWindow = luax_optboolean(L, 5, true);
 
-        lua_pushnil(L);
+        if (luaL_loadbuffer(L, wrap_Window_lua, sizeof(wrap_Window_lua), "=[love \"wrap_Window.lua\"]") == 0)
+        {
+            luax_pushstring(L, data.title);
+            luax_pushstring(L, data.message);
+
+            lua_createtable(L, data.buttons.size(), 0);
+            for (size_t index = 0; index < data.buttons.size(); index++)
+            {
+                luax_pushstring(L, data.buttons[index]);
+                lua_rawseti(L, -2, index + 1);
+            }
+
+            /* pressed button is returned */
+            lua_call(L, 3, 1);
+        }
     }
     else
     {
@@ -462,7 +480,14 @@ int Wrap_Window::showMessageBox(lua_State* L)
 
         data.attachToWindow = luax_optboolean(L, 4, true);
 
-        lua_pushnil(L);
+        if (luaL_loadbuffer(L, wrap_Window_lua, sizeof(wrap_Window_lua), "=[love \"wrap_Window.lua\"]") == 0)
+        {
+            luax_pushstring(L, data.title);
+            luax_pushstring(L, data.message);
+
+            /* return true */
+            lua_call(L, 2, 1);
+        }
     }
 
     return 1;

@@ -72,7 +72,7 @@ namespace love
         }
 
       private:
-        void* base;
+        void* base                   = nullptr;
         static constexpr size_t size = 0x1000000;
         Pool pool;
     };

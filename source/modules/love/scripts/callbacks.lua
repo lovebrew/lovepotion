@@ -212,7 +212,7 @@ local function get_3d_depth(screen)
     end
 
     local depth = love.graphics.getDepth()
-    if screen == "bottom" then
+    if screen == "right" then
         depth = -depth
     elseif screen == "bottom" then
         return nil
@@ -235,7 +235,7 @@ function love.run()
     local delta = 0
 
     return function()
-        if love.window and g_windowShown then
+        if love.window and MESSAGEBOX then
             return
         end
 
@@ -265,7 +265,7 @@ function love.run()
 
         if love.graphics and love.graphics.isActive() then
             local screens = love.graphics.getScreens()
-            
+
             for _, screen in ipairs(screens) do
                 love.graphics.setActiveScreen(screen)
 
@@ -408,6 +408,8 @@ function love.errhand(msg)
                     love.graphics.print(text[index], font, 5, (index - 1) * 16)
                 end
             end
+
+            love.graphics.copyCurrentScanBuffer()
         end
 
         love.graphics.present()
@@ -420,7 +422,7 @@ function love.errhand(msg)
         end
 
         local date = os.date("%H%M%S_%m%d%y")
-        local filename = string.format("errors/love_error_%s.txt", date)
+        local filename = ("errors/%s.txt"):format(date)
 
         if not love.filesystem then
             return

@@ -50,7 +50,7 @@ namespace love
         this->initialized = true;
     }
 
-    deko3d::~deko3d()
+    void deko3d::deInitialize()
     {
         this->destroyFramebuffers();
         this->uniform.destroy();
@@ -130,6 +130,9 @@ namespace love
     void deko3d::useProgram(const dk::Shader& vertex, const dk::Shader& fragment)
     {
         this->ensureInFrame();
+
+        if (!this->uniform)
+            return;
 
         // clang-format off
         this->commandBuffer.bindShaders(DkStageFlag_GraphicsMask, { &vertex, &fragment });
@@ -227,6 +230,9 @@ namespace love
 
     void deko3d::prepareDraw(GraphicsBase* graphics)
     {
+        if (!this->swapchain)
+            return;
+
         this->commandBuffer.bindRasterizerState(this->context.rasterizer);
         this->commandBuffer.bindColorState(this->context.color);
         this->commandBuffer.bindColorWriteState(this->context.colorWrite);

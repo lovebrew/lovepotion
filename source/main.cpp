@@ -4,6 +4,7 @@
 #include "boot.hpp"
 #include "modules/love/love.hpp"
 
+#include <filesystem>
 #include <vector>
 
 extern "C"
@@ -48,7 +49,11 @@ static DoneAction runLove(char** argv, int argc, int& result, love::Variant& res
         // args[1] is "game" for the game folder
         // this should allow "game" to be used in love.filesystem.setSource
         std::vector<const char*> args(argv, argv + argc);
-        args.push_back("game");
+
+        /* if the game directory exists, add the arg */
+        std::filesystem::path filepath = love::getApplicationPath(argv[0]);
+        if (std::filesystem::exists(filepath.parent_path().append("game")))
+            args.push_back("game");
 
         lua_pushstring(L, "embedded boot.lua");
         lua_rawseti(L, -2, -1);

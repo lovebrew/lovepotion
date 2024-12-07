@@ -148,6 +148,30 @@ static int love_setDeprecationOutput(lua_State* L)
     return 0;
 }
 
+#if defined(__3DS__)
+static bool hasOSSpeedup = false;
+/*
+** Sets the New Nintendo 3DS "OS Speedup"
+** This does nothing™ for Old 3DS systems.
+*/
+static int love_setOSSpeedup(lua_State* L)
+{
+    const auto enable = love::luax_checkboolean(L, 1);
+    osSetSpeedupEnable(enable);
+
+    hasOSSpeedup = enable;
+
+    return 0;
+}
+
+static int love_hasOSSpeedup(lua_State* L)
+{
+    love::luax_pushboolean(L, hasOSSpeedup);
+
+    return 1;
+}
+#endif
+
 static constexpr const char* ERROR_PANIC = "PANIC: unprotected error in call to Lua API (%s)";
 
 /*
@@ -254,6 +278,14 @@ int love_initialize(lua_State* L)
     lua_pushcfunction(L, love_hasDeprecationOutput);
     lua_setfield(L, -2, "hasDeprecationOutput");
 
+#if defined(__3DS__)
+    lua_pushcfunction(L, love_setOSSpeedup);
+    lua_setfield(L, -2, "_setOSSpeedup");
+
+    lua_pushcfunction(L, love_hasOSSpeedup);
+    lua_setfield(L, -2, "_hasOSSpeedup");
+#endif
+
     love::luax_require(L, "love.data");
     lua_pop(L, 1);
 
@@ -321,7 +353,7 @@ int love_openConsole(lua_State* L)
     FD_SET(lsockfd, &set);
 
     struct timeval timeout;
-    timeout.tv_sec  = 10;
+    timeout.tv_sec  = 3;
     timeout.tv_usec = 0;
 
     const auto result = select(lsockfd + 1, &set, NULL, NULL, &timeout);

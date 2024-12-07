@@ -53,12 +53,19 @@ namespace love
 
         if (auto result = Result(audrenStartAudioRenderer()); !result)
             throw love::Exception("Failed to start audio renderer: {:x}", result.get());
+
+        this->initialized = true;
     }
 
     DigitalSound::~DigitalSound()
     {
+        if (!this->initialized)
+            return;
+
         audrvClose(&this->driver);
         audrenExit();
+
+        this->initialized = false;
     }
 
     void DigitalSound::updateImpl()
@@ -142,8 +149,7 @@ namespace love
         if ((format = DigitalSound::getFormat(channels, bitDepth)) < 0)
             return false;
 
-        this->resetChannel =
-            audrvVoiceInit(&this->driver, id, channels, (PcmFormat)format, sampleRate);
+        this->resetChannel = audrvVoiceInit(&this->driver, id, channels, (PcmFormat)format, sampleRate);
 
         if (this->resetChannel)
         {

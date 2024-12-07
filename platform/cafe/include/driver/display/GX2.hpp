@@ -32,7 +32,7 @@ namespace love
 
         void initialize();
 
-        ~GX2();
+        void deInitialize();
 
         int onForegroundAcquired();
 

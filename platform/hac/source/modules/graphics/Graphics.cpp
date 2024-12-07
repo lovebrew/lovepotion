@@ -207,6 +207,7 @@ namespace love
 
         this->drawCalls        = 0;
         this->drawCallsBatched = 0;
+        Shader::shaderSwitches = 0;
     }
 
     void Graphics::setScissor(const Rect& scissor)
@@ -346,17 +347,12 @@ namespace love
         this->created = true;
         this->initCapabilities();
 
-        // d3d.setupContext();
-
         try
         {
             if (this->batchedDrawState.vertexBuffer == nullptr)
             {
-                this->batchedDrawState.indexBuffer = newIndexBuffer(INIT_INDEX_BUFFER_SIZE);
-                this->batchedDrawState.indexBuffer->allocate(d3d.getMemoryPool(deko3d::MEMORYPOOL_DATA));
-
+                this->batchedDrawState.indexBuffer  = newIndexBuffer(INIT_INDEX_BUFFER_SIZE);
                 this->batchedDrawState.vertexBuffer = newVertexBuffer(INIT_VERTEX_BUFFER_SIZE);
-                this->batchedDrawState.vertexBuffer->allocate(d3d.getMemoryPool(deko3d::MEMORYPOOL_DATA));
             }
         }
         catch (love::Exception&)
@@ -390,7 +386,13 @@ namespace love
     }
 
     void Graphics::unsetMode()
-    {}
+    {
+        if (!this->isCreated())
+            return;
+
+        this->flushBatchedDraws();
+        d3d.deInitialize();
+    }
 
     bool Graphics::isActive() const
     {

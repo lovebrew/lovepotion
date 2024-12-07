@@ -83,4 +83,8 @@ namespace love
 // Thread
 #define E_CHANNEL_VARIANT_UNKNOWN "boolean, number, string, love type, or table expected."
 #define E_THREAD_VARIANT_UNKNOWN  "boolean, number, string, love type, or flat table expected."
+
+// Window
+#define E_WINDOW_CLOSING_RENDERTARGET_ACTIVE \
+    "love.window.close cannot be called while a render target is active in love.graphics."
 } // namespace love

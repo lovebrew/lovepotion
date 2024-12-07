@@ -131,6 +131,25 @@ static constexpr std::array<luaL_Reg, 2> platformFunctions =
     { "getPlayCoins", Wrap_System::getPlayCoins },
     { "setPlayCoins", Wrap_System::setPlayCoins }
 }};
+#elif defined(__SWITCH__)
+int Wrap_System::getTheme(lua_State*L)
+{
+    ColorSetId colorSet;
+    setsysGetColorSetId(&colorSet);
+
+    std::string_view name {};
+    if (!System::getConstant(colorSet, name))
+        name = "Unknown";
+
+    luax_pushstring(L, name);
+
+    return 1;
+}
+
+static constexpr std::array<luaL_Reg, 1> platformFunctions =
+{{
+    { "getTheme", Wrap_System::getTheme }
+}};
 #else
 static constexpr std::span<const luaL_Reg> platformFunctions = {};
 #endif

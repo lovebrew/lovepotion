@@ -135,11 +135,6 @@ namespace love
             return this->open;
         }
 
-        void close()
-        {
-            this->close(true);
-        }
-
         void updateSettings(const WindowSettings& newSettings, bool updateGraphicsViewport)
         {
             this->pixelWidth  = windowWidth;
@@ -297,11 +292,6 @@ namespace love
         // clang-format on
 
       protected:
-        void close(bool)
-        {
-            this->open = false;
-        }
-
         bool createWindowAndContext(int x, int y, int width, int height, uint32_t flags)
         {
             this->open = true;

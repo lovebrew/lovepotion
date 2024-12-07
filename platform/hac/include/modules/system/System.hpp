@@ -64,6 +64,11 @@ namespace love
             { "CHN", SetRegion_CHN }
         );
 
+        STRINGMAP_DECLARE(HacColorThemes, ColorSetId,
+            { "Light", ColorSetId_Light },
+            { "Dark",  ColorSetId_Dark  }
+        );
+
         using SystemBase::getConstant;
 
       private:

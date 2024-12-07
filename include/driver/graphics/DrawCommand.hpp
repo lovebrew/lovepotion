@@ -101,13 +101,6 @@ namespace love
     constexpr size_t INIT_VERTEX_BUFFER_SIZE = sizeof(Vertex) * 4096 * 1;
     constexpr size_t INIT_INDEX_BUFFER_SIZE  = sizeof(uint16_t) * LOVE_UINT16_MAX * 1;
 
-    inline StreamBuffer<Vertex>* newVertexBuffer(size_t size)
-    {
-        return new StreamBuffer<Vertex>(BUFFERUSAGE_VERTEX, size);
-    }
-
-    inline StreamBuffer<uint16_t>* newIndexBuffer(size_t size)
-    {
-        return new StreamBuffer<uint16_t>(BUFFERUSAGE_INDEX, size);
-    }
+    StreamBuffer<Vertex>* newVertexBuffer(size_t size);
+    StreamBuffer<uint16_t>* newIndexBuffer(size_t size);
 } // namespace love

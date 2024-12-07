@@ -82,7 +82,7 @@ namespace love
         this->bindFramebuffer(this->targets[0].get());
     }
 
-    citro3d::~citro3d()
+    void citro3d::deInitialize()
     {
         this->destroyFramebuffers();
 
@@ -219,7 +219,7 @@ namespace love
 
         // clang-format off
         GPU_SCISSORMODE mode = (scissor != Rect::EMPTY) ? GPU_SCISSOR_NORMAL : GPU_SCISSOR_DISABLE;
-        C3D_SetScissor(mode, this->context.scissor.y, this->context.scissor.x, this->context.scissor.h, this->context.scissor.w);
+        C3D_SetScissor(mode, this->context.scissor.x, this->context.scissor.y, this->context.scissor.w, this->context.scissor.h);
         // clang-format on
     }
 

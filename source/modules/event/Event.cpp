@@ -57,6 +57,7 @@ namespace love
                 args.emplace_back((double)event.resize.width);
                 args.emplace_back((double)event.resize.height);
                 result = new Message("resize", args);
+                break;
             default:
                 break;
         }

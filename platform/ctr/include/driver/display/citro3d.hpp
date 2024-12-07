@@ -35,7 +35,7 @@ namespace love
 
         void setupContext();
 
-        ~citro3d();
+        void deInitialize();
 
         void clear(const Color& color);
 

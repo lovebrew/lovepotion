@@ -15,6 +15,8 @@ namespace love
 
         virtual ~Window();
 
+        void close();
+
         void setGraphics(Graphics* graphics)
         {
             this->graphics.set(graphics);
@@ -33,6 +35,8 @@ namespace love
         using WindowBase::getConstant;
 
       private:
+        void close(bool allowExceptions);
+
         StrongRef<Graphics> graphics;
     };
 } // namespace love

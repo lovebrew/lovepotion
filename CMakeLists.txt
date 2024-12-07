@@ -439,7 +439,8 @@ source/modules/font/GenericShaper.cpp
 source/modules/font/wrap_Font.cpp
 source/modules/font/wrap_Rasterizer.cpp
 source/modules/font/wrap_GlyphData.cpp
-source/modules/graphics/Buffer.cpp
+# source/modules/graphics/Buffer.cpp
+source/modules/graphics/DrawCommand.cpp
 source/modules/graphics/Graphics.cpp
 source/modules/graphics/FontBase.cpp
 source/modules/graphics/Mesh.cpp

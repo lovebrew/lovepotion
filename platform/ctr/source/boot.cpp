@@ -50,8 +50,6 @@ namespace love
 
     int preInit()
     {
-        osSetSpeedupEnable(true);
-
         socBuffer.reset((uint32_t*)memalign(SOC_BUFFER_ALIGN, SOC_BUFFER_SIZE));
 
         if (socBuffer.get() == nullptr)

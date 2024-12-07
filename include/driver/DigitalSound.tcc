@@ -3,6 +3,8 @@
 #include "common/Map.hpp"
 #include "common/Singleton.tcc"
 
+#include <atomic>
+
 namespace love
 {
     template<class T>
@@ -23,12 +25,17 @@ namespace love
             ENCODING_MAX_ENUM
         };
 
-        virtual void initialize()
+        DigitalSoundBase() : initialized(false)
         {}
+
+        virtual void initialize() = 0;
 
         void update()
         {
             static_cast<T*>(this)->updateImpl();
         }
+
+      protected:
+        std::atomic<bool> initialized;
     };
 } // namespace love

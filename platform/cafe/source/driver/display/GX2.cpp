@@ -29,7 +29,7 @@ namespace love
         dirtyProjection(false)
     {}
 
-    GX2::~GX2()
+    void GX2::deInitialize()
     {
         if (this->inForeground)
             this->onForegroundReleased();

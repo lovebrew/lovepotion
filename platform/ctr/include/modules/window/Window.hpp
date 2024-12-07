@@ -20,6 +20,8 @@ namespace love
             this->graphics.set(graphics);
         }
 
+        void close();
+
         bool setWindow(int width = 800, int height = 600, WindowSettings* settings = nullptr);
 
         void updateSettingsImpl(const WindowSettings& settings, bool updateGraphicsViewport);
@@ -33,6 +35,8 @@ namespace love
         using WindowBase::getConstant;
 
       private:
+        void close(bool allowExceptions);
+
         StrongRef<Graphics> graphics;
     };
 } // namespace love

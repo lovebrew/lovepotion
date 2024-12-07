@@ -414,7 +414,12 @@ namespace love
     void TextureBase::uploadImageData(ImageDataBase* data, int level, int slice, int x, int y)
     {
         Rect rectangle = { x, y, data->getWidth(), data->getHeight() };
-        this->uploadByteData(data->getData(), data->getSize(), level, slice, rectangle);
+
+        size_t size = data->getSize();
+        if constexpr (Console::is(Console::CTR))
+            size = getPixelFormatSliceSize(this->format, rectangle.w, rectangle.h, true);
+
+        this->uploadByteData(data->getData(), size, level, slice, rectangle);
     }
 
     void TextureBase::replacePixels(ImageDataBase* data, int slice, int mipmap, int x, int y,

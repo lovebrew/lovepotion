@@ -1656,6 +1656,45 @@ int Wrap_Graphics::line(lua_State* L)
     return 0;
 }
 
+int Wrap_Graphics::getDefaultFilter(lua_State* L)
+{
+    const auto& state = instance()->getDefaultSamplerState();
+
+    std::string_view minStr {};
+    std::string_view magStr {};
+
+    if (!SamplerState::getConstant(state.minFilter, minStr))
+        return luaL_error(L, "Unknown minification filter mode.");
+
+    if (!SamplerState::getConstant(state.magFilter, magStr))
+        return luaL_error(L, "Unknown magnification filter mode.");
+
+    luax_pushstring(L, minStr);
+    luax_pushstring(L, magStr);
+    lua_pushnumber(L, state.maxAnisotropy);
+
+    return 3;
+}
+
+int Wrap_Graphics::setDefaultFilter(lua_State* L)
+{
+    auto state = instance()->getDefaultSamplerState();
+
+    const char* minStr = luaL_checkstring(L, 1);
+    const char* magStr = luaL_optstring(L, 2, minStr);
+
+    if (!SamplerState::getConstant(minStr, state.minFilter))
+        return luax_enumerror(L, "filter mode", SamplerState::FilterModes, minStr);
+
+    if (!SamplerState::getConstant(magStr, state.magFilter))
+        return luax_enumerror(L, "filter mode", SamplerState::FilterModes, magStr);
+
+    state.maxAnisotropy = std::clamp((int)luaL_optnumber(L, 3, 1.0), 1, LOVE_UINT8_MAX);
+    instance()->setDefaultSamplerState(state);
+
+    return 0;
+}
+
 int Wrap_Graphics::getWidth(lua_State* L)
 {
     lua_pushinteger(L, instance()->getWidth());
@@ -1860,6 +1899,9 @@ static constexpr luaL_Reg functions[] =
     { "getPixelWidth",          Wrap_Graphics::getPixelWidth         },
     { "getPixelHeight",         Wrap_Graphics::getPixelHeight        },
     { "getPixelDimensions",     Wrap_Graphics::getPixelDimensions    },
+
+    { "setDefaultFilter",       Wrap_Graphics::setDefaultFilter      },
+    { "getDefaultFilter",       Wrap_Graphics::getDefaultFilter      },
 
     { "draw",                   Wrap_Graphics::draw                  },
 

@@ -320,6 +320,7 @@ namespace love
             return;
 
         this->flushBatchedDraws();
+        c3d.deInitialize();
     }
 
     void Graphics::setRenderTargetsInternal(const RenderTargets& targets, int pixelWidth, int pixelHeight,

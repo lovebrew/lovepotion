@@ -47,7 +47,7 @@ namespace love
 
         void initialize();
 
-        ~deko3d();
+        void deInitialize();
 
         void clear(const Color& color);
 

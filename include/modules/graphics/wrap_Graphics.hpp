@@ -199,6 +199,10 @@ namespace Wrap_Graphics
 
     int printf(lua_State* L);
 
+    int getDefaultFilter(lua_State* L);
+
+    int setDefaultFilter(lua_State* L);
+
     int getScreens(lua_State* L);
 
     int getActiveScreen(lua_State* L);

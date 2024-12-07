@@ -3,6 +3,7 @@
 #include "driver/EventQueue.tcc"
 
 #include <switch.h>
+#define MAX_TOUCHES 16
 
 namespace love
 {
@@ -16,6 +17,12 @@ namespace love
         void pollInternal() override;
 
       private:
-        Event padStyleUpdates[0x08];
+        std::array<Event, 8> padStyleUpdates;
+
+        HidTouchScreenState touchState;
+        int previousTouchCount;
+
+        std::array<HidTouchState, MAX_TOUCHES> touches;
+        std::array<HidTouchState, MAX_TOUCHES> oldTouches;
     };
 } // namespace love

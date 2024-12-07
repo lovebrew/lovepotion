@@ -135,8 +135,12 @@ function love.boot()
     end
 
     if not can_has_game then
-        -- local nogame = require("love.nogame")
-        -- nogame()
+        local nogame = require("love.nogame")
+        nogame()
+
+        print([[LÖVE Potion is an *awesome* framework you can use to make 2D games in Lua.
+https://github.com/lovebrew/lovepotion"
+]])
     end
 end
 
@@ -187,14 +191,17 @@ function love.init()
             video = false,
         },
         audio = {
-            mixwithsystem = true, -- Only relevant for Android / iOS.
-            mic = false, -- Only relevant for Android.
+            mixwithsystem = true,
+            mic = false,
         },
-        console = false, -- Only relevant for windows.
+        system = {
+            speedup = false
+        },
+        console = false,
         identity = false,
         appendidentity = false,
-        externalstorage = false, -- Only relevant for Android.
-        accelerometerjoystick = nil, -- Only relevant for Android / iOS, deprecated.
+        externalstorage = false,
+        accelerometerjoystick = nil,
         gammacorrect = false,
         highdpi = false,
         renderers = nil,
@@ -287,6 +294,10 @@ function love.init()
 
     if love._requestRecordingPermission then
         love._requestRecordingPermission(c.audio and c.audio.mic)
+    end
+
+    if love._setOSSpeedup then
+        love._setOSSpeedup(c.system and c.system.speedup)
     end
 
     -- Gets desired modules.

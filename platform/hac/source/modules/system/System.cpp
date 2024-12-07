@@ -4,14 +4,11 @@ namespace love
 {
     System::System()
     {
-        /* Check if there's a pre-selected user first */
         if (R_FAILED(accountGetPreselectedUser(&this->account)))
         {
-            /* Create player selection UI settings */
-            PselUiSettings settings;
-            pselUiCreate(&settings, PselUiMode_UserSelector);
+            PselUiSettings settings {};
 
-            /* Ask for a user account */
+            pselUiCreate(&settings, PselUiMode_UserSelector);
             pselUiShow(&settings, &this->account);
         }
     }

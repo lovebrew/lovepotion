@@ -43,6 +43,7 @@ namespace love
 
     void Framebuffer::calculateBounds(const Rect& bounds, Rect& out, const int width, const int height)
     {
+        std::printf("%dx%d\n", width, height);
         // clang-format off
         const uint32_t left   = height > (bounds.y + bounds.h) ? height - (bounds.y + bounds.h) : 0;
         const uint32_t top    = width  > (bounds.x + bounds.w) ? width - (bounds.x + bounds.w) : 0;

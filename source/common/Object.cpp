@@ -1,4 +1,5 @@
 #include "common/Object.hpp"
+#include "common/Exception.hpp"
 
 namespace love
 {

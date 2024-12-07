@@ -371,6 +371,7 @@ namespace love
             return;
 
         this->flushBatchedDraws();
+        gx2.deInitialize();
     }
 
     bool Graphics::isActive() const

@@ -179,6 +179,5 @@ function love_math.linearToGamma(r, g, b, a)
 	end
 	return linearToGamma(r), linearToGamma(g), linearToGamma(b), a
 end
-
 -- DO NOT REMOVE THE NEXT LINE. It is used to load this file as a C++ string.
 --)luastring"--"

@@ -46,6 +46,7 @@ namespace love
     Module::~Module()
     {
         ModuleRegistry& registry = registryInstance();
+
         for (auto it = registry.begin(); it != registry.end(); ++it)
         {
             if (it->second == this)
@@ -74,7 +75,7 @@ namespace love
 
         if (iterator != registry.end())
         {
-            if (iterator->second != instance)
+            if (iterator->second == instance)
                 return;
 
             throw Exception(W_MODULE_REGISTERED, instance->getName());
@@ -86,7 +87,7 @@ namespace love
         if (type != M_UNKNOWN)
         {
             if (instances[type] != nullptr)
-                printf(W_MODULE_OVERRIDE, instances[type]->getName(), instance->getName());
+                std::printf(W_MODULE_OVERRIDE, instances[type]->getName(), instance->getName());
 
             instances[type] = instance;
         }

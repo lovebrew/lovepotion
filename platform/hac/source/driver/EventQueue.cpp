@@ -8,7 +8,12 @@
 
 namespace love
 {
-    EventQueue::EventQueue() : EventQueueBase<EventQueue>()
+    EventQueue::EventQueue() :
+        EventQueueBase<EventQueue>(),
+        padStyleUpdates {},
+        previousTouchCount(0),
+        touches {},
+        oldTouches {}
     {
         // for (int index = 0; index < 0x08; index++)
         // {
@@ -76,6 +81,56 @@ namespace love
     void EventQueue::pollInternal()
     {
         checkFocus();
+
+        hidGetTouchScreenStates(&this->touchState, 1);
+        const auto touchCount = this->touchState.count;
+
+        if (touchCount > 0)
+        {
+            for (int id = 0; id < touchCount; id++)
+            {
+                auto touchType = SUBTYPE_TOUCHPRESS;
+
+                if (touchCount > this->previousTouchCount && id >= this->previousTouchCount)
+                {
+                    this->touches[id]    = this->touchState.touches[id];
+                    this->oldTouches[id] = this->touches[id];
+
+                    touchType = SUBTYPE_TOUCHPRESS;
+                }
+                else
+                {
+                    this->oldTouches[id] = this->touches[id];
+                    this->touches[id]    = this->touchState.touches[id];
+
+                    touchType = SUBTYPE_TOUCHMOVED;
+                }
+
+                float x = this->touches[id].x, y = this->touches[id].y;
+
+                int32_t dx = this->touches[id].x - this->oldTouches[id].x;
+                int32_t dy = (int32_t)this->touches[id].y - this->oldTouches[id].y;
+
+                this->sendTouchEvent(touchType, id, x, y, dx, dy, 1.0f);
+
+                if (touchType == SUBTYPE_TOUCHMOVED && !dx && !dy)
+                {
+                    this->events.pop_back();
+                    continue;
+                }
+            }
+        }
+
+        if (touchCount < this->previousTouchCount)
+        {
+            for (int id = 0; id < this->previousTouchCount; ++id)
+            {
+                float x = this->touches[id].x, y = this->touches[id].y;
+                this->sendTouchEvent(SUBTYPE_TOUCHRELEASE, id, x, y, 0.0f, 0.0f, 0.0f);
+            }
+        }
+
+        this->previousTouchCount = touchCount;
 
         if (!JOYSTICK_MODULE())
             return;

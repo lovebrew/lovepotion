@@ -17,6 +17,24 @@ namespace love
         this->graphics.set(nullptr);
     }
 
+    void Window::close()
+    {
+        this->close(true);
+    }
+
+    void Window::close(bool allowExceptions)
+    {
+        if (this->graphics.get())
+        {
+            if (allowExceptions && this->graphics->isRenderTargetActive())
+                throw love::Exception(E_WINDOW_CLOSING_RENDERTARGET_ACTIVE);
+
+            this->graphics->unsetMode();
+        }
+
+        this->open = false;
+    }
+
     bool Window::setWindow(int width, int height, WindowSettings* settings)
     {
         if (!this->graphics.get())

@@ -94,10 +94,6 @@ static Keyboard::KeyboardResult textInputValidationCallback(const Keyboard::Keyb
 
 int Wrap_Keyboard::setTextInput(lua_State* L)
 {
-    // clang-format off
-    luax_checktablefields<Keyboard::KeyboardOption>(L, 1, "keyboard option", Keyboard::getConstant);
-    // clang-format on
-
     Keyboard::KeyboardOptions options {
         type : Keyboard::TYPE_NORMAL,
         password : false,
@@ -106,7 +102,21 @@ int Wrap_Keyboard::setTextInput(lua_State* L)
         callback : nullptr
     };
 
-    lua_getfield(L, 1, Keyboard::getConstant(Keyboard::OPTION_TYPE));
+    bool enable = luax_checkboolean(L, 1);
+
+    if (lua_gettop(L) <= 1)
+    {
+        if (enable)
+            instance()->setTextInput(options);
+
+        return 0;
+    }
+
+    // clang-format off
+    luax_checktablefields<Keyboard::KeyboardOption>(L, 2, "keyboard option", Keyboard::getConstant);
+    // clang-format on
+
+    lua_getfield(L, 2, Keyboard::getConstant(Keyboard::OPTION_TYPE));
     if (!lua_isnoneornil(L, -1))
     {
         const char* string = luaL_checkstring(L, -1);
@@ -119,22 +129,22 @@ int Wrap_Keyboard::setTextInput(lua_State* L)
     }
     lua_pop(L, 1);
 
-    lua_getfield(L, 1, Keyboard::getConstant(Keyboard::OPTION_PASSCODE));
+    lua_getfield(L, 2, Keyboard::getConstant(Keyboard::OPTION_PASSCODE));
     if (!lua_isnoneornil(L, -1))
         options.password = luax_checkboolean(L, -1);
     lua_pop(L, 1);
 
-    lua_getfield(L, 1, Keyboard::getConstant(Keyboard::OPTION_HINT));
+    lua_getfield(L, 2, Keyboard::getConstant(Keyboard::OPTION_HINT));
     if (!lua_isnoneornil(L, -1))
         options.hint = luax_checkstring(L, -1);
     lua_pop(L, 1);
 
-    lua_getfield(L, 1, Keyboard::getConstant(Keyboard::OPTION_MAX_LENGTH));
+    lua_getfield(L, 2, Keyboard::getConstant(Keyboard::OPTION_MAX_LENGTH));
     if (!lua_isnoneornil(L, -1))
         options.maxLength = luaL_checkinteger(L, -1);
     lua_pop(L, 1);
 
-    lua_getfield(L, 1, Keyboard::getConstant(Keyboard::OPTION_CALLBACK));
+    lua_getfield(L, 2, Keyboard::getConstant(Keyboard::OPTION_CALLBACK));
     if (!lua_isnoneornil(L, -1))
     {
         Keyboard::KeyboardValidationInfo info {};
@@ -150,7 +160,8 @@ int Wrap_Keyboard::setTextInput(lua_State* L)
     }
     lua_pop(L, 1);
 
-    instance()->setTextInput(options);
+    if (enable)
+        instance()->setTextInput(options);
 
     return 0;
 }
