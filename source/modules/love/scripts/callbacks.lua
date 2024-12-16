@@ -225,11 +225,12 @@ end
 function love.run()
     if love.load then
         love.load(love.parsedGameArguments, love.rawGameArguments)
-        -- https://love2d.org/wiki/love.joystickadded
-        -- This callback is also triggered after love.load for every Joystick which was already connected when the game started up. 
-        for _, j in ipairs(love.joystick.getJoysticks()) do
-            love.handlers.joystickadded(j)
-        end
+    end
+
+    -- https://love2d.org/wiki/love.joystickadded
+    -- This callback is also triggered after love.load for every Joystick which was already connected when the game started up. 
+    for _, j in ipairs(love.joystick.getJoysticks()) do
+        love.handlers.joystickadded(j)
     end
 
     if love.timer then
