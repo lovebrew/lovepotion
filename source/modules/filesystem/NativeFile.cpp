@@ -8,8 +8,6 @@
 
 namespace love
 {
-    Type NativeFile::type("NativeFile", &FileBase::type);
-
     NativeFile::NativeFile(const std::string& filename, Mode mode) : FileBase(filename), file(nullptr)
     {
         if (!this->open(mode))
