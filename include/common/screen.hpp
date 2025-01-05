@@ -26,34 +26,7 @@ namespace love
 
     std::span<ScreenInfo> getScreenInfo();
 
-    const inline ScreenInfo& getScreenInfo(Screen id)
-    {
-        const auto& info = getScreenInfo();
+    const ScreenInfo& getScreenInfo(Screen id);
 
-        id = (Screen)std::clamp<int8_t>(id, 0, info.size() - 1);
-
-        return info[id];
-    }
-
-    inline Screen getScreenId(std::string_view name)
-    {
-        const auto& info = getScreenInfo();
-
-        for (size_t i = 0; i < info.size(); ++i)
-        {
-            if (info[i].name == name)
-                return Screen(i);
-        }
-
-        return INVALID_SCREEN;
-    }
-
-    inline void setScreen(Screen id)
-    {
-        const auto& info = getScreenInfo();
-
-        id = (Screen)std::clamp<int8_t>(id, 0, info.size() - 1);
-
-        currentScreen = id;
-    }
+    Screen getScreenId(const std::string& name);
 } // namespace love

@@ -84,8 +84,7 @@ int Wrap_DataModule::decompress(lua_State* L)
         else
             cBytes = luaL_checklstring(L, 3, &compressedSize);
 
-        luax_catchexcept(
-            L, [&] { rawBytes = data::decompress(format, cBytes, compressedSize, size); });
+        luax_catchexcept(L, [&] { rawBytes = data::decompress(format, cBytes, compressedSize, size); });
     }
 
     if (containerType == data::CONTAINER_DATA)
@@ -131,8 +130,7 @@ int Wrap_DataModule::encode(lua_State* L)
     size_t dstLength = 0;
     char* dst        = nullptr;
 
-    luax_catchexcept(L,
-                     [&] { dst = data::encode(format, source, srcLength, dstLength, lineLength); });
+    luax_catchexcept(L, [&] { dst = data::encode(format, source, srcLength, dstLength, lineLength); });
 
     if (containerType == data::CONTAINER_DATA)
     {
@@ -363,7 +361,7 @@ int Wrap_DataModule::newDataView(lua_State* L)
     auto* data = luax_checkdata(L, 1);
 
     lua_Integer offset = luaL_checkinteger(L, 2);
-    lua_Integer size   = luaL_checkinteger(L, 3);
+    lua_Integer size   = luaL_optinteger(L, 3, data->getSize() - offset);
 
     if (offset < 0 || size < 0)
         return luaL_error(L, "DataView offset and size must not be negative.");

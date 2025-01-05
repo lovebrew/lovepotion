@@ -14,7 +14,7 @@ namespace love
         return fs != nullptr && fs->setupWriteDirectory();
     }
 
-    File::File(std::string_view filename, Mode mode) : FileBase(filename), file(nullptr)
+    File::File(const std::string& filename, Mode mode) : FileBase(filename), file(nullptr)
     {
         if (!this->open(mode))
             throw love::Exception(E_COULD_NOT_OPEN_FILE, filename);
@@ -137,7 +137,7 @@ namespace love
     int64_t File::read(void* destination, int64_t size)
     {
         if (!this->file || this->mode != MODE_READ)
-            throw love::Exception("File is not opened for reading.");
+            throw love::Exception(E_FILE_NOT_OPEN_FOR_READING);
 
         if (size < 0)
             throw love::Exception(E_INVALID_READ_SIZE);

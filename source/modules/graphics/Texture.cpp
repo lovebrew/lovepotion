@@ -329,6 +329,7 @@ namespace love
         }
 
         this->validateDimensions(true);
+        this->samplerState = graphics->getDefaultSamplerState();
 
         if (this->getMipmapCount() == 1)
             this->samplerState.mipmapFilter = SamplerState::MIPMAP_FILTER_NONE;

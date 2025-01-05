@@ -13,7 +13,7 @@ namespace love
 
     bool luax_cangetfiledata(lua_State* L, int idx);
 
-    File* luax_getfile(lua_State* L, int index);
+    FileBase* luax_getfile(lua_State* L, int index);
 
     bool luax_cangetfile(lua_State* L, int idx);
 
@@ -51,6 +51,8 @@ namespace Wrap_Filesystem
     int unmountCommonPath(lua_State* L);
 
     int openFile(lua_State* L);
+
+    int openNativeFile(lua_State* L);
 
     int getFullCommonPath(lua_State* L);
 

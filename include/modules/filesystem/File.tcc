@@ -23,6 +23,8 @@ namespace love
         static constexpr int64_t MAX_FILE_SIZE = 0x20000000000000LL;
         static constexpr int64_t MAX_MODTIME   = 0x20000000000000LL;
 
+        static constexpr int64_t SIZE_ALL = -1;
+
         enum Mode
         {
             MODE_CLOSED,
@@ -40,7 +42,7 @@ namespace love
             BUFFER_MAX_ENUM
         };
 
-        FileBase(std::string_view filename) :
+        FileBase(const std::string& filename) :
             filename(filename),
             mode(MODE_CLOSED),
             bufferMode(BUFFER_NONE),
@@ -82,59 +84,23 @@ namespace love
 
         virtual bool isOpen() const = 0;
 
-        FileData* read(int64_t size)
-        {
-            bool isOpen = this->isOpen();
-
-            if (!isOpen && !this->open(MODE_READ))
-                throw love::Exception("Could not read file {}.", this->getFilename());
-
-            int64_t max     = this->getSize();
-            int64_t current = this->tell();
-
-            if (size < 0)
-                throw love::Exception("Invalid read size.");
-
-            current = std::clamp(current, (int64_t)0, max);
-
-            if (current + size > max)
-                size = max - current;
-
-            StrongRef<FileData> data(new FileData(size, this->getFilename()), Acquire::NO_RETAIN);
-            int64_t bytesRead = this->read(data->getData(), size);
-
-            if (bytesRead < 0 || (bytesRead == 0 && bytesRead != size))
-            {
-                delete data;
-                throw love::Exception("Could not read from file");
-            }
-
-            if (bytesRead < size)
-            {
-                // clang-format off
-                StrongRef<FileData> temp(new FileData(bytesRead, this->getFilename()), Acquire::NO_RETAIN);
-                std::memcpy(temp->getData(), data->getData(), bytesRead);
-                // clang-format on
-
-                data = temp;
-            }
-
-            if (!isOpen)
-                this->close();
-
-            data->retain();
-            return data;
-        }
+        FileData* read(int64_t size);
 
         FileData* read()
         {
-            return this->read(this->getSize());
+            return this->read(SIZE_ALL);
         }
 
         Mode getMode() const
         {
             return this->mode;
         }
+
+        virtual bool isEOF() = 0;
+
+        virtual bool setBuffer(BufferMode bufferMode, int64_t size) = 0;
+
+        virtual BufferMode getBuffer(int64_t& size) const = 0;
 
         virtual const std::string& getFilename() const = 0;
 

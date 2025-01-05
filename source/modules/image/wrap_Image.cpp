@@ -1,3 +1,4 @@
+#include "common/Console.hpp"
 #include "common/Data.hpp"
 
 #include "modules/image/wrap_CompressedImageData.hpp"
@@ -53,7 +54,28 @@ int Wrap_Image::newImageData(lua_State* L)
                 return luaL_error(L, "Data size does not match ImageData size.");
             }
 
-            std::memcpy(imageData->getData(), bytes, imageData->getSize());
+            if constexpr (Console::is(Console::CTR))
+            {
+                luax_catchexcept(L, [&]() {
+                    switch (format)
+                    {
+                        case PIXELFORMAT_RGB565_UNORM:
+                        case PIXELFORMAT_RGB5A1_UNORM:
+                        case PIXELFORMAT_RGBA4_UNORM:
+                            imageData->copyBytesTiled<uint16_t>(bytes, width, height);
+                            break;
+                        case PIXELFORMAT_LA8_UNORM:
+                            imageData->copyBytesTiled<uint8_t>(bytes, width, height);
+                            break;
+                        case PIXELFORMAT_RGBA8_UNORM:
+                        default:
+                            imageData->copyBytesTiled<uint32_t>(bytes, width, height);
+                            break;
+                    }
+                });
+            }
+            else
+                std::memcpy(imageData->getData(), bytes, imageData->getSize());
         }
 
         luax_pushtype(L, imageData);

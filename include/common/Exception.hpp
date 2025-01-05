@@ -30,14 +30,13 @@ namespace love
 
 #if __DEBUG__
     #include <cstdio>
-    #define __FILENAME__ (__FILE__ + (sizeof(__FILE__) - 1) - sizeof(basename(__FILE__)))
 
     // Macro to log to both stdout and a debug.log file
-    #define LOG(format, ...)                                                        \
-        do                                                                          \
-        {                                                                           \
-            static const char* data = "[C++] %s %s:%d: " format "\n";               \
-            std::printf(data, __FILENAME__, __FUNCTION__, __LINE__, ##__VA_ARGS__); \
+    #define LOG(format, ...)                                                    \
+        do                                                                      \
+        {                                                                       \
+            static const char* data = "[C++] %s %s:%d: " format "\n";           \
+            std::printf(data, __FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__); \
         } while (0)
 #endif
 } // namespace love

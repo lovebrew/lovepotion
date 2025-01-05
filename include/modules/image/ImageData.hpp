@@ -2,9 +2,11 @@
 
 #include "common/Color.hpp"
 #include "common/Data.hpp"
+#include "common/Exception.hpp"
 #include "common/Map.hpp"
 #include "common/float.hpp"
 #include "common/int.hpp"
+#include "common/math.hpp"
 #include "common/pixelformat.hpp"
 
 #include "modules/filesystem/FileData.hpp"
@@ -13,6 +15,8 @@
 
 #include "modules/image/FormatHandler.hpp"
 #include "modules/image/ImageDataBase.hpp"
+
+#define E_IMAGEDATA_NOT_MULTIPLE_OF_8 "ImageData only supports sizes that are multiples of 8."
 
 namespace love
 {
@@ -87,6 +91,26 @@ namespace love
             { "exr", FormatHandler::ENCODED_EXR }
         );
         // clang-format on
+
+        template<typename T>
+        void copyBytesTiled(const void* buffer, const int width, const int height)
+        {
+            if (width % 8 != 0 && height % 8 != 0)
+                throw love::Exception(E_IMAGEDATA_NOT_MULTIPLE_OF_8);
+
+            const auto nextWidth = NextPo2(width);
+
+            auto* destination  = (T*)this->data;
+            const auto* source = (const T*)buffer;
+
+            for (int j = 0; j < height; j += 8)
+            {
+                std::copy(source, source + width * 8, destination);
+
+                source += width * 8;
+                destination += nextWidth * 8;
+            }
+        }
 
       private:
         void create(int width, int height, PixelFormat format, void* data = nullptr);

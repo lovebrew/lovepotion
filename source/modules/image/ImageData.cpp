@@ -5,9 +5,8 @@
 #include "modules/image/Image.hpp"
 #include "modules/image/ImageData.hpp"
 
-#define E_PIXELFORMAT_NOT_SUPPORTED   "ImageData does not support the {:s} pixel format."
-#define E_IMAGEDATA_NOT_MULTIPLE_OF_8 "ImageData only supports sizes that are multiples of 8."
-#define E_LOVE_IMAGE_NOT_LOADED       "love.image must be loaded in order to {:s} an ImageData."
+#define E_PIXELFORMAT_NOT_SUPPORTED "ImageData does not support the {:s} pixel format."
+#define E_LOVE_IMAGE_NOT_LOADED     "love.image must be loaded in order to {:s} an ImageData."
 #define E_LOVE_FILESYSTEM_NOT_LOADED \
     "love.filesystem must be loaded in order to write an encoded ImageData to a file."
 #define E_CANNOT_CONVERT_FROM_FORMAT \
@@ -70,26 +69,6 @@ namespace love
         return new ImageData(*this);
     }
 
-    template<typename T>
-    void copyBytesTiled(const void* data, const void* buffer, const int width, const int height)
-    {
-        if (width % 8 != 0 && height % 8 != 0)
-            throw love::Exception(E_IMAGEDATA_NOT_MULTIPLE_OF_8);
-
-        const auto nextWidth = NextPo2(width);
-
-        auto* destination = (T*)data;
-        const T* source   = (const T*)buffer;
-
-        for (int j = 0; j < height; j += 8)
-        {
-            std::memcpy(destination, source, width * 8 * sizeof(T));
-
-            source += width * 8;
-            destination += nextWidth * 8;
-        }
-    }
-
     static constexpr bool needsPowTwo = (Console::is(Console::CTR) ? true : false);
 
     void ImageData::create(int width, int height, PixelFormat format, void* data)
@@ -109,10 +88,21 @@ namespace love
         {
             if constexpr (Console::is(Console::CTR))
             {
-                if (format == PIXELFORMAT_RGB565_UNORM)
-                    copyBytesTiled<uint16_t>(this->data, data, width, height);
-                else
-                    copyBytesTiled<uint32_t>(this->data, data, width, height);
+                switch (format)
+                {
+                    case PIXELFORMAT_RGB565_UNORM:
+                    case PIXELFORMAT_RGB5A1_UNORM:
+                    case PIXELFORMAT_RGBA4_UNORM:
+                        this->copyBytesTiled<uint16_t>(data, width, height);
+                        break;
+                    case PIXELFORMAT_LA8_UNORM:
+                        this->copyBytesTiled<uint8_t>(data, width, height);
+                        break;
+                    case PIXELFORMAT_RGBA8_UNORM:
+                    default:
+                        this->copyBytesTiled<uint32_t>(data, width, height);
+                        break;
+                }
             }
             else
                 std::memcpy(this->data, data, dataSize);

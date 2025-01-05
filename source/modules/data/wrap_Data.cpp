@@ -8,8 +8,8 @@ int Wrap_Data::getString(lua_State* L)
     auto* self     = luax_checkdata(L, 1);
     int64_t offset = (int64_t)luaL_optnumber(L, 2, 0);
 
-    int64_t size = lua_isnoneornil(L, 3) ? ((int64_t)self->getSize() - offset)
-                                         : (int64_t)luaL_checknumber(L, 3);
+    int64_t size =
+        lua_isnoneornil(L, 3) ? ((int64_t)self->getSize() - offset) : (int64_t)luaL_checknumber(L, 3);
 
     if (size <= 0)
         return luaL_error(L, E_INVALID_SIZE_PARAMETER);
@@ -71,16 +71,22 @@ static int wrap_Data_getT(lua_State* L)
     int64_t offset = (int64_t)luaL_checknumber(L, 2);
     int count      = (int)luaL_optinteger(L, 3, 1);
 
+    const auto size = sizeof(T);
+
     if (count <= 0)
         return luaL_error(L, E_INVALID_COUNT_PARAMETER);
 
-    if (offset < 0 || offset + sizeof(T) * count > (int64_t)self->getSize())
+    if (offset < 0 || offset + size * count > (int64_t)self->getSize())
         return luaL_error(L, E_INVALID_OFFSET_AND_SIZE);
 
-    auto* data = (const T*)((uint8_t*)self->getData() + offset);
+    auto* data = (uint8_t*)self->getData() + offset;
 
     for (int i = 0; i < count; i++)
-        lua_pushnumber(L, (lua_Number)data[i]);
+    {
+        T value {};
+        std::memcpy(&value, data + (i * size), size);
+        lua_pushnumber(L, (lua_Number)value);
+    }
 
     return count;
 }

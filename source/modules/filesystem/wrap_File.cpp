@@ -403,7 +403,7 @@ int Wrap_File::getExtension(lua_State* L)
 }
 
 // clang-format off
-static constexpr luaL_Reg functions[] =
+const luaL_Reg Wrap_File::w_File_functions[16] =
 {
     { "getSize",      Wrap_File::getSize      },
     { "open",         Wrap_File::open         },
@@ -433,6 +433,6 @@ namespace love
 
     int open_file(lua_State* L)
     {
-        return luax_register_type(L, &File::type, functions);
+        return luax_register_type(L, &File::type, Wrap_File::w_File_functions);
     }
 } // namespace love

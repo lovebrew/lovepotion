@@ -155,6 +155,7 @@ namespace love
             int currentTextureUnit = 0;
             std::vector<C3D_Tex*> boundTextures[TEXTURE_MAX_ENUM + 1];
             TexEnvMode texEnvMode = TEXENV_MODE_MAX_ENUM;
+            C3D_Tex* boundTexture = nullptr;
         } context;
 
         bool isDefaultFramebufferActive() const;
@@ -168,6 +169,7 @@ namespace love
         {
             this->destroyFramebuffers();
             function();
+            // love::currentScreen = love::Screen(0);
             this->createFramebuffers();
         }
 

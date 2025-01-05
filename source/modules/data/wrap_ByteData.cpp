@@ -51,21 +51,26 @@ static int wrap_ByteData_setT(lua_State* L)
     if (offset < 0 || offset + sizeof(T) * argc > (int64_t)self->getSize())
         return luaL_error(L, E_INVALID_OFFSET_AND_SIZE);
 
-    auto data = (T*)((uint8_t*)self->getData() + offset);
+    auto data       = (uint8_t*)self->getData() + offset;
+    const auto size = sizeof(T);
 
     if (isTable)
     {
         for (int index = 0; index < argc; index++)
         {
             lua_rawgeti(L, 3, index + 1);
-            data[index] = (T)luaL_checknumber(L, -1);
+            T value = (T)luaL_checknumber(L, -1);
+            std::memcpy(data + (index * size), &value, size);
             lua_pop(L, 1);
         }
     }
     else
     {
         for (int index = 0; index < argc; index++)
-            data[index] = (T)luaL_checknumber(L, index + 3);
+        {
+            T value = (T)luaL_checknumber(L, index + 3);
+            std::memcpy(data + (index * size), &value, size);
+        }
     }
 
     return 0;

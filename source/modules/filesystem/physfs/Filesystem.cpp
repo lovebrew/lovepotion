@@ -251,8 +251,8 @@ namespace love
         return this->mountFullPath(realPath.c_str(), mountpoint, permissions, appendtoPath);
     }
 
-    bool Filesystem::mountFullPath(const char* archive, const char* mountpoint,
-                                   MountPermissions permissions, bool appendToPath)
+    bool Filesystem::mountFullPath(const char* archive, const char* mountpoint, MountPermissions permissions,
+                                   bool appendToPath)
     {
         if (!PHYSFS_isInit() || !archive)
             return false;
@@ -264,8 +264,7 @@ namespace love
     }
 
     bool Filesystem::mountCommonPathInternal(CommonPath path, const char* mountPoint,
-                                             MountPermissions permissions, bool appendToPath,
-                                             bool create)
+                                             MountPermissions permissions, bool appendToPath, bool create)
     {
         std::string fullpath = this->getFullCommonPath(path);
 
@@ -289,14 +288,13 @@ namespace love
         return false;
     }
 
-    bool Filesystem::mountCommonPath(CommonPath path, const char* mountPoint,
-                                     MountPermissions permissions, bool appendToPath)
+    bool Filesystem::mountCommonPath(CommonPath path, const char* mountPoint, MountPermissions permissions,
+                                     bool appendToPath)
     {
         return this->mountCommonPathInternal(path, mountPoint, permissions, appendToPath, true);
     }
 
-    bool Filesystem::mount(Data* data, const char* archive, const char* mountpoint,
-                           bool appendToPath)
+    bool Filesystem::mount(Data* data, const char* archive, const char* mountpoint, bool appendToPath)
     {
         if (!PHYSFS_isInit() || !archive)
             return false;
@@ -388,9 +386,14 @@ namespace love
         return false;
     }
 
-    File* Filesystem::openFile(std::string_view filename, File::Mode mode) const
+    FileBase* Filesystem::openFile(const std::string& filename, File::Mode mode) const
     {
         return new File(filename, mode);
+    }
+
+    FileBase* Filesystem::openNativeFile(const std::string& filepath, File::Mode mode) const
+    {
+        return new NativeFile(filepath, mode);
     }
 
     std::string Filesystem::getFullCommonPath(CommonPath path)
@@ -585,21 +588,21 @@ namespace love
         return true;
     }
 
-    FileData* Filesystem::read(std::string_view filename, int64_t size) const
+    FileData* Filesystem::read(const std::string& filename, int64_t size) const
     {
         File file(filename, File::MODE_READ);
 
         return file.read(size);
     }
 
-    FileData* Filesystem::read(std::string_view filename) const
+    FileData* Filesystem::read(const std::string& filename) const
     {
         File file(filename, File::MODE_READ);
 
         return file.read();
     }
 
-    void Filesystem::write(std::string_view filename, const void* data, int64_t size) const
+    void Filesystem::write(const std::string& filename, const void* data, int64_t size) const
     {
         File file(filename, File::MODE_WRITE);
 
@@ -607,7 +610,7 @@ namespace love
             throw love::Exception(E_DATA_NOT_WRITTEN);
     }
 
-    void Filesystem::append(std::string_view filename, const void* data, int64_t size) const
+    void Filesystem::append(const std::string& filename, const void* data, int64_t size) const
     {
         File file(filename, File::MODE_APPEND);
 

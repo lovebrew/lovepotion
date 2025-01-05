@@ -9,7 +9,7 @@ namespace love
     class File : public FileBase
     {
       public:
-        File(std::string_view filename, Mode mode);
+        File(const std::string& filename, Mode mode);
 
         virtual ~File();
 
@@ -37,13 +37,13 @@ namespace love
 
         bool isOpen() const override;
 
-        bool isEOF();
+        bool isEOF() override;
 
-        bool setBuffer(BufferMode mode, int64_t size);
+        bool setBuffer(BufferMode mode, int64_t size) override;
 
-        BufferMode getBuffer(int64_t& size) const;
+        BufferMode getBuffer(int64_t& size) const override;
 
-        const std::string& getFilename() const;
+        const std::string& getFilename() const override;
 
       private:
         File(const File& other);

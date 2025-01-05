@@ -203,15 +203,17 @@ end
 -- Default callbacks.
 -----------------------------------------------------------
 
--- we need to fix some bugs/inconsistencies on Wii U
--- local is_wii_u = love._os == "Cafe"
-
 local function get_3d_depth(screen)
     if love._console ~= "3DS" then
         return nil
     end
 
+    if not love.graphics.is3D() then
+        return nil
+    end
+
     local depth = love.graphics.getDepth()
+
     if screen == "right" then
         depth = -depth
     elseif screen == "bottom" then
@@ -220,8 +222,6 @@ local function get_3d_depth(screen)
 
     return depth
 end
-
--- local copyCurrentScanBuffer = love.graphics.copyCurrentScanBuffer or function() end
 
 function love.run()
     if love.load then

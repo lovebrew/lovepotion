@@ -45,4 +45,6 @@ namespace Wrap_File
     int getFilename(lua_State* L);
 
     int getExtension(lua_State* L);
+
+    extern const luaL_Reg w_File_functions[16];
 } // namespace Wrap_File

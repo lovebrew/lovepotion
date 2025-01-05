@@ -6,6 +6,7 @@
 
 #include "modules/filesystem/wrap_File.hpp"
 #include "modules/filesystem/wrap_FileData.hpp"
+#include "modules/filesystem/wrap_NativeFile.hpp"
 
 #include "common/Console.hpp"
 
@@ -233,11 +234,37 @@ int Wrap_Filesystem::openFile(lua_State* L)
     if (!File::getConstant(modeString, mode))
         return luax_enumerror(L, "file open mode", File::openModes, modeString);
 
-    File* file = nullptr;
+    FileBase* file = nullptr;
 
     try
     {
         file = instance()->openFile(filename, mode);
+    }
+    catch (love::Exception& e)
+    {
+        return luax_ioerror(L, "%s", e.what());
+    }
+
+    luax_pushtype(L, file);
+    file->release();
+
+    return 1;
+}
+
+int Wrap_Filesystem::openNativeFile(lua_State* L)
+{
+    const char* filename   = luaL_checkstring(L, 1);
+    const char* modeString = luaL_checkstring(L, 2);
+
+    File::Mode mode = File::MODE_CLOSED;
+    if (!File::getConstant(modeString, mode))
+        return luax_enumerror(L, "file open mode", File::openModes, modeString);
+
+    FileBase* file = nullptr;
+
+    try
+    {
+        file = instance()->openNativeFile(filename, mode);
     }
     catch (love::Exception& e)
     {
@@ -451,7 +478,7 @@ int Wrap_Filesystem::lines(lua_State* L)
 {
     if (lua_isstring(L, 1))
     {
-        File* file = nullptr;
+        FileBase* file = nullptr;
 
         const char* filename = luaL_checkstring(L, 1);
         luax_catchexcept(L, [&] { file = instance()->openFile(filename, File::MODE_READ); });
@@ -764,9 +791,9 @@ static int loader(lua_State* L)
 
 namespace love
 {
-    File* luax_getfile(lua_State* L, int index)
+    FileBase* luax_getfile(lua_State* L, int index)
     {
-        File* result = nullptr;
+        FileBase* result = nullptr;
 
         if (lua_isstring(L, index))
         {
@@ -793,7 +820,7 @@ namespace love
     FileData* luax_getfiledata(lua_State* L, int index, bool ioerror, int& results)
     {
         FileData* data = nullptr;
-        File* file     = nullptr;
+        FileBase* file = nullptr;
         results        = 0;
 
         if (lua_isstring(L, index) || luax_istype(L, index, File::type))
@@ -841,8 +868,8 @@ namespace love
 
     Data* luax_getdata(lua_State* L, int index)
     {
-        Data* data = nullptr;
-        File* file = nullptr;
+        Data* data     = nullptr;
+        FileBase* file = nullptr;
 
         if (lua_isstring(L, index) || luax_istype(L, index, File::type))
             file = luax_getfile(L, index);
@@ -912,6 +939,7 @@ static constexpr luaL_Reg functions[]
     { "setRequirePath",         Wrap_Filesystem::setRequirePath         },
     { "getRequirePath",         Wrap_Filesystem::getRequirePath         },
     { "openFile",               Wrap_Filesystem::openFile               },
+    { "openNativeFile",         Wrap_Filesystem::openNativeFile         },
     { "newFileData",            Wrap_Filesystem::newFileData            },
     { "getDirectoryItems",      Wrap_Filesystem::getDirectoryItems      },
     { "createDirectory",        Wrap_Filesystem::createDirectory        },
@@ -934,7 +962,8 @@ static constexpr luaL_Reg functions[]
 static constexpr lua_CFunction types[] =
 {
     love::open_file,
-    love::open_filedata
+    love::open_filedata,
+    love::open_nativefile
 };
 // clang-format on
 

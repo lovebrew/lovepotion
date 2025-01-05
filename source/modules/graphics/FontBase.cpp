@@ -399,8 +399,11 @@ namespace love
                     auto end        = start + range.getSize();
                     float numspaces = std::count(start, end, ' ');
 
+                    if (text.codepoints[range.last] == ' ')
+                        --numspaces;
+
                     if (width < wrap && numspaces >= 1)
-                        extraspacing = (wrap - width) / numspaces;
+                        extraspacing = (wrap - width) / (numspaces - 1);
                     else
                         extraspacing = 0.0f;
 

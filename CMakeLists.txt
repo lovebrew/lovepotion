@@ -406,6 +406,7 @@ source/common/Module.cpp
 source/common/Object.cpp
 source/common/pixelformat.cpp
 source/common/Reference.cpp
+source/common/screen.cpp
 source/common/Stream.cpp
 source/common/types.cpp
 source/common/Variant.cpp
@@ -428,9 +429,12 @@ source/modules/data/wrap_DataView.cpp
 source/modules/event/Event.cpp
 source/modules/event/wrap_Event.cpp
 source/modules/filesystem/FileData.cpp
+source/modules/filesystem/File.cpp
+source/modules/filesystem/NativeFile.cpp
 source/modules/filesystem/wrap_File.cpp
 source/modules/filesystem/wrap_FileData.cpp
 source/modules/filesystem/wrap_Filesystem.cpp
+source/modules/filesystem/wrap_NativeFile.cpp
 source/modules/font/Font.cpp
 source/modules/font/GlyphData.cpp
 source/modules/font/Rasterizer.cpp

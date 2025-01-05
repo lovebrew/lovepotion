@@ -1,6 +1,7 @@
 #pragma once
 
 #include "modules/filesystem/Filesystem.tcc"
+#include "modules/filesystem/NativeFile.hpp"
 #include "modules/filesystem/physfs/File.hpp"
 
 #include <map>
@@ -51,7 +52,9 @@ namespace love
 
         bool unmountFullPath(const char* fullpath);
 
-        File* openFile(std::string_view filename, File::Mode mode) const;
+        FileBase* openFile(const std::string& filename, File::Mode mode) const;
+
+        FileBase* openNativeFile(const std::string& filepath, File::Mode mode) const;
 
         std::string getFullCommonPath(CommonPath path);
 
@@ -75,13 +78,13 @@ namespace love
 
         bool remove(const char* filepath);
 
-        FileData* read(std::string_view filename, int64_t size) const;
+        FileData* read(const std::string& filename, int64_t size) const;
 
-        FileData* read(std::string_view filename) const;
+        FileData* read(const std::string& filename) const;
 
-        void write(std::string_view filename, const void* data, int64_t size) const;
+        void write(const std::string& filename, const void* data, int64_t size) const;
 
-        void append(std::string_view filename, const void* data, int64_t size) const;
+        void append(const std::string& filename, const void* data, int64_t size) const;
 
         bool getDirectoryItems(const char*, std::vector<std::string>& items);
 
@@ -101,9 +104,8 @@ namespace love
             MountPermissions permissions;
         };
 
-        bool mountCommonPathInternal(CommonPath path, const char* mountPoint,
-                                     MountPermissions permissions, bool appendToPath,
-                                     bool createDirectory);
+        bool mountCommonPathInternal(CommonPath path, const char* mountPoint, MountPermissions permissions,
+                                     bool appendToPath, bool createDirectory);
 
         std::string currentDirectory;
 

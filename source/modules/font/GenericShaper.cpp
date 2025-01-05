@@ -30,7 +30,8 @@ namespace love
         }
 
         // Spacing counter and newline handling.
-        Vector2 curpos = offset;
+        Vector2 curpos         = offset;
+        float spacingRemainder = 0.0f;
 
         int maxwidth       = 0;
         uint32_t prevglyph = 0;
@@ -109,7 +110,11 @@ namespace love
 
             // Account for extra spacing given to space characters.
             if (g == ' ' && extraspacing != 0.0f)
-                curpos.x = floorf(curpos.x + extraspacing);
+            {
+                spacingRemainder += fmod(extraspacing, 1);
+                curpos.x += floorf(extraspacing) + floorf(spacingRemainder);
+                spacingRemainder = fmod(spacingRemainder, 1);
+            }
 
             prevglyph = g;
         }

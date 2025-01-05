@@ -78,8 +78,6 @@ namespace love
             this->context.boundTextures[i].clear();
             this->context.boundTextures[i].resize(3, nullptr);
         }
-
-        this->bindFramebuffer(this->targets[0].get());
     }
 
     void citro3d::deInitialize()
@@ -92,16 +90,11 @@ namespace love
 
     void citro3d::createFramebuffers()
     {
-        const auto& info             = getScreenInfo();
+        const auto info              = getScreenInfo();
         const size_t numFramebuffers = info.size();
 
         for (size_t index = 0; index < numFramebuffers; ++index)
-        {
-            Framebuffer target {};
-            target.create(info[index]);
-
-            this->targets.push_back(std::move(target));
-        }
+            this->targets[index].create(info[index]);
     }
 
     void citro3d::destroyFramebuffers()
@@ -137,7 +130,7 @@ namespace love
 
     void citro3d::clear(const Color& color)
     {
-        if (!this->inFrame)
+        if (!this->inFrame || !this->context.boundFramebuffer)
             return;
 
         C3D_RenderTargetClear(this->getFramebuffer(), C3D_CLEAR_ALL, color.abgr(), 0);
@@ -212,6 +205,9 @@ namespace love
 
     void citro3d::setScissor(const Rect& scissor)
     {
+        if (!this->context.boundFramebuffer)
+            return;
+
         const int width  = this->context.boundFramebuffer->frameBuf.height;
         const int height = this->context.boundFramebuffer->frameBuf.width;
 
@@ -321,9 +317,13 @@ namespace love
         if (texture == nullptr)
             return this->updateTexEnvMode(TEXENV_MODE_PRIMITIVE);
 
+        if (texture == this->context.boundTexture)
+            return;
+
         isFont ? this->updateTexEnvMode(TEXENV_MODE_FONT) : this->updateTexEnvMode(TEXENV_MODE_TEXTURE);
 
         C3D_TexBind(0, texture);
+        this->context.boundTexture = texture;
     }
 
     void citro3d::bindTextureToUnit(TextureBase* texture, int unit, bool isFont)
