@@ -1,6 +1,7 @@
 #include "common/Console.hpp"
 
 #include "modules/filesystem/physfs/Filesystem.hpp"
+#include "modules/filesystem/physfs/PhysfsIO.hpp"
 
 #include <filesystem>
 #include <physfs.h>
@@ -179,8 +180,24 @@ namespace love
             return false;
 
         std::string searchPath = source;
+
         if (!PHYSFS_mount(searchPath.c_str(), nullptr, 1))
-            return false;
+        {
+            auto* io = StripSuffixIo::create(searchPath);
+            if (!io->determineStrippedLength())
+            {
+                delete io;
+                return false;
+            }
+
+            if (!PHYSFS_mountIo(io, io->filename.c_str(), nullptr, 1))
+            {
+                delete io;
+                return false;
+            }
+
+            return true;
+        }
 
         this->source = searchPath;
 

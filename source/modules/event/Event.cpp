@@ -1,3 +1,4 @@
+#include "common/StrongRef.hpp"
 #include "driver/EventQueue.hpp"
 
 #include "modules/event/Event.hpp"
@@ -309,13 +310,10 @@ namespace love
     {
         while (EventQueue::getInstance().poll(&this->event))
         {
-            Message* message = convert(this->event);
+            StrongRef<Message> message(convert(this->event), Acquire::NO_RETAIN);
 
             if (message)
-            {
                 this->push(message);
-                message->release();
-            }
         }
     }
 

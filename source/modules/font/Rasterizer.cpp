@@ -6,9 +6,6 @@ namespace love
 {
     Type Rasterizer::type("Rasterizer", &Object::type);
 
-    Rasterizer::~Rasterizer()
-    {}
-
     GlyphData* Rasterizer::getGlyphData(uint32_t glyph) const
     {
         return this->getGlyphDataForIndex(this->getGlyphIndex(glyph));

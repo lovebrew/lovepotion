@@ -14,7 +14,7 @@ namespace love
       public:
         static Type type;
 
-        FileData(uint64_t size, std::string_view filename);
+        FileData(uint64_t size, const std::string& filename);
 
         FileData(const FileData& other);
 

@@ -539,8 +539,12 @@ namespace love
 
                 while (lua_next(L, index))
                 {
-                    table->pairs.emplace_back(luax_checkvariant(L, -2, allowuserdata, tableSet),
-                                              luax_checkvariant(L, -1, allowuserdata, tableSet));
+                    // clang-format off
+                    table->pairs.emplace_back(
+                        luax_checkvariant(L, -2, allowuserdata, tableSet),
+                        luax_checkvariant(L, -1, allowuserdata, tableSet)
+                    );
+                    // clang-format on
                     lua_pop(L, 1);
 
                     const auto& p = table->pairs.back();

@@ -14,6 +14,8 @@ extern "C"
 #include <lualib.h>
 }
 
+#include "common/Exception.hpp"
+
 enum DoneAction
 {
     DONE_QUIT,
@@ -22,12 +24,6 @@ enum DoneAction
 
 static DoneAction runLove(char** argv, int argc, int& result, love::Variant& restartValue)
 {
-    if (love::preInit() != 0)
-    {
-        love::onExit();
-        return DONE_QUIT;
-    }
-
     lua_State* L = luaL_newstate();
     luaL_openlibs(L);
     luaopen_bit(L);
@@ -93,12 +89,18 @@ static DoneAction runLove(char** argv, int argc, int& result, love::Variant& res
     int results  = 0;
 
     while (love::mainLoop(L, 0, &results))
+    {
+#if LUA_VERSION_NUM >= 504
+        lua_pop(L, results)
+#else
         lua_pop(L, lua_gettop(L) - position);
+#endif
+    }
 
     result            = 0;
     DoneAction action = DONE_QUIT;
 
-    int index = position;
+    const auto index = position;
     if (!lua_isnoneornil(L, index))
     {
         if (lua_type(L, index) == LUA_TSTRING && strcmp(lua_tostring(L, index), "restart") == 0)
@@ -112,13 +114,18 @@ static DoneAction runLove(char** argv, int argc, int& result, love::Variant& res
     }
 
     lua_close(L);
-    love::onExit();
 
     return action;
 }
 
 int main(int argc, char** argv)
 {
+    if (love::preInit() != 0)
+    {
+        love::onExit();
+        return 0;
+    }
+
     int result        = 0;
     DoneAction action = DONE_QUIT;
     love::Variant restartValue;
@@ -127,6 +134,8 @@ int main(int argc, char** argv)
     {
         action = runLove(argv, argc, result, restartValue);
     } while (action != DONE_QUIT);
+
+    love::onExit();
 
     return result;
 }

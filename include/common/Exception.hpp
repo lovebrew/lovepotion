@@ -31,7 +31,6 @@ namespace love
 #if __DEBUG__
     #include <cstdio>
 
-    // Macro to log to both stdout and a debug.log file
     #define LOG(format, ...)                                                    \
         do                                                                      \
         {                                                                       \

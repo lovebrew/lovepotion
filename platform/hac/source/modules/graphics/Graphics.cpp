@@ -32,9 +32,6 @@ namespace love
         }
     }
 
-    void Graphics::captureScreenshot(const ScreenshotInfo& info)
-    {}
-
     void Graphics::initCapabilities()
     {
         // clang-format off
@@ -392,6 +389,8 @@ namespace love
 
         this->flushBatchedDraws();
         d3d.deInitialize();
+
+        this->created = false;
     }
 
     bool Graphics::isActive() const

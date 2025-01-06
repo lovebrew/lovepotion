@@ -10,7 +10,7 @@ namespace love
 {
     Type FileData::type("FileData", &Data::type);
 
-    FileData::FileData(uint64_t size, std::string_view filename) :
+    FileData::FileData(uint64_t size, const std::string& filename) :
         data(nullptr),
         size(size),
         filename(filename)

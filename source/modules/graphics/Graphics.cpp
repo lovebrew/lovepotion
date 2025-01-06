@@ -279,6 +279,11 @@ namespace love
         this->states.back().blend = state;
     }
 
+    void GraphicsBase::captureScreenshot(const ScreenshotInfo& info)
+    {
+        this->pendingScreenshotCallbacks.push_back(info);
+    }
+
     BatchedVertexData GraphicsBase::requestBatchedDraw(const BatchedDrawCommand& command)
     {
         BatchedDrawState& state = this->batchedDrawState;

@@ -14,8 +14,6 @@ namespace love
 
         virtual void initCapabilities() override;
 
-        virtual void captureScreenshot(const ScreenshotInfo& info) override;
-
         virtual void clear(OptionalColor color, OptionalInt stencil, OptionalDouble depth) override;
 
         virtual void clear(const std::vector<OptionalColor>& colors, OptionalInt stencil,

@@ -13,19 +13,20 @@ namespace love
         padStyleUpdates {},
         previousTouchCount(0),
         touches {},
-        oldTouches {}
+        oldTouches {},
+        initAdded(false)
     {
-        // for (int index = 0; index < 0x08; index++)
-        // {
-        //     auto player = HidNpadIdType(HidNpadIdType_No1 + index);
-        //     hidAcquireNpadStyleSetUpdateEventHandle(player, &this->padStyleUpdates[index], true);
-        // }
+        for (int index = 0; index < 0x08; index++)
+        {
+            auto player = HidNpadIdType(HidNpadIdType_No1 + index);
+            hidAcquireNpadStyleSetUpdateEventHandle(player, &this->padStyleUpdates[index], true);
+        }
     }
 
     EventQueue::~EventQueue()
     {
-        // for (int index = 0; index < 0x08; index++)
-        //    eventClose(&this->padStyleUpdates[index]);
+        for (int index = 0; index < 0x08; index++)
+            eventClose(&this->padStyleUpdates[index]);
     }
 
     static void checkFocus()
@@ -137,16 +138,22 @@ namespace love
 
         int current = JOYSTICK_MODULE()->getJoystickCount();
 
-        // for (int index = 0; index < 0x08; index++)
-        // {
-        //     if (R_SUCCEEDED(eventWait(&this->padStyleUpdates[index], 0)))
-        //     {
-        //         int newCount = JOYSTICK_MODULE()->getJoystickCount();
+        for (int index = 0; index < 0x08; index++)
+        {
+            if (R_SUCCEEDED(eventWait(&this->padStyleUpdates[index], 0)))
+            {
+                int newCount = JOYSTICK_MODULE()->getJoystickCount();
 
-        //         if (newCount != current)
-        //             this->sendJoystickStatus(newCount > current, index);
-        //     }
-        // }
+                if (newCount != current)
+                    this->sendJoystickStatus(newCount > current, index);
+
+                if (!initAdded)
+                {
+                    this->sendJoystickStatus(true, index);
+                    initAdded = true;
+                }
+            }
+        }
 
         for (int index = 0; index < current; index++)
         {

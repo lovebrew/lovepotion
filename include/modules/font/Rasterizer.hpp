@@ -47,7 +47,8 @@ namespace love
 
         static Type type;
 
-        virtual ~Rasterizer();
+        virtual ~Rasterizer()
+        {}
 
         virtual int getHeight() const
         {

@@ -128,16 +128,16 @@ function love.createhandlers()
                 return love.gamepadaxis(joystick, axis, value)
             end
         end,
-        -- joystickadded = function(joystick)
-        --     if love.joystickadded then
-        --         return love.joystickadded(joystick)
-        --     end
-        -- end,
-        -- joystickremoved = function(joystick)
-        --     if love.joystickremoved then
-        --         return love.joystickremoved(joystick)
-        --     end
-        -- end,
+        joystickadded = function(joystick)
+            if love.joystickadded then
+                return love.joystickadded(joystick)
+            end
+        end,
+        joystickremoved = function(joystick)
+            if love.joystickremoved then
+                return love.joystickremoved(joystick)
+            end
+        end,
         focus = function(focused)
             if love.focus then
                 return love.focus(focused)

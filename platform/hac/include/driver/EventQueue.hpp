@@ -24,5 +24,7 @@ namespace love
 
         std::array<HidTouchState, MAX_TOUCHES> touches;
         std::array<HidTouchState, MAX_TOUCHES> oldTouches;
+
+        bool initAdded;
     };
 } // namespace love

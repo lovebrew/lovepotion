@@ -498,7 +498,7 @@ namespace love
 
         virtual void setBlendState(const BlendState& blend) = 0;
 
-        virtual void captureScreenshot(const ScreenshotInfo& info) = 0;
+        void captureScreenshot(const ScreenshotInfo& info);
 
         const BlendState& getBlendState() const
         {

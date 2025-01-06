@@ -430,7 +430,9 @@ source/modules/event/Event.cpp
 source/modules/event/wrap_Event.cpp
 source/modules/filesystem/FileData.cpp
 source/modules/filesystem/File.cpp
+source/modules/filesystem/Filesystem.cpp
 source/modules/filesystem/NativeFile.cpp
+source/modules/filesystem/physfs/PhysfsIO.cpp
 source/modules/filesystem/wrap_File.cpp
 source/modules/filesystem/wrap_FileData.cpp
 source/modules/filesystem/wrap_Filesystem.cpp

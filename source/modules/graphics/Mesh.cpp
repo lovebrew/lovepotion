@@ -340,16 +340,16 @@ namespace love
             if (range.isValid())
                 r.intersect(range);
 
-            // DrawCommand command {};
-            // command.primitiveType = this->primitiveType;
-            // command.vertexStart   = (int)r.getOffset();
-            // command.vertexCount   = (int)r.getSize();
-            // command.instanceCount = instanceCount;
-            // command.texture       = this->texture;
-            // command.cullMode      = graphics->getMeshCullMode();
+            DrawCommand command(nullptr);
+            command.primitiveType = this->primitiveType;
+            command.vertexStart   = (int)r.getOffset();
+            command.vertexCount   = (int)r.getSize();
+            command.instanceCount = instanceCount;
+            command.texture       = this->texture;
+            command.cullMode      = graphics->getMeshCullMode();
 
-            // if (command.vertexCount > 0)
-            //     graphics->draw(command);
+            if (command.vertexCount > 0)
+                graphics->draw(command);
         }
     }
 } // namespace love

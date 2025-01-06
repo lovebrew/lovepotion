@@ -36,9 +36,6 @@ namespace love
     Graphics::~Graphics()
     {}
 
-    void Graphics::captureScreenshot(const ScreenshotInfo& info)
-    {}
-
     void Graphics::initCapabilities()
     {
         // clang-format off

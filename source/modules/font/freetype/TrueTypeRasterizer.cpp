@@ -36,7 +36,7 @@ namespace love
         if (err != FT_Err_Ok)
             throw love::Exception(E_TTF_LOAD_FAILED, FT_Error_String(err));
 
-        err = FT_Set_Pixel_Sizes(face, size, size);
+        err = FT_Set_Char_Size(face, size << 6, size << 6, 72 * dpiScale, 72 * dpiScale);
 
         if (err != FT_Err_Ok)
             throw love::Exception(E_TTF_SIZE_FAILED, FT_Error_String(err));
