@@ -99,6 +99,9 @@ namespace love
             event.keyboardInput.text = text;
         }
 
+        virtual void deInitialize()
+        {}
+
       private:
         bool hysteresis;
 
@@ -160,6 +163,7 @@ namespace love
         bool touchHeld;
         bool focused;
 
+        bool initJoysticksAdded;
         std::list<LOVE_Event> events;
     };
 } // namespace love

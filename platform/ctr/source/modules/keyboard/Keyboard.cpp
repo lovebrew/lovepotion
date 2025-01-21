@@ -9,7 +9,8 @@ namespace love
         auto result      = luaCallback->callback(luaCallback, text, msg);
 
         SwkbdCallbackResult out;
-        Keyboard::getConstant(result, out);
+        if (!Keyboard::getConstant(result, out))
+            throw love::Exception("Invalid swkbd result: {:d}", (int)out);
 
         return out;
     }
@@ -35,7 +36,9 @@ namespace love
         swkbdInit(&this->state, type, 2, length);
         swkbdSetInitialText(&this->state, this->text.get());
         swkbdSetHintText(&this->state, options.hint.data());
-        swkbdSetFilterCallback(&this->state, inputCallback, (void*)&options.callback);
+
+        if (options.callback.data)
+            swkbdSetFilterCallback(&this->state, inputCallback, (void*)&options.callback);
 
         if (options.password)
             swkbdSetPasswordMode(&this->state, SWKBD_PASSWORD_HIDE_DELAY);

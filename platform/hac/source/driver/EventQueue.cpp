@@ -13,19 +13,19 @@ namespace love
         padStyleUpdates {},
         previousTouchCount(0),
         touches {},
-        oldTouches {},
-        initAdded(false)
+        oldTouches {}
     {
-        for (int index = 0; index < 0x08; index++)
-        {
-            auto player = HidNpadIdType(HidNpadIdType_No1 + index);
-            hidAcquireNpadStyleSetUpdateEventHandle(player, &this->padStyleUpdates[index], true);
-        }
+        std::array<HidNpadIdType, 9> ids { HidNpadIdType_Handheld, HidNpadIdType_No1, HidNpadIdType_No2,
+                                           HidNpadIdType_No3,      HidNpadIdType_No4, HidNpadIdType_No5,
+                                           HidNpadIdType_No6,      HidNpadIdType_No7, HidNpadIdType_No8 };
+
+        for (int index = 0; index < this->padStyleUpdates.size(); index++)
+            hidAcquireNpadStyleSetUpdateEventHandle(ids[index], &this->padStyleUpdates[index], true);
     }
 
-    EventQueue::~EventQueue()
+    void EventQueue::deInitialize()
     {
-        for (int index = 0; index < 0x08; index++)
+        for (int index = 0; index < this->padStyleUpdates.size(); index++)
             eventClose(&this->padStyleUpdates[index]);
     }
 
@@ -138,7 +138,7 @@ namespace love
 
         int current = JOYSTICK_MODULE()->getJoystickCount();
 
-        for (int index = 0; index < 0x08; index++)
+        for (int index = 0; index < this->padStyleUpdates.size(); index++)
         {
             if (R_SUCCEEDED(eventWait(&this->padStyleUpdates[index], 0)))
             {
@@ -146,12 +146,6 @@ namespace love
 
                 if (newCount != current)
                     this->sendJoystickStatus(newCount > current, index);
-
-                if (!initAdded)
-                {
-                    this->sendJoystickStatus(true, index);
-                    initAdded = true;
-                }
             }
         }
 

@@ -12,27 +12,15 @@ namespace love
     class Shader : public ShaderBase, public Volatile
     {
       public:
-        struct UniformInfo
-        {
-            int8_t location;
-            std::string name;
-        };
-
-        struct Stage
-        {
-            dk::Shader shader;
-            CMemPool::Handle memory;
-        };
-
         struct Program
         {
-            Stage vertex;
-            Stage fragment;
-        } program;
+            dk::Shader vertex;
+            dk::Shader fragment;
+        };
 
-        Shader();
+        Shader(StrongRef<ShaderStageBase> stages[SHADERSTAGE_MAX_ENUM], const CompileOptions& options);
 
-        Shader(StandardShader shader);
+        static const char* getDefaultStagePath(StandardShader shader, ShaderStageType stage);
 
         virtual ~Shader();
 
@@ -44,13 +32,11 @@ namespace love
 
         ptrdiff_t getHandle() const override;
 
-        const UniformInfo getUniform(const std::string& name) const;
-
-        bool hasUniform(const std::string& name) const;
-
         void updateBuiltinUniforms(GraphicsBase* graphics);
 
       private:
-        bool validate(Stage& stage, const char* filepath, std::string& error);
+        void mapActiveUniforms();
+
+        Program program;
     };
 } // namespace love

@@ -412,6 +412,11 @@ namespace love
         }
     }
 
+    Quad* TextureBase::getQuad()
+    {
+        return this->quad;
+    }
+
     void TextureBase::uploadImageData(ImageDataBase* data, int level, int slice, int x, int y)
     {
         Rect rectangle = { x, y, data->getWidth(), data->getHeight() };

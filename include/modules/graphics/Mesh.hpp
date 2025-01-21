@@ -4,6 +4,7 @@
 #include "common/StrongRef.hpp"
 #include "common/int.hpp"
 
+#include "modules/graphics/Buffer.tcc"
 #include "modules/graphics/Drawable.hpp"
 #include "modules/graphics/Texture.tcc"
 
@@ -18,14 +19,17 @@ namespace love
       public:
         static Type type;
 
-        Mesh(GraphicsBase* graphics, const void* data, size_t size, PrimitiveType mode,
-             BufferDataUsage usage);
+        Mesh(GraphicsBase* graphics, const std::vector<BufferBase::DataDeclaration>& format, const void* data,
+             size_t size, PrimitiveType mode, BufferDataUsage usage);
 
-        Mesh(GraphicsBase* graphics, int vertexCount, PrimitiveType mode, BufferDataUsage usage);
+        Mesh(GraphicsBase* graphics, const std::vector<BufferBase::DataDeclaration>& format, int vertexCount,
+             PrimitiveType mode, BufferDataUsage usage);
 
         virtual ~Mesh();
 
         void* checkVertexDataOffset(size_t index, size_t* byteOffset);
+
+        const std::vector<BufferBase::DataMember>& getVertexFormat() const;
 
         size_t getVertexCount() const;
 
@@ -73,12 +77,28 @@ namespace love
 
         void draw(GraphicsBase* graphics, const Matrix4& matrix, int instanceCount);
 
-        // static std::vector<BufferBase::DataDeclaration> getDefaultVertexFormat();
+        static std::vector<BufferBase::DataDeclaration> getDefaultVertexFormat();
 
       private:
+        struct IndexBuffer : public Resource
+        {
+          public:
+            IndexBuffer(const std::vector<uint16_t>& data) : data(data)
+            {}
+
+            ptrdiff_t getHandle() const override
+            {
+                return (ptrdiff_t)this->data.data();
+            }
+
+          private:
+            std::vector<uint16_t> data;
+        };
+
         friend class SpriteBatch;
 
         void drawInternal(GraphicsBase* graphics, const Matrix4& matrix, int instanceCount, int argsIndex);
+        std::vector<BufferBase::DataMember> vertexFormat;
 
         std::vector<Vertex> buffer;
         Vertex* vertexBuffer = nullptr;

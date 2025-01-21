@@ -65,16 +65,18 @@ static Keyboard::KeyboardResult textInputValidationCallback(const Keyboard::Keyb
         luaL_error(L, "Internal error in text input validation callback.");
 
     reference->push(L);
-    delete reference;
 
-    luax_pushstring(L, text);
+    lua_pushstring(L, text);
     lua_call(L, 1, 2);
 
     const char* result = lua_tostring(L, -2);
 
     Keyboard::KeyboardResult out;
     if (!Keyboard::getConstant(result, out))
+    {
         luax_enumerror(L, "keyboard result", Keyboard::KeyboardResults, result);
+        return Keyboard::KeyboardResult::RESULT_CANCEL;
+    }
 
     const char* message = lua_tostring(L, -1);
 
@@ -88,6 +90,9 @@ static Keyboard::KeyboardResult textInputValidationCallback(const Keyboard::Keyb
     }
 
     lua_pop(L, 2);
+
+    if (out == Keyboard::RESULT_OK)
+        delete reference;
 
     return out;
 }
@@ -123,7 +128,7 @@ int Wrap_Keyboard::setTextInput(lua_State* L)
 
         Keyboard::KeyboardType type;
         if (!Keyboard::getConstant(string, type))
-            luax_enumerror(L, "keyboard type", string);
+            return luax_enumerror(L, "keyboard type", string);
 
         options.type = type;
     }
@@ -155,6 +160,7 @@ int Wrap_Keyboard::setTextInput(lua_State* L)
         info.data = luax_refif(L, LUA_TFUNCTION);
         lua_pop(L, 1);
         info.callback = textInputValidationCallback;
+        info.luaState = L;
 
         options.callback = info;
     }

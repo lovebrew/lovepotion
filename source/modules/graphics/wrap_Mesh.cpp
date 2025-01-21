@@ -7,6 +7,53 @@
 
 using namespace love;
 
+int Wrap_Mesh::setVertices(lua_State* L)
+{
+    auto* self = luax_checkmesh(L, 1);
+    int start  = luaL_optnumber(L, 3, 1) - 1;
+
+    int count = -1;
+    if (lua_isnoneornil(L, 4))
+    {
+        count = luaL_checknumber(L, 4);
+        if (count <= 0)
+            return luaL_error(L, "Vertex count must be greater than 0.");
+    }
+
+    size_t stride = self->getVertexStride();
+    size_t offset = start * stride;
+    int total     = self->getVertexCount();
+
+    if (start >= total || start < 0)
+        return luaL_error(L, "Invalid vertex start index (must be between 1 and %d).", total);
+
+    if (luax_istype(L, 2, Data::type))
+    {
+        auto* data = luax_checktype<Data>(L, 2);
+        count      = count >= 0 ? count : (total - start);
+
+        if (start + count > total)
+            return luaL_error(L, "Too many vertices (expected at most %d, got %d).", total - start, count);
+
+        size_t dataSize = std::min(data->getSize(), count * stride);
+        char* byteData  = (char*)self->getVertexData() + offset;
+
+        std::memcpy(byteData, data->getData(), dataSize);
+
+        self->setVertexDataModified(offset, dataSize);
+        self->flush();
+
+        return 0;
+    }
+
+    luaL_checktype(L, 2, LUA_TTABLE);
+    int length = (int)luax_objlen(L, 2);
+
+    count = count >= 0 ? std::min(count, length) : length;
+    if (start + count > total)
+        return luaL_error(L, "Too many vertices (expected at most %d, got %d).", total - start, count);
+}
+
 int Wrap_Mesh::getVertexCount(lua_State* L)
 {
     auto* self = luax_checkmesh(L, 1);

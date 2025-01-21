@@ -57,13 +57,15 @@ namespace love
         this->initialized = true;
     }
 
-    DigitalSound::~DigitalSound()
+    void DigitalSound::deInitialize()
     {
         if (!this->initialized)
             return;
 
         audrvClose(&this->driver);
         audrenExit();
+
+        std::free(DigitalSoundMemory::getInstance().getBaseAddress());
 
         this->initialized = false;
     }

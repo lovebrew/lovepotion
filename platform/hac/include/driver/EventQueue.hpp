@@ -12,19 +12,17 @@ namespace love
       public:
         EventQueue();
 
-        ~EventQueue();
+        void deInitialize() override;
 
         void pollInternal() override;
 
       private:
-        std::array<Event, 8> padStyleUpdates;
+        std::array<Event, 9> padStyleUpdates;
 
         HidTouchScreenState touchState;
         int previousTouchCount;
 
         std::array<HidTouchState, MAX_TOUCHES> touches;
         std::array<HidTouchState, MAX_TOUCHES> oldTouches;
-
-        bool initAdded;
     };
 } // namespace love

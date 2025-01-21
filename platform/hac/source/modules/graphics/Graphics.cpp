@@ -4,6 +4,7 @@
 #include "modules/window/Window.hpp"
 
 #include "modules/graphics/Shader.hpp"
+#include "modules/graphics/ShaderStage.hpp"
 #include "modules/graphics/Texture.hpp"
 #include "modules/graphics/freetype/Font.hpp"
 
@@ -336,6 +337,17 @@ namespace love
         return this->newFont(rasterizer.get());
     }
 
+    ShaderStageBase* Graphics::newShaderStageInternal(ShaderStageType stage, const std::string& filepath)
+    {
+        return new ShaderStage(stage, filepath);
+    }
+
+    ShaderBase* Graphics::newShaderInternal(StrongRef<ShaderStageBase> stages[SHADERSTAGE_MAX_ENUM],
+                                            const ShaderBase::CompileOptions& options)
+    {
+        return new Shader(stages, options);
+    }
+
     bool Graphics::setMode(int width, int height, int pixelWidth, int pixelHeight, bool backBufferStencil,
                            bool backBufferDepth, int msaa)
     {
@@ -364,15 +376,23 @@ namespace love
 
         for (int index = 0; index < Shader::STANDARD_MAX_ENUM; index++)
         {
-            auto type = (Shader::StandardShader)index;
+            const auto type = (Shader::StandardShader)index;
+            if (!Shader::standardShaders[index])
+            {
+                std::vector<std::string> stages {};
+                Shader::CompileOptions options {};
 
-            try
-            {
-                Shader::standardShaders[type] = new Shader(type);
-            }
-            catch (const std::exception& e)
-            {
-                throw;
+                stages.push_back(Shader::getDefaultStagePath(type, SHADERSTAGE_VERTEX));
+                stages.push_back(Shader::getDefaultStagePath(type, SHADERSTAGE_PIXEL));
+
+                try
+                {
+                    Shader::standardShaders[index] = this->newShader(stages, options);
+                }
+                catch (love::Exception&)
+                {
+                    throw;
+                }
             }
         }
 

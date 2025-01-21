@@ -19,8 +19,8 @@ namespace love
 
     Type Mesh::type("Mesh", &Drawable::type);
 
-    Mesh::Mesh(GraphicsBase* graphics, const void* data, size_t size, PrimitiveType mode,
-               BufferDataUsage usage) :
+    Mesh::Mesh(GraphicsBase* graphics, const std::vector<BufferBase::DataDeclaration>& format,
+               const void* data, size_t size, PrimitiveType mode, BufferDataUsage usage) :
         primitiveType(mode)
     {
         if (size == 0)
@@ -29,10 +29,16 @@ namespace love
         size_t vertexCount = size / sizeof(Vertex);
         this->buffer.resize(vertexCount);
 
+        std::memcpy(this->buffer.data(), data, size);
+
+        // this->vertexCount = this->buffer.size();
+        // this->vertexFormat =
+
         this->indexDataType = getIndexDataTypeFromMax(vertexCount);
     }
 
-    Mesh::Mesh(GraphicsBase* graphics, int vertexCount, PrimitiveType mode, BufferDataUsage usage) :
+    Mesh::Mesh(GraphicsBase* graphics, const std::vector<BufferBase::DataDeclaration>& format,
+               int vertexCount, PrimitiveType mode, BufferDataUsage usage) :
         vertexCount((size_t)vertexCount),
         indexDataType(getIndexDataTypeFromMax(vertexCount)),
         primitiveType(mode)
@@ -147,6 +153,11 @@ namespace love
         }
 
         this->indexDataModified = true;
+    }
+
+    const std::vector<BufferBase::DataMember>& Mesh::getVertexFormat() const
+    {
+        return this->vertexFormat;
     }
 
     void Mesh::setVertexMap(IndexDataType type, const void* data, size_t dataSize)
@@ -280,10 +291,10 @@ namespace love
         return true;
     }
 
-    // std::vector<BufferBase::DataDeclaration> Mesh::getDefaultVertexFormat()
-    // {
-    //     return BufferBase::getCommonFormatDeclaration(CommonFormat::XYf_STf_RGBAf);
-    // }
+    std::vector<BufferBase::DataDeclaration> Mesh::getDefaultVertexFormat()
+    {
+        return BufferBase::getCommonFormatDeclaration(CommonFormat::XYf_STf_RGBAf);
+    }
 
     void Mesh::draw(GraphicsBase* graphics, const Matrix4& matrix)
     {
@@ -321,7 +332,9 @@ namespace love
             if (range.isValid())
                 r.intersect(range);
 
-            DrawIndexedCommand command(nullptr, nullptr, nullptr);
+            Mesh::IndexBuffer buffer(this->indices);
+
+            DrawIndexedCommand command(nullptr, nullptr, &buffer);
             command.primitiveType     = this->primitiveType;
             command.indexType         = this->indexDataType;
             command.instanceCount     = instanceCount;

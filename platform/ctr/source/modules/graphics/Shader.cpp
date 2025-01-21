@@ -1,5 +1,9 @@
-#include "modules/graphics/Shader.hpp"
+#include "common/Exception.hpp"
+
 #include "driver/display/citro3d.hpp"
+#include "modules/graphics/Shader.hpp"
+
+#include "common/config.hpp"
 
 #define SHADERS_DIR "romfs:/shaders/"
 
@@ -7,7 +11,8 @@
 
 namespace love
 {
-    Shader::Shader() : ShaderBase(STANDARD_DEFAULT), uniforms {}
+    Shader::Shader(StrongRef<ShaderStageBase> _stages[SHADERSTAGE_MAX_ENUM], const CompileOptions& options) :
+        ShaderBase(_stages, options)
     {
         this->loadVolatile();
     }
@@ -17,49 +22,58 @@ namespace love
         this->unloadVolatile();
     }
 
+    const char* Shader::getDefaultStagePath(StandardShader shader, ShaderStageType stage)
+    {
+        LOVE_UNUSED(stage);
+        return DEFAULT_SHADER;
+    }
+
+    void Shader::mapActiveUniforms()
+    {
+        std::vector names { "mdlvMtx", "projMtx" };
+
+        for (const auto* name : names)
+        {
+            int8_t location = shaderInstanceGetUniformLocation(this->program.vertexShader, name);
+
+            if (location < 0)
+                throw love::Exception("Failed to get uniform location for {:s}", name);
+
+            this->reflection.uniforms[name] =
+                new UniformInfo { .type      = UNIFORM_MATRIX,
+                                  .stageMask = ShaderStageMask::SHADERSTAGEMASK_VERTEX,
+                                  .active    = true,
+                                  .location  = location,
+                                  .count     = 1,
+                                  .name      = name };
+        }
+    }
+
     bool Shader::loadVolatile()
     {
-        if (this->dvlb != nullptr)
-            return true;
-
         std::string error;
 
-        if (!this->validate(DEFAULT_SHADER, error))
-            throw love::Exception("Failed to load default shader: {:s}", error);
+        if (this->hasStage(ShaderStageType::SHADERSTAGE_VERTEX))
+        {
+            const auto* dvlb = (DVLB_s*)this->stages[SHADERSTAGE_VERTEX]->getHandle();
 
-        shaderProgramInit(&this->program);
-        shaderProgramSetVsh(&this->program, &this->dvlb->DVLE[0]);
+            if (R_FAILED(shaderProgramInit(&this->program)))
+                throw love::Exception("Failed to load shader program.");
 
-        this->uniforms[0] = this->getUniform("mdlvMtx");
-        this->uniforms[1] = this->getUniform("projMtx");
+            if (R_FAILED(shaderProgramSetVsh(&this->program, &dvlb->DVLE[0])))
+                throw love::Exception("Failed to set shader vertex shader.");
 
-        return true;
+            this->mapActiveUniforms();
+
+            return true;
+        }
+
+        return false;
     }
 
     void Shader::unloadVolatile()
     {
         shaderProgramFree(&this->program);
-        DVLB_Free(this->dvlb);
-    }
-
-    const Shader::UniformInfo Shader::getUniform(const std::string& name) const
-    {
-        int8_t location = 0;
-        if ((location = shaderInstanceGetUniformLocation(this->program.vertexShader, name.c_str())) < 0)
-            throw love::Exception("Failed to get uniform location: {:s}", name);
-
-        return { location, name };
-    }
-
-    bool Shader::hasUniform(const std::string& name) const
-    {
-        for (int index = 0; index < 2; index++)
-        {
-            if (this->uniforms[index].name == name)
-                return true;
-        }
-
-        return false;
     }
 
     static void updateTransform(C3D_Mtx& matrix, const Matrix4& transform)
@@ -76,11 +90,11 @@ namespace love
         if (this->hasUniform("mdlvMtx"))
         {
             updateTransform(mdlvMtx, graphics->getTransform());
-            C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, this->uniforms[0].location, &mdlvMtx);
+            C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, this->reflection.uniforms["mdlvMtx"]->location, &mdlvMtx);
         }
 
         if (this->hasUniform("projMtx"))
-            C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, this->uniforms[1].location, &projMtx);
+            C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, this->reflection.uniforms["projMtx"]->location, &projMtx);
     }
 
     void Shader::attach()
@@ -97,53 +111,5 @@ namespace love
     ptrdiff_t Shader::getHandle() const
     {
         return 0;
-    }
-
-    bool Shader::validate(const char* filepath, std::string& error)
-    {
-        std::FILE* file = std::fopen(filepath, "rb");
-
-        if (file == nullptr)
-        {
-            error = "Failed to open file.";
-            std::fclose(file);
-            return false;
-        }
-
-        std::fseek(file, 0, SEEK_END);
-        long size = std::ftell(file);
-        std::rewind(file);
-
-        try
-        {
-            this->data.resize(size / sizeof(uint32_t));
-        }
-        catch (std::bad_alloc&)
-        {
-            error = E_OUT_OF_MEMORY;
-            std::fclose(file);
-            return false;
-        }
-
-        long read = std::fread(this->data.data(), 1, size, file);
-
-        if (read != size)
-        {
-            error = "Failed to read file.";
-            std::fclose(file);
-            return false;
-        }
-
-        std::fclose(file);
-        this->dvlb = DVLB_ParseFile(this->data.data(), size);
-
-        if (this->dvlb == nullptr)
-        {
-            error = "Failed to parse DVLB.";
-            std::fclose(file);
-            return false;
-        }
-
-        return true;
     }
 } // namespace love

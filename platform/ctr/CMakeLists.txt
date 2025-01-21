@@ -48,6 +48,7 @@ source/modules/graphics/Graphics.cpp
 source/modules/graphics/Shader.cpp
 source/modules/graphics/Texture.cpp
 source/modules/graphics/Font.cpp
+source/modules/graphics/ShaderStage.cpp
 source/modules/joystick/Joystick.cpp
 source/modules/joystick/JoystickModule.cpp
 source/modules/keyboard/Keyboard.cpp

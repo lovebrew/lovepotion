@@ -16,7 +16,7 @@ namespace love
       public:
         virtual void initialize() override;
 
-        ~DigitalSound();
+        virtual void deInitialize() override;
 
         void updateImpl();
 

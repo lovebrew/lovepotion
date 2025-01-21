@@ -14,7 +14,9 @@ namespace love
     {}
 
     Event::~Event()
-    {}
+    {
+        EventQueue::getInstance().deInitialize();
+    }
 
     // #region Message Conversion
 
@@ -107,6 +109,23 @@ namespace love
             }
             default:
                 break;
+        }
+
+        return result;
+    }
+
+    static Message* convertKeyboardEvent(const LOVE_Event& event, std::vector<Variant>& args)
+    {
+        Message* result = nullptr;
+
+        switch (event.subtype)
+        {
+            case SUBTYPE_TEXTINPUT:
+            {
+                args.emplace_back(event.keyboardInput.text);
+                result = new Message("textinput", args);
+                break;
+            }
         }
 
         return result;
@@ -264,6 +283,9 @@ namespace love
                 break;
             case TYPE_WINDOW:
                 message = convertWindowEvent(event, args);
+                break;
+            case TYPE_KEYBOARD:
+                message = convertKeyboardEvent(event, args);
                 break;
             default:
                 break;

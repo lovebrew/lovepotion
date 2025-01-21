@@ -6,6 +6,7 @@
 
 #include "modules/graphics/wrap_Font.hpp"
 #include "modules/graphics/wrap_Quad.hpp"
+#include "modules/graphics/wrap_SpriteBatch.hpp"
 #include "modules/graphics/wrap_TextBatch.hpp"
 #include "modules/graphics/wrap_Texture.hpp"
 
@@ -1108,7 +1109,7 @@ static Mesh* newStandardMesh(lua_State* L)
     PrimitiveType drawMode = luax_checkmeshdrawmode(L, 2);
     BufferDataUsage usage  = luax_optdatausage(L, 3, BUFFERDATAUSAGE_DYNAMIC);
 
-    // std::vector<BufferBase::DataDeclaration> format = Mesh::getDefaultVertexFormat();
+    auto format = Mesh::getDefaultVertexFormat();
 
     if (lua_istable(L, 1))
     {
@@ -1142,11 +1143,10 @@ static Mesh* newStandardMesh(lua_State* L)
             vertex.color.a = luax_optnumberclamped01(L, -1, 1.0f);
 
             lua_pop(L, 9);
-
             vertices.push_back(vertex);
         }
 
-        // luax_catchexcept(L, [&]() { mesh = instance()->newMesh(vertices, drawMode, usage); });
+        // luax_catchexcept(L, [&]() { mesh = instance()->newMesh(format, vertices, drawMode, usage); });
     }
     else
     {
@@ -1198,6 +1198,30 @@ int Wrap_Graphics::newTextBatch(lua_State* L)
 
         luax_catchexcept(L, [&]() { batch = instance()->newTextBatch(font, text); });
     }
+
+    luax_pushtype(L, batch);
+    batch->release();
+
+    return 1;
+}
+
+int Wrap_Graphics::newSpriteBatch(lua_State* L)
+{
+    luax_checkgraphicscreated(L);
+
+    TextureBase* texture  = luax_checktexture(L, 1);
+    int size              = luaL_optinteger(L, 2, 1000);
+    BufferDataUsage usage = BUFFERDATAUSAGE_DYNAMIC;
+
+    if (lua_gettop(L) > 2)
+    {
+        const char* usageType = luaL_checkstring(L, 3);
+        if (!getConstant(usageType, usage))
+            return luax_enumerror(L, "usage hint", BufferUsages, usageType);
+    }
+
+    SpriteBatch* batch = nullptr;
+    luax_catchexcept(L, [&]() { batch = instance()->newSpriteBatch(texture, size, usage); });
 
     luax_pushtype(L, batch);
     batch->release();
@@ -1920,6 +1944,7 @@ static constexpr luaL_Reg functions[] =
     // { "newMesh",                Wrap_Graphics::newMesh               },
 
     { "newTextBatch",           Wrap_Graphics::newTextBatch          },
+    { "newSpriteBatch",         Wrap_Graphics::newSpriteBatch        },
 
     { "newFont",                Wrap_Graphics::newFont               },
     { "setFont",                Wrap_Graphics::setFont               },
@@ -1927,10 +1952,10 @@ static constexpr luaL_Reg functions[] =
     { "print",                  Wrap_Graphics::print                 },
     { "printf",                 Wrap_Graphics::printf                },
 
-    { "getScreens",            Wrap_Graphics::getScreens            },
-    { "getActiveScreen",       Wrap_Graphics::getActiveScreen       },
-    { "setActiveScreen",       Wrap_Graphics::setActiveScreen       },
-    { "copyCurrentScanBuffer", Wrap_Graphics::copyCurrentScanBuffer }
+    { "getScreens",            Wrap_Graphics::getScreens             },
+    { "getActiveScreen",       Wrap_Graphics::getActiveScreen        },
+    { "setActiveScreen",       Wrap_Graphics::setActiveScreen        },
+    { "copyCurrentScanBuffer", Wrap_Graphics::copyCurrentScanBuffer  }
 };
 
 static int open_drawable(lua_State* L)
@@ -1944,7 +1969,8 @@ static constexpr lua_CFunction types[] =
     love::open_texture,
     love::open_quad,
     love::open_font,
-    love::open_textbatch
+    love::open_textbatch,
+    love::open_spritebatch
 };
 // clang-format on
 

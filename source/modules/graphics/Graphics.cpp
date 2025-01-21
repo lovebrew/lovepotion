@@ -1,5 +1,7 @@
 #include "modules/graphics/Graphics.tcc"
+
 #include "modules/graphics/Polyline.hpp"
+#include "modules/graphics/SpriteBatch.hpp"
 
 #include "common/Console.hpp"
 #include "common/screen.hpp"
@@ -499,6 +501,42 @@ namespace love
     TextBatch* GraphicsBase::newTextBatch(FontBase* font, const std::vector<ColoredString>& text)
     {
         return new TextBatch(font, text);
+    }
+
+    ShaderStageBase* GraphicsBase::newShaderStage(ShaderStageType stage, const std::string& filepath)
+    {
+        return this->newShaderStageInternal(stage, filepath);
+    }
+
+    SpriteBatch* GraphicsBase::newSpriteBatch(TextureBase* texture, int size, BufferDataUsage usage)
+    {
+        return new SpriteBatch(this, texture, size, usage);
+    }
+
+    ShaderBase* GraphicsBase::newShader(const std::vector<std::string>& filepaths,
+                                        const ShaderBase::CompileOptions& options)
+    {
+        StrongRef<ShaderStageBase> stages[SHADERSTAGE_MAX_ENUM] {};
+
+        bool validStages[SHADERSTAGE_MAX_ENUM] {};
+        validStages[SHADERSTAGE_VERTEX] = true;
+        validStages[SHADERSTAGE_PIXEL]  = !Console::is(Console::CTR);
+
+        for (const std::string& filepath : filepaths)
+        {
+            for (int index = 0; index < SHADERSTAGE_MAX_ENUM; index++)
+            {
+                if (!validStages[index])
+                    continue;
+
+                const auto type = ShaderStageType(index);
+
+                if (stages[index].get() == nullptr)
+                    stages[index].set(this->newShaderStage(type, filepath), Acquire::NO_RETAIN);
+            }
+        }
+
+        return this->newShaderInternal(stages, options);
     }
 
     void GraphicsBase::checkSetDefaultFont()

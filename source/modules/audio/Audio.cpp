@@ -24,6 +24,8 @@ namespace love
 
     Audio::Audio() : Module(M_AUDIO, "love.audio"), pool(nullptr), poolThread(nullptr)
     {
+        DigitalSound::getInstance().initialize();
+
         try
         {
             this->pool = new Pool();
@@ -44,6 +46,8 @@ namespace love
 
         delete this->poolThread;
         delete this->pool;
+
+        DigitalSound::getInstance().deInitialize();
     }
 
     Source* Audio::newSource(SoundData* soundData) const

@@ -55,6 +55,8 @@ namespace love
 
         void draw(const DrawCommand& command) override;
 
+        void drawQuads(int start, int count, TextureBase* texture) override;
+
         using GraphicsBase::draw;
 
         void points(Vector2* positions, const Color* colors, int count);
@@ -69,9 +71,14 @@ namespace love
 
         C3D_RenderTarget* getInternalBackbuffer() const;
 
-        // clang-format off
-        virtual TextureBase* newTexture(const TextureBase::Settings& settings, const TextureBase::Slices* data = nullptr) override;
-        // clang-format on
+        virtual TextureBase* newTexture(const TextureBase::Settings& settings,
+                                        const TextureBase::Slices* data = nullptr) override;
+
+        virtual ShaderStageBase* newShaderStageInternal(ShaderStageType stage,
+                                                        const std::string& filepath) override;
+
+        virtual ShaderBase* newShaderInternal(StrongRef<ShaderStageBase> stages[SHADERSTAGE_MAX_ENUM],
+                                              const ShaderBase::CompileOptions& options) override;
 
         bool is3D() const;
 

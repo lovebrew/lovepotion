@@ -37,7 +37,7 @@ namespace love
 
         BufferUsage getMapUsage() const
         {
-            return mapUsage;
+            return this->mapUsage;
         }
 
       private:

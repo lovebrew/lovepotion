@@ -15,7 +15,7 @@ int Wrap_Texture::getTextureType(lua_State* L)
     return 1;
 }
 
-static int optMipmap(lua_State* L, Texture* texture, int index)
+static int optMipmap(lua_State* L, TextureBase* texture, int index)
 {
     int mipmap = 0;
 
@@ -480,9 +480,9 @@ static constexpr luaL_Reg functions[] =
 
 namespace love
 {
-    Texture* luax_checktexture(lua_State* L, int index)
+    TextureBase* luax_checktexture(lua_State* L, int index)
     {
-        return luax_checktype<Texture>(L, index);
+        return luax_checktype<TextureBase>(L, index);
     }
 
     int open_texture(lua_State* L)

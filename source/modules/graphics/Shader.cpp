@@ -9,8 +9,13 @@ namespace love
 
     int ShaderBase::shaderSwitches = 0;
 
-    ShaderBase::ShaderBase(StandardShader type) : shaderType(type)
-    {}
+    ShaderBase::ShaderBase(StrongRef<ShaderStageBase> _stages[], const CompileOptions& options) :
+        stages(),
+        debugName(options.debugName)
+    {
+        for (int i = 0; i < SHADERSTAGE_MAX_ENUM; i++)
+            this->stages[i] = _stages[i];
+    }
 
     ShaderBase::~ShaderBase()
     {
@@ -22,6 +27,14 @@ namespace love
 
         if (current == this)
             this->attachDefault(STANDARD_DEFAULT);
+
+        for (auto& it : this->reflection.uniforms)
+            delete it.second;
+    }
+
+    bool ShaderBase::hasStage(ShaderStageType stage)
+    {
+        return this->stages[stage] != nullptr;
     }
 
     void ShaderBase::attachDefault(StandardShader type)
@@ -36,6 +49,18 @@ namespace love
 
         if (current != defaultShader)
             defaultShader->attach();
+    }
+
+    const ShaderBase::UniformInfo* ShaderBase::getUniformInfo(const std::string& name) const
+    {
+        const auto it = this->reflection.uniforms.find(name);
+        return it != this->reflection.uniforms.end() ? it->second : nullptr;
+    }
+
+    bool ShaderBase::hasUniform(const std::string& name) const
+    {
+        const auto it = this->reflection.uniforms.find(name);
+        return it != this->reflection.uniforms.end() && it->second->active;
     }
 
     bool ShaderBase::isDefaultActive()

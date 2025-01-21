@@ -113,7 +113,7 @@ namespace love
             { "type",      OPTION_TYPE       },
             { "password",  OPTION_PASSCODE   },
             { "hint",      OPTION_HINT       },
-            { "maxLength", OPTION_MAX_LENGTH },
+            { "maxlength", OPTION_MAX_LENGTH },
             { "callback",  OPTION_CALLBACK   }
         );
 

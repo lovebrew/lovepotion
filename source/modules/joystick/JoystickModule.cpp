@@ -1,3 +1,5 @@
+#include "driver/EventQueue.hpp"
+
 #include "modules/joystick/JoystickModule.hpp"
 
 namespace love
@@ -5,7 +7,10 @@ namespace love
     JoystickModule::JoystickModule() : Module(M_JOYSTICK, "love.joystick")
     {
         for (size_t index = 0; index < (size_t)joystick::getJoystickCount(); index++)
+        {
             this->addJoystick(index);
+            EventQueue::getInstance().sendJoystickStatus(true, index);
+        }
     }
 
     JoystickModule::~JoystickModule()

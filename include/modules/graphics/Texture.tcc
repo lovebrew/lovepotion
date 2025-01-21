@@ -303,6 +303,8 @@ namespace love
             return this->samplerState;
         }
 
+        Quad* getQuad();
+
         virtual ptrdiff_t getRenderTargetHandle() const = 0;
 
         virtual ptrdiff_t getSamplerHandle() const = 0;

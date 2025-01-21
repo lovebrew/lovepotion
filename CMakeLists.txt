@@ -49,6 +49,8 @@ target_compile_options(${PROJECT_NAME} PRIVATE
     $<$<COMPILE_LANGUAGE:CXX>:-fexceptions -fno-rtti>
 )
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 if(NINTENDO_3DS)
     add_subdirectory(platform/ctr)
 
@@ -76,7 +78,6 @@ if(NINTENDO_3DS)
     )
 
     set(APP_LIBS citro3d)
-    set(OUTPUT_FILENAME "${PROJECT_NAME}.3dsx")
 
     target_sources(${PROJECT_NAME} PRIVATE
         source/modules/image/magpie/T3XHandler.cpp
@@ -113,8 +114,6 @@ if (NINTENDO_SWITCH)
         NACP  ${PROJECT_NAME}.nacp
         ROMFS ${PROJECT_NAME}_hac_romfs
     )
-
-    set(OUTPUT_FILENAME "${PROJECT_NAME}.nro")
 
     target_sources(${PROJECT_NAME} PRIVATE
         source/modules/image/magpie/ASTCHandler.cpp
@@ -164,8 +163,6 @@ if (NINTENDO_WIIU)
         ICON       ${APP_ICON}
     )
 
-    set(OUTPUT_FILENAME "${PROJECT_NAME}.wuhb")
-
     target_sources(${PROJECT_NAME} PRIVATE
         source/modules/image/magpie/ASTCHandler.cpp
         source/modules/image/magpie/ddsHandler.cpp
@@ -190,13 +187,13 @@ if (NINTENDO_WIIU)
     execute_process(COMMAND patch -d ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket -N -i ${PROJECT_SOURCE_DIR}/platform/cafe/libraries/luasocket.patch)
 endif()
 
-add_custom_target(test
-    DEPENDS           "${CMAKE_CURRENT_BINARY_DIR}/${OUTPUT_FILENAME}"
-    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/tests"
-    COMMAND           ${CMAKE_COMMAND} -E tar -cvf "game.zip" --format=zip .
-    COMMAND           ${CMAKE_COMMAND} -E cat "${CMAKE_CURRENT_BINARY_DIR}/${OUTPUT_FILENAME}" "game.zip" > "${CMAKE_CURRENT_SOURCE_DIR}/${OUTPUT_FILENAME}"
-    COMMAND           ${CMAKE_COMMAND} -E rm "game.zip"
-)
+# add_custom_target(test
+#     DEPENDS           "${CMAKE_CURRENT_BINARY_DIR}/${OUTPUT_FILENAME}"
+#     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/tests"
+#     COMMAND           ${CMAKE_COMMAND} -E tar -cvf "game.zip" --format=zip .
+#     COMMAND           ${CMAKE_COMMAND} -E cat "${CMAKE_CURRENT_BINARY_DIR}/${OUTPUT_FILENAME}" "game.zip" > "${CMAKE_CURRENT_SOURCE_DIR}/${OUTPUT_FILENAME}"
+#     COMMAND           ${CMAKE_COMMAND} -E rm "game.zip"
+# )
 
 # find PkgConfig for liblz4, libmpg123
 find_package(PkgConfig REQUIRED)
@@ -445,7 +442,7 @@ source/modules/font/GenericShaper.cpp
 source/modules/font/wrap_Font.cpp
 source/modules/font/wrap_Rasterizer.cpp
 source/modules/font/wrap_GlyphData.cpp
-# source/modules/graphics/Buffer.cpp
+source/modules/graphics/ShaderStage.cpp
 source/modules/graphics/DrawCommand.cpp
 source/modules/graphics/Graphics.cpp
 source/modules/graphics/FontBase.cpp
@@ -456,6 +453,8 @@ source/modules/graphics/TextBatch.cpp
 source/modules/graphics/renderstate.cpp
 source/modules/graphics/samplerstate.cpp
 source/modules/graphics/Shader.cpp
+source/modules/graphics/SpriteBatch.cpp
+source/modules/graphics/wrap_SpriteBatch.cpp
 source/modules/graphics/Quad.cpp
 source/modules/graphics/Volatile.cpp
 source/modules/graphics/vertex.cpp

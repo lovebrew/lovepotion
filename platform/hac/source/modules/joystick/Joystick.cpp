@@ -22,12 +22,14 @@ namespace love
 
         this->instanceId = 0;
 
-        if (deviceId == 0)
-            padInitializeDefault(&this->state);
-        else
-            padInitialize(&this->state, (HidNpadIdType)deviceId);
-
+        padInitialize(&this->state, HidNpadIdType(index));
         padUpdate(&this->state);
+
+        if (padIsHandheld(&this->state))
+        {
+            padInitialize(&this->state, HidNpadIdType_Handheld, HidNpadIdType(index));
+            padUpdate(&this->state);
+        }
 
         const uint32_t tag = padGetStyleSet(&this->state);
 
@@ -245,7 +247,7 @@ namespace love
                 return;
         }
 
-        if (!R_SUCCEEDED(result))
+        if (R_FAILED(result))
             return;
 
         switch (type)

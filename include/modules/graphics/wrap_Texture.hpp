@@ -5,7 +5,7 @@
 
 namespace love
 {
-    Texture* luax_checktexture(lua_State* L, int index);
+    TextureBase* luax_checktexture(lua_State* L, int index);
 
     int open_texture(lua_State* L);
 } // namespace love

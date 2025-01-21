@@ -4,8 +4,6 @@ namespace love
 {
     Pool::Pool() : totalSources(0)
     {
-        DigitalSound::getInstance().initialize();
-
         for (size_t index = 0; index < Pool::MAX_SOURCES; index++)
             this->available.push(index);
 

@@ -18,6 +18,8 @@ namespace love
 
         virtual void initialize() override;
 
+        virtual void deInitialize() override;
+
         void updateImpl();
 
         void setMasterVolume(float volume);

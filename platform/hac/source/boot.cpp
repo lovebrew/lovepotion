@@ -15,7 +15,7 @@ namespace love
     // clang-format off
     static constexpr std::array<const Service, 8> services =
     {{
-        { "bsd",      BIND(socketInitializeDefault),                                  &socketExit  },
+        { "bsd:u",    BIND(socketInitializeDefault),                                  &socketExit  },
         { "pl:u",     BIND(plInitialize,             PlServiceType_User),             &plExit      },
         { "acc:a",    BIND(accountInitialize,        AccountServiceType_Application), &accountExit },
         { "set",      BIND(setInitialize),                                            &setExit     },

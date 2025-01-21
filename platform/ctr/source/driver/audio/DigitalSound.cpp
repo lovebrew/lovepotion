@@ -13,9 +13,7 @@ static void audioCallback(void* data)
 namespace love
 {
     DigitalSound::~DigitalSound()
-    {
-        ndspExit();
-    }
+    {}
 
     void DigitalSound::initialize()
     {
@@ -32,6 +30,11 @@ namespace love
 
         for (size_t index = 0; index < 24; index++)
             this->channelSetVolume(index, 1.0f);
+    }
+
+    void DigitalSound::deInitialize()
+    {
+        ndspExit();
     }
 
     void DigitalSound::updateImpl()

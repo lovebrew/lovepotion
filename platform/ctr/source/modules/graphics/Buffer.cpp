@@ -81,6 +81,8 @@ namespace love
 
         if (data != nullptr)
             BufInfo_Add(this->buffer, data, this->getArrayStride(), 3, 0x210);
+
+        return true;
     }
 
     void* Buffer::map(MapType map, size_t offset, size_t size)

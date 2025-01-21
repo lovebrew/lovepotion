@@ -15,6 +15,7 @@
 #include "modules/graphics/Font.tcc"
 #include "modules/graphics/Mesh.hpp"
 #include "modules/graphics/Shader.tcc"
+#include "modules/graphics/ShaderStage.tcc"
 #include "modules/graphics/TextBatch.hpp"
 #include "modules/graphics/Texture.tcc"
 #include "modules/graphics/Volatile.hpp"
@@ -76,6 +77,8 @@ namespace love
     {
       public:
         static constexpr size_t MAX_USER_STACK_DEPTH = 128;
+        static constexpr int MAX_VERTICES_PER_DRAW   = LOVE_UINT16_MAX;
+        static constexpr int MAX_QUADS_PER_DRAW      = MAX_VERTICES_PER_DRAW / 4;
 
         enum DrawMode
         {
@@ -485,6 +488,19 @@ namespace love
         void printf(const std::vector<ColoredString>& string, FontBase* font, float wrap,
                     FontBase::AlignMode align, const Matrix4& matrix);
 
+        virtual ShaderStageBase* newShaderStageInternal(ShaderStageType stage,
+                                                        const std::string& filepath) = 0;
+
+        ShaderStageBase* newShaderStage(ShaderStageType stage, const std::string& filepath);
+
+        virtual ShaderBase* newShaderInternal(StrongRef<ShaderStageBase> stages[SHADERSTAGE_MAX_ENUM],
+                                              const ShaderBase::CompileOptions& options) = 0;
+
+        ShaderBase* newShader(const std::vector<std::string>& filepaths,
+                              const ShaderBase::CompileOptions& options);
+
+        SpriteBatch* newSpriteBatch(TextureBase* texture, int size, BufferDataUsage usage);
+
         virtual void initCapabilities() = 0;
 
         TextureBase* getDefaultTexture(TextureBase* texture);
@@ -564,6 +580,8 @@ namespace love
         virtual void draw(const DrawIndexedCommand& command) = 0;
 
         virtual void draw(const DrawCommand& command) = 0;
+
+        virtual void drawQuads(int start, int count, TextureBase* texture) = 0;
 
         Stats getStats() const;
 

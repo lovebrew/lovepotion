@@ -30,6 +30,8 @@ namespace love
 
         virtual void initialize() = 0;
 
+        virtual void deInitialize() = 0;
+
         void update()
         {
             static_cast<T*>(this)->updateImpl();
