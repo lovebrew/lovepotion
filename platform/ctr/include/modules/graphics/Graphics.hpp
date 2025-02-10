@@ -55,8 +55,6 @@ namespace love
 
         void draw(const DrawCommand& command) override;
 
-        void drawQuads(int start, int count, TextureBase* texture) override;
-
         using GraphicsBase::draw;
 
         void points(Vector2* positions, const Color* colors, int count);

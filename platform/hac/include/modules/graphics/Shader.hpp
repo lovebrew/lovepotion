@@ -32,7 +32,7 @@ namespace love
 
         ptrdiff_t getHandle() const override;
 
-        void updateBuiltinUniforms(GraphicsBase* graphics);
+        void updateBuiltinUniforms(GraphicsBase* graphics, glm::mat4& model);
 
       private:
         void mapActiveUniforms();

@@ -902,30 +902,7 @@ namespace love
 
             BatchedVertexData data = this->requestBatchedDraw(command);
 
-            // constexpr float inf = std::numeric_limits<float>::infinity();
-            // Vector2 minimum(inf, inf);
-            // Vector2 maximum(-inf, -inf);
-
-            // for (int index = 0; index < command.vertexCount; index++)
-            // {
-            //     Vector2 vector = vertices[index];
-            //     minimum.x      = std::min(minimum.x, vector.x);
-            //     minimum.y      = std::min(minimum.y, vector.y);
-            //     maximum.x      = std::max(maximum.x, vector.x);
-            //     maximum.y      = std::max(maximum.y, vector.y);
-            // }
-
-            // Vector2 invSize(1.0f / (maximum.x - minimum.x), 1.0f / (maximum.y - minimum.y));
-            // Vector2 start(minimum.x * invSize.x, minimum.y * invSize.y);
-
             XYf_STf_RGBAf* stream = (XYf_STf_RGBAf*)data.stream;
-
-            // for (int index = 0; index < command.vertexCount; index++)
-            // {
-            //     stream[index].s     = vertices[index].x * invSize.x - start.x;
-            //     stream[index].t     = vertices[index].y * invSize.y - start.y;
-            //     stream[index].color = this->getColor();
-            // }
 
             Color color = this->getColor();
 
@@ -943,8 +920,7 @@ namespace love
 
     int GraphicsBase::calculateEllipsePoints(float a, float b) const
     {
-        auto points = (int)std::sqrt(((a + b) / 2.0f) * 20.0f * (float)this->pixelScaleStack.back());
-
+        auto points = (int)std::sqrtf(((a + b) / 2.0f) * 20.0f * (float)this->pixelScaleStack.back());
         return std::max(points, 8);
     }
 

@@ -76,7 +76,7 @@ namespace love
     void Shader::unloadVolatile()
     {}
 
-    void Shader::updateBuiltinUniforms(GraphicsBase* graphics)
+    void Shader::updateBuiltinUniforms(GraphicsBase* graphics, glm::mat4& model)
     {}
 
     ptrdiff_t Shader::getHandle() const

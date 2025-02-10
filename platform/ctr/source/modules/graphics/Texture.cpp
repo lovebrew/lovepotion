@@ -4,6 +4,8 @@
 #include "driver/display/citro3d.hpp"
 #include "driver/graphics/DrawCommand.hpp"
 
+#include <tex3ds.h>
+
 namespace love
 {
     static void createFramebufferObject(C3D_RenderTarget*& target, C3D_Tex* texture, uint16_t width,

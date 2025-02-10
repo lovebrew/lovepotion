@@ -581,8 +581,6 @@ namespace love
 
         virtual void draw(const DrawCommand& command) = 0;
 
-        virtual void drawQuads(int start, int count, TextureBase* texture) = 0;
-
         Stats getStats() const;
 
         size_t getStackDepth() const

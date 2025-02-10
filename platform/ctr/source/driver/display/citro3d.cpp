@@ -312,33 +312,30 @@ namespace love
         // clang-format on
     }
 
-    void citro3d::bindTextureToUnit(TextureType target, C3D_Tex* texture, int unit, bool isFont)
+    void citro3d::bindTextureToUnit(TextureType target, C3D_Tex* texture, int unit)
     {
-        if (texture == nullptr)
-            return this->updateTexEnvMode(TEXENV_MODE_PRIMITIVE);
-
-        if (texture == this->context.boundTexture)
-            return;
-
-        isFont ? this->updateTexEnvMode(TEXENV_MODE_FONT) : this->updateTexEnvMode(TEXENV_MODE_TEXTURE);
-
         C3D_TexBind(0, texture);
         this->context.boundTexture = texture;
     }
 
-    void citro3d::bindTextureToUnit(TextureBase* texture, int unit, bool isFont)
+    void citro3d::bindTextureToUnit(TextureBase* texture, int unit)
     {
-        if (texture == nullptr)
-            return this->updateTexEnvMode(TEXENV_MODE_PRIMITIVE);
+        if (!texture)
+            return;
 
         auto textureType = texture->getTextureType();
         auto* handle     = (C3D_Tex*)texture->getHandle();
 
-        this->bindTextureToUnit(textureType, handle, unit, isFont);
+        this->bindTextureToUnit(textureType, handle, unit);
     }
 
-    void citro3d::setVertexAttributes(const VertexAttributes& attributes, const BufferBindings& buffers)
-    {}
+    void citro3d::setVertexAttributes(TextureBase* texture, bool isFont)
+    {
+        if (!texture)
+            return this->updateTexEnvMode(TEXENV_MODE_PRIMITIVE);
+
+        isFont ? this->updateTexEnvMode(TEXENV_MODE_FONT) : this->updateTexEnvMode(TEXENV_MODE_TEXTURE);
+    }
 
     GPU_TEXTURE_MODE_PARAM citro3d::getTextureType(TextureType type)
     {

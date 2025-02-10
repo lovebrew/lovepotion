@@ -1,6 +1,7 @@
 #include "driver/display/deko.hpp"
 #include "driver/graphics/Attributes.hpp"
 
+#include "modules/graphics/Shader.hpp"
 #include "modules/graphics/Texture.hpp"
 
 namespace love
@@ -241,8 +242,12 @@ namespace love
         if (!this->uniform)
             return;
 
-        this->commandBuffer.pushConstants(this->uniform.getGpuAddr(), this->uniform.getSize(), 0,
-                                          TRANSFORM_SIZE, &this->transform);
+        if (Shader::current != nullptr)
+        {
+            ((Shader*)Shader::current)->updateBuiltinUniforms(graphics, this->transform.modelView);
+            this->commandBuffer.pushConstants(this->uniform.getGpuAddr(), this->uniform.getSize(), 0,
+                                              TRANSFORM_SIZE, &this->transform);
+        }
     }
 
     void deko3d::present()

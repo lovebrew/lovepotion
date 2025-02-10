@@ -16,7 +16,7 @@
 #if defined(__3DS__)
 using Location = int8_t;
 #elif defined(__SWITCH__)
-using Location = uint_8;
+using Location = uint8_t;
 #endif
 
 namespace love

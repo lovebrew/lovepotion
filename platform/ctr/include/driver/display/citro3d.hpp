@@ -63,11 +63,11 @@ namespace love
 
         virtual void prepareDraw(GraphicsBase* graphics) override;
 
-        void setVertexAttributes(const VertexAttributes& attributes, const BufferBindings& buffers);
+        void setVertexAttributes(TextureBase* texture, bool isFont);
 
-        void bindTextureToUnit(TextureType target, C3D_Tex* texture, int unit, bool isFont = false);
+        void bindTextureToUnit(TextureType target, C3D_Tex* texture, int unit);
 
-        void bindTextureToUnit(TextureBase* texture, int unit, bool isFont = false);
+        void bindTextureToUnit(TextureBase* texture, int unit);
 
         C3D_RenderTarget* getInternalBackbuffer() const;
 

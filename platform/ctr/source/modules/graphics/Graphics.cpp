@@ -378,35 +378,82 @@ namespace love
     void Graphics::points(Vector2* positions, const Color* colors, int count)
     {
         const auto pointSize = this->states.back().pointSize;
+        auto points          = this->calculateEllipsePoints(pointSize, pointSize);
 
-        for (int index = 0; index < count; index++)
+        float twoPi = float(LOVE_M_PI * 2);
+
+        if (points <= 0)
+            points = 1;
+
+        float shift = twoPi / points;
+
+        // 1 extra point at the end for a closed loop, and 1 extra point at the
+        // start in filled mode for the vertex in the center of the ellipse.
+        int extraPoints = 2;
+
+        const Matrix4& transform = this->getTransform();
+        bool is2D                = transform.isAffine2DTransform();
+
+        std::vector<Vector2> coordinates;
+        coordinates.reserve(count * (points + extraPoints));
+
+        for (int point = 0; point < count; point++)
         {
-            const auto& position = positions[index];
+            auto* polygonCoords = this->getScratchBuffer<Vector2>(points + extraPoints);
+            float phi           = 0.0f; // Reset phi for each point
 
-            if (!colors)
+            polygonCoords[0].x = positions[point].x;
+            polygonCoords[0].y = positions[point].y;
+
+            for (int index = 0; index < points; ++index, phi += shift)
             {
-                this->circle(DRAW_FILL, position.x, position.y, pointSize);
-                return;
+                polygonCoords[index + 1].x = positions[point].x + pointSize * cosf(phi);
+                polygonCoords[index + 1].y = positions[point].y + pointSize * sinf(phi);
             }
 
-            auto& color = colors[index];
+            polygonCoords[points + 1] = polygonCoords[1]; // Close the shape
+            coordinates.insert(coordinates.end(), polygonCoords, polygonCoords + points + extraPoints);
+        }
 
-            gammaCorrectColor(this->getColor());
+        BatchedDrawCommand command {};
+        command.indexMode   = TRIANGLEINDEX_FAN;
+        command.format      = CommonFormat::XYf_STf_RGBAf;
+        command.vertexCount = coordinates.size();
+
+        BatchedVertexData data = this->requestBatchedDraw(command);
+
+        XYf_STf_RGBAf* stream = (XYf_STf_RGBAf*)data.stream;
+
+        if (is2D)
+            transform.transformXY(stream, coordinates.data(), command.vertexCount);
+
+        if (!colors)
+        {
+            Color color = this->getColor();
+
+            for (int index = 0; index < command.vertexCount; index++)
+                stream[index].color = color;
+
+            return;
+        }
+
+        Color color = this->getColor();
+        gammaCorrectColor(color);
+
+        for (int point = 0; point < count; point++)
+        {
+            Color pointColor = colors ? colors[point] : color;
 
             if (isGammaCorrect())
             {
-                Color current = colors[index];
-
-                gammaCorrectColor(current);
-                current *= color;
-                unGammaCorrectColor(current);
-
-                this->setColor(current);
+                gammaCorrectColor(pointColor);
+                pointColor *= color;
+                unGammaCorrectColor(pointColor);
             }
-            else
-                this->setColor(color);
 
-            this->circle(DRAW_FILL, position.x, position.y, pointSize);
+            int vertexOffset = point * (points + extraPoints);
+            for (int index = 0; index < points + extraPoints; index++)
+                stream[vertexOffset + index].color = pointColor;
         }
     }
 
@@ -424,8 +471,8 @@ namespace love
     void Graphics::draw(const DrawIndexedCommand& command)
     {
         c3d.prepareDraw(this);
-        // c3d.setVertexAttributes(*command.attributes, *command.buffers);
-        c3d.bindTextureToUnit(command.texture, 0, command.isFont);
+        c3d.setVertexAttributes(command.texture, command.isFont);
+        c3d.bindTextureToUnit(command.texture, 0);
 
         const auto* indices = (const uint16_t*)command.indexBuffer->getHandle();
         const size_t offset = command.indexBufferOffset;
@@ -441,26 +488,13 @@ namespace love
     void Graphics::draw(const DrawCommand& command)
     {
         c3d.prepareDraw(this);
-        // c3d.setVertexAttributes(*command.attributes, *command.buffers);
-        c3d.bindTextureToUnit(command.texture, 0, command.isFont);
+        c3d.setVertexAttributes(command.texture, command.isFont);
+        c3d.bindTextureToUnit(command.texture, 0);
 
         const auto primitiveType = citro3d::getPrimitiveType(command.primitiveType);
 
         C3D_DrawArrays(primitiveType, command.vertexStart, command.vertexCount);
         ++this->drawCalls;
-    }
-
-    void Graphics::drawQuads(int start, int count, TextureBase* texture)
-    {
-        c3d.prepareDraw(this);
-        c3d.bindTextureToUnit(texture, 0, false);
-        c3d.setCullMode(CULL_NONE);
-
-        for (int quadIndex = 0; quadIndex < count; quadIndex += MAX_QUADS_PER_DRAW)
-        {
-            int quadCount = std::min(MAX_QUADS_PER_DRAW, count - quadIndex);
-            C3D_DrawElements(GPU_TRIANGLES, quadCount * 6, C3D_UNSIGNED_SHORT, nullptr);
-        }
     }
 
     bool Graphics::is3D() const

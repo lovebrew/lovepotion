@@ -1032,6 +1032,96 @@ int Wrap_Graphics::newImage(lua_State* L)
     return newTexture(L);
 }
 
+int Wrap_Graphics::newArrayTexture(lua_State* L)
+{
+    luax_checkgraphicscreated(L);
+
+    Texture::Slices slices(TEXTURE_2D_ARRAY);
+    Texture::Slices* slicesReference = &slices;
+
+    Texture::Settings settings {};
+    settings.type = TEXTURE_2D_ARRAY;
+
+    bool dpiScaleSet = false;
+
+    if (lua_type(L, 1) == LUA_TNUMBER)
+    {
+        slicesReference = nullptr;
+        settings.width  = luaL_checkinteger(L, 1);
+        settings.height = luaL_checkinteger(L, 2);
+        settings.layers = luaL_checkinteger(L, 3);
+
+        luax_checktexturesettings(L, 4, true, false, false, OptionalBool(), settings, dpiScaleSet);
+    }
+    else
+    {
+        luax_checktexturesettings(L, 2, true, false, false, OptionalBool(), settings, dpiScaleSet);
+        float* autoDpiScale = dpiScaleSet ? nullptr : &settings.dpiScale;
+
+        if (lua_istable(L, 1))
+        {
+            int length = std::max(1, (int)luax_objlen(L, 1));
+
+            if (luax_isarrayoftables(L, 1))
+            {
+                for (int slice = 0; slice < length; slice++)
+                {
+                    lua_rawgeti(L, 1, slice + 1);
+                    luaL_checktype(L, -1, LUA_TTABLE);
+
+                    int mipLength = std::max(1, (int)luax_objlen(L, -1));
+
+                    for (int mip = 0; mip < mipLength; mip++)
+                    {
+                        lua_rawgeti(L, -1, mip + 1);
+
+                        auto* dpiScale = slice == 0 && mip == 0 ? autoDpiScale : nullptr;
+                        auto data      = getImageData(L, -1, true, dpiScale);
+
+                        if (data.first.get())
+                            slices.set(slice, mip, data.first);
+                        else
+                            slices.set(slice, mip, data.second->getSlice(0, 0));
+
+                        lua_pop(L, 1);
+                    }
+                }
+            }
+            else // no mipmaps!?!?
+            {
+                for (int slice = 0; slice < length; slice++)
+                {
+                    lua_rawgeti(L, 1, slice + 1);
+
+                    auto* dpiScale = slice == 0 ? autoDpiScale : nullptr;
+                    auto data      = getImageData(L, -1, true, dpiScale);
+
+                    if (data.first.get())
+                        slices.set(slice, 0, data.first);
+                    else
+                    {
+                        auto addAllMips = settings.mipmaps != Texture::MIPMAPS_NONE;
+                        slices.add(data.second, slice, 0, false, addAllMips);
+                    }
+                }
+            }
+
+            lua_pop(L, length);
+        }
+        else
+        {
+            auto data = getImageData(L, 1, true, autoDpiScale);
+
+            if (data.first.get())
+                slices.set(0, 0, data.first);
+            else
+                slices.add(data.second, 0, 0, true, settings.mipmaps != Texture::MIPMAPS_NONE);
+        }
+    }
+
+    return pushNewTexture(L, slicesReference, settings);
+}
+
 int Wrap_Graphics::draw(lua_State* L)
 {
     Drawable* drawable   = nullptr;
@@ -1940,6 +2030,7 @@ static constexpr luaL_Reg functions[] =
     { "newTexture",             Wrap_Graphics::newTexture            },
     { "newQuad",                Wrap_Graphics::newQuad               },
     { "newImage",               Wrap_Graphics::newImage              },
+    // { "newArrayTexture",        Wrap_Graphics::newArrayTexture       },
 
     // { "newMesh",                Wrap_Graphics::newMesh               },
 

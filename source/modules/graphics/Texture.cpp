@@ -412,6 +412,56 @@ namespace love
         }
     }
 
+    void TextureBase::drawLayer(GraphicsBase* graphics, int layer, const Matrix4& matrix)
+    {
+        this->drawLayer(graphics, layer, quad, matrix);
+    }
+
+    void TextureBase::drawLayer(GraphicsBase* graphics, int layer, Quad* quad, const Matrix4& matrix)
+    {
+        if (!this->readable)
+            throw love::Exception("Textures with non-readable formats cannot be drawn.");
+
+        if (this->renderTarget && graphics->isRenderTargetActive(this, layer))
+            throw love::Exception("Cannot render a Texture to itself.");
+
+        if (this->textureType != TEXTURE_2D_ARRAY)
+            throw love::Exception("drawLayer can only be used with Array Textures.");
+
+        if (layer < 0 || layer >= this->layers)
+            throw love::Exception("Invalid layer: {:d} (Texture has {:d} layers)", layer + 1, this->layers);
+
+        const auto& transform = graphics->getTransform();
+        bool is2D             = transform.isAffine2DTransform();
+
+        Matrix4 translated(transform, matrix);
+
+        BatchedDrawCommand command {};
+        command.format      = CommonFormat::XYf_STPf_RGBAf;
+        command.indexMode   = TRIANGLEINDEX_QUADS;
+        command.vertexCount = 4;
+        command.texture     = this;
+        command.shaderType  = shader;
+
+        auto data             = graphics->requestBatchedDraw(command);
+        XYf_STf_RGBAf* stream = (XYf_STf_RGBAf*)data.stream;
+
+        if (is2D)
+            translated.transformXY((Vertex*)data.stream, quad->getVertexPositions(), 4);
+
+        if constexpr (Console::is(Console::CTR))
+            this->updateQuad(this->quad);
+
+        const Vector2* texCoords = quad->getTextureCoordinates();
+
+        for (int index = 0; index < 4; index++)
+        {
+            stream[index].s     = texCoords[index].x;
+            stream[index].t     = texCoords[index].y;
+            stream[index].color = graphics->getColor();
+        }
+    }
+
     Quad* TextureBase::getQuad()
     {
         return this->quad;

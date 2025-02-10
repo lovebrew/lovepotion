@@ -218,6 +218,10 @@ namespace love
 
         void draw(GraphicsBase* graphics, Quad* quad, const Matrix4& matrix);
 
+        void drawLayer(GraphicsBase* graphics, int layer, const Matrix4& matrix);
+
+        void drawLayer(GraphicsBase* graphics, int layer, Quad* quad, const Matrix4& matrix);
+
         bool isCompressed() const
         {
             return love::isPixelFormatCompressed(this->format);
