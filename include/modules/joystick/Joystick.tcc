@@ -160,6 +160,14 @@ namespace love
 
         virtual std::vector<float> getAxes() const = 0;
 
+        virtual void clearPressedButtonState(GamepadButton button) {};
+
+        virtual void clearHeldButtonState(GamepadButton button) {};
+
+        virtual void clearAxisState(GamepadAxis axis) {};
+
+        virtual void clearReleasedButtonState(GamepadButton button) {};
+
         virtual bool isDown(std::span<GamepadButton> buttons) const = 0;
 
         virtual bool isUp(std::span<GamepadButton> buttons) const = 0;

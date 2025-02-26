@@ -10,3 +10,4 @@ target/
 *.py
 __pycache__/
 todo.md
+.zed

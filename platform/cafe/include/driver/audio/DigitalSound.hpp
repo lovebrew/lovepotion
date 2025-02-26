@@ -17,9 +17,9 @@ namespace love
     class DigitalSound : public DigitalSoundBase<DigitalSound>
     {
       public:
-        ~DigitalSound();
-
         virtual void initialize() override;
+
+        virtual void deInitialize() override;
 
         void updateImpl();
 

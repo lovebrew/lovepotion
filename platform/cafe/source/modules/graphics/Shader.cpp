@@ -1,6 +1,8 @@
-#include "modules/graphics/Shader.hpp"
-
+#include "common/Exception.hpp"
 #include "common/screen.hpp"
+
+#include "modules/graphics/Shader.hpp"
+#include "modules/graphics/ShaderStage.hpp"
 
 #include <gfd.h>
 #include <gx2/mem.h>
@@ -16,46 +18,10 @@
 
 namespace love
 {
-    Shader::Shader(StandardShader type) : ShaderBase(type), uniform {}
+    Shader::Shader(StrongRef<ShaderStageBase> _stages[SHADERSTAGE_MAX_ENUM], const CompileOptions& options) :
+        ShaderBase(_stages, options)
     {
-        std::string error;
-
-        switch (type)
-        {
-            default:
-            case STANDARD_DEFAULT:
-            {
-                if (!this->validate(DEFAULT_PRIMITIVE_SHADER, error))
-                    throw love::Exception("Failed to load primitive shader: {:s}", error);
-
-                break;
-            }
-            case STANDARD_TEXTURE:
-            {
-                if (!this->validate(DEFAULT_TEXTURE_SHADER, error))
-                    throw love::Exception("Failed to load texture shader: {:s}", error);
-
-                break;
-            }
-            case STANDARD_VIDEO:
-            {
-                if (!this->validate(DEFAULT_VIDEO_SHADER, error))
-                    throw love::Exception("Failed to load video shader: {:s}", error);
-
-                break;
-            }
-        }
-
-        // clang-format off
-        WHBGfxInitShaderAttribute(&this->program, "inPos",      0, POSITION_OFFSET, GX2_ATTRIB_FORMAT_FLOAT_32_32);
-        WHBGfxInitShaderAttribute(&this->program, "inTexCoord", 0, TEXCOORD_OFFSET, GX2_ATTRIB_FORMAT_FLOAT_32_32);
-        WHBGfxInitShaderAttribute(&this->program, "inColor",    0, COLOR_OFFSET,    GX2_ATTRIB_FORMAT_FLOAT_32_32_32_32);
-        // clang-format on
-
-        this->uniform = this->getUniform("Transformation");
-
-        if (!WHBGfxInitFetchShader(&this->program))
-            throw love::Exception("Failed to initialize Fetch Shader");
+        this->loadVolatile();
     }
 
     Shader::~Shader()
@@ -63,47 +29,124 @@ namespace love
         this->unloadVolatile();
     }
 
+    const char* Shader::getDefaultStagePath(StandardShader shader, ShaderStageType stage)
+    {
+        LOVE_UNUSED(stage);
+
+        switch (shader)
+        {
+            case STANDARD_DEFAULT:
+            default:
+                return DEFAULT_PRIMITIVE_SHADER;
+            case STANDARD_TEXTURE:
+                return DEFAULT_TEXTURE_SHADER;
+            case STANDARD_VIDEO:
+                return DEFAULT_VIDEO_SHADER;
+        }
+    }
+
+    void Shader::mapActiveUniforms()
+    {
+        const auto uniformBlockCount = this->program.vertexShader->uniformBlockCount;
+
+        for (size_t index = 0; index < uniformBlockCount; index++)
+        {
+            const auto uniform = this->program.vertexShader->uniformBlocks[index];
+
+            this->reflection.uniforms.insert_or_assign(
+                uniform.name, new UniformInfo {
+                                  .type      = UNIFORM_MATRIX,
+                                  .stageMask = ShaderStageMask::SHADERSTAGEMASK_VERTEX,
+                                  .active    = true,
+                                  .location  = uniform.offset,
+                                  .count     = 1,
+                                  .name      = uniform.name,
+                              });
+        }
+
+        const auto samplerCount = this->program.pixelShader->samplerVarCount;
+
+        for (size_t index = 0; index < samplerCount; index++)
+        {
+            const auto sampler = this->program.pixelShader->samplerVars[index];
+
+            this->reflection.uniforms.insert_or_assign(
+                sampler.name, new UniformInfo {
+                                  .type      = UNIFORM_SAMPLER,
+                                  .stageMask = ShaderStageMask::SHADERSTAGEMASK_PIXEL,
+                                  .active    = true,
+                                  .location  = sampler.location,
+                                  .count     = 1,
+                                  .name      = sampler.name,
+                              });
+        }
+    }
+
+    bool Shader::setShaderStages(WHBGfxShaderGroup* group, std::array<StrongRef<ShaderStageBase>, 2> stages)
+    {
+        std::memset(group, 0, sizeof(WHBGfxShaderGroup));
+
+        if (this->hasStage(ShaderStageType::SHADERSTAGE_VERTEX))
+            group->vertexShader = (GX2VertexShader*)stages[SHADERSTAGE_VERTEX]->getHandle();
+
+        if (this->hasStage(ShaderStageType::SHADERSTAGE_PIXEL))
+            group->pixelShader = (GX2PixelShader*)stages[SHADERSTAGE_PIXEL]->getHandle();
+
+        if (!this->program.vertexShader || !this->program.pixelShader)
+            return false;
+
+        return true;
+    }
+
     bool Shader::loadVolatile()
     {
+        for (const auto& stage : this->stages)
+        {
+            if (stage.get() != nullptr)
+                ((ShaderStage*)stage.get())->loadVolatile();
+        }
+
+        if (!this->setShaderStages(&this->program, this->stages))
+            return true;
+
+        this->mapActiveUniforms();
+
+        // clang-format off
+        WHBGfxInitShaderAttribute(&this->program, "inPos",      0, POSITION_OFFSET, GX2_ATTRIB_FORMAT_FLOAT_32_32);
+        WHBGfxInitShaderAttribute(&this->program, "inTexCoord", 0, TEXCOORD_OFFSET, GX2_ATTRIB_FORMAT_FLOAT_32_32);
+        WHBGfxInitShaderAttribute(&this->program, "inColor",    0, COLOR_OFFSET,    GX2_ATTRIB_FORMAT_FLOAT_32_32_32_32);
+        // clang-format on
+
+        if (!WHBGfxInitFetchShader(&this->program))
+            return false;
+
         return true;
     }
 
     void Shader::unloadVolatile()
     {
         WHBGfxFreeShaderGroup(&this->program);
+
+        for (auto& it : this->reflection.uniforms)
+            delete it.second;
     }
 
-    uint32_t Shader::getPixelSamplerLocation(int index)
+    std::string Shader::getWarnings() const
     {
-        if (this->shaderType != Shader::STANDARD_TEXTURE)
-            throw love::Exception("Invalid shader set!");
+        std::string warnings {};
+        std::string_view stageString;
 
-        size_t count = this->program.pixelShader->samplerVarCount;
-
-        if (index > count)
-            throw love::Exception("Invalid sampler index");
-
-        return this->program.pixelShader->samplerVars[index].location;
-    }
-
-    const Shader::UniformInfo Shader::getUniform(const std::string& name) const
-    {
-        const auto count = this->program.vertexShader->uniformBlockCount;
-
-        for (size_t index = 0; index < count; index++)
+        for (const auto& stage : this->stages)
         {
-            const auto uniform = this->program.vertexShader->uniformBlocks[index];
+            if (stage.get() == nullptr)
+                continue;
 
-            if (uniform.name == name)
-                return UniformInfo { uniform.offset, name };
+            const std::string& _warnings = stage->getWarnings();
+            if (!_warnings.empty() && ShaderStage::getConstant(stage->getStageType(), stageString))
+                warnings += std::format("{} shader:\n{}", stageString, _warnings);
         }
 
-        return {};
-    }
-
-    bool Shader::hasUniform(const std::string& name) const
-    {
-        return this->uniform.name == name;
+        return warnings;
     }
 
     void Shader::updateBuiltinUniforms(GraphicsBase* graphics, Uniform* uniform)
@@ -114,8 +157,13 @@ namespace love
         auto& transform = graphics->getTransform();
         // uniform->update(transform);
 
+        auto* uniformBlock = this->getUniformInfo("Transformation");
+
+        if (!uniformBlock)
+            return;
+
         GX2Invalidate(INVALIDATE_UNIFORM_BLOCK, uniform, UNIFORM_SIZE);
-        GX2SetVertexUniformBlock(this->uniform.location, UNIFORM_SIZE, uniform);
+        GX2SetVertexUniformBlock(uniformBlock->location, UNIFORM_SIZE, uniform);
     }
 
     ptrdiff_t Shader::getHandle() const
@@ -138,52 +186,5 @@ namespace love
             current = this;
             shaderSwitches++;
         }
-    }
-
-    bool Shader::validate(const char* filepath, std::string& error)
-    {
-        FILE* file = std::fopen(filepath, "rb");
-
-        if (!file)
-        {
-            error = "File does not exist.";
-            std::fclose(file);
-            return false;
-        }
-
-        std::unique_ptr<uint8_t[]> data;
-
-        std::fseek(file, 0, SEEK_END);
-        long size = std::ftell(file);
-        std::rewind(file);
-
-        try
-        {
-            data = std::make_unique<uint8_t[]>(size);
-        }
-        catch (std::bad_alloc&)
-        {
-            error = "Not enough memory.";
-            return false;
-        }
-
-        long readSize = (long)std::fread(data.get(), 1, size, file);
-
-        if (readSize != size)
-        {
-            error = "Failed to read whole file.";
-            std::fclose(file);
-            return false;
-        }
-
-        std::fclose(file);
-
-        if (!WHBGfxLoadGFDShaderGroup(&this->program, 0, data.get()))
-        {
-            error = "Failed to load Shader Group";
-            return false;
-        }
-
-        return true;
     }
 } // namespace love

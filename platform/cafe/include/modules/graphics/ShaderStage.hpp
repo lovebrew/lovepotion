@@ -3,7 +3,6 @@
 #include "modules/graphics/ShaderStage.tcc"
 #include "modules/graphics/Volatile.hpp"
 
-#include <gfx.h>
 #include <whb/gfx.h>
 
 namespace love
@@ -24,5 +23,7 @@ namespace love
       private:
         GX2PixelShader* pixel;
         GX2VertexShader* vertex;
+
+        std::vector<uint8_t> code;
     };
 } // namespace love

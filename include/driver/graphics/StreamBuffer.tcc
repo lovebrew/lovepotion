@@ -46,16 +46,6 @@ namespace love
             return this->bufferSize - this->frameGPUReadOffset;
         }
 
-        size_t getGPUReadOffset() const
-        {
-            return (this->frameIndex * this->bufferSize) + this->frameGPUReadOffset;
-        }
-
-        int getBufferIndex() const
-        {
-            return (this->frameIndex * this->bufferSize) + this->index;
-        }
-
         // MapInfo<T> map(size_t) = 0;
 
         virtual size_t unmap(size_t)
@@ -76,20 +66,17 @@ namespace love
         }
 
       protected:
-        StreamBufferBase(BufferUsage usage, size_t size) :
+        StreamBufferBase(BufferUsage mode, size_t size) :
             bufferSize(size),
             frameGPUReadOffset(0),
-            frameIndex(0),
             index(0),
-            usage(usage)
+            mode(mode)
         {}
 
         size_t bufferSize;
         size_t frameGPUReadOffset;
-        size_t frameIndex;
-
         int index;
 
-        BufferUsage usage;
+        BufferUsage mode;
     };
 } // namespace love

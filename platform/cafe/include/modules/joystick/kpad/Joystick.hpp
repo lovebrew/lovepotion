@@ -33,6 +33,8 @@ namespace love
 
             virtual bool isDown(std::span<GamepadButton> buttons) const override;
 
+            void clearButtonState(GamepadButton button);
+
             virtual bool isUp(std::span<GamepadButton> buttons) const override;
 
             virtual bool isAxisChanged(GamepadAxis axis) const override;
@@ -199,7 +201,7 @@ namespace love
             KPADStatus status;
             KPADError error;
 
-            mutable struct State
+            struct State
             {
                 uint32_t pressed;
                 uint32_t released;

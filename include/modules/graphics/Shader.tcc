@@ -17,6 +17,8 @@
 using Location = int8_t;
 #elif defined(__SWITCH__)
 using Location = uint8_t;
+#else
+using Location = uint32_t;
 #endif
 
 namespace love
@@ -48,7 +50,15 @@ namespace love
 
         enum UniformType
         {
+            UNIFORM_FLOAT,
             UNIFORM_MATRIX,
+            UNIFORM_INT,
+            UNIFORM_UINT,
+            UNIFORM_BOOL,
+            UNIFORM_SAMPLER,
+            UNIFORM_STORAGETEXTURE,
+            UNIFORM_TEXELBUFFER,
+            UNIFORM_STORAGEBUFFER,
             UNIFORM_UNKNOWN,
             UNIFORM_MAX_ENUM
         };

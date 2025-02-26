@@ -46,6 +46,12 @@ namespace love
 
         virtual bool isPixelFormatSupported(PixelFormat format, uint32_t usage) override;
 
+        virtual ShaderStageBase* newShaderStageInternal(ShaderStageType stage,
+                                                        const std::string& filepath) override;
+
+        virtual ShaderBase* newShaderInternal(StrongRef<ShaderStageBase> stages[SHADERSTAGE_MAX_ENUM],
+                                              const ShaderBase::CompileOptions& options) override;
+
         void draw(const DrawIndexedCommand& command) override;
 
         void draw(const DrawCommand& command) override;

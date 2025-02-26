@@ -4,10 +4,10 @@ namespace love
 {
     namespace vpad
     {
-        Joystick::Joystick(int id) : JoystickBase(id)
+        Joystick::Joystick(int id) : JoystickBase(id), status {}, error {}
         {}
 
-        Joystick::Joystick(int id, int index) : JoystickBase(id, index)
+        Joystick::Joystick(int id, int index) : JoystickBase(id, index), status {}, error {}
         {
             this->open(index);
         }

@@ -14,7 +14,7 @@ using namespace love;
 
 namespace love
 {
-    EventQueue::EventQueue() : gamepad(nullptr), previousTouch {}
+    EventQueue::EventQueue() : gamepad(nullptr), previousTouch {}, wasTouched(false)
     {}
 
     EventQueue::~EventQueue()
@@ -68,11 +68,18 @@ namespace love
             for (int input = 0; input < JoystickBase::GAMEPAD_BUTTON_MAX_ENUM; input++)
             {
                 std::vector<JoystickBase::GamepadButton> inputs = { JoystickBase::GamepadButton(input) };
+
                 if (joystick->isDown(inputs))
+                {
                     this->sendGamepadButtonEvent(SUBTYPE_GAMEPADDOWN, which, input);
+                    joystick->clearPressedButtonState(JoystickBase::GamepadButton(input));
+                }
 
                 if (joystick->isUp(inputs))
+                {
                     this->sendGamepadButtonEvent(SUBTYPE_GAMEPADUP, which, input);
+                    joystick->clearReleasedButtonState(JoystickBase::GamepadButton(input));
+                }
             }
 
             for (int input = 0; input < JoystickBase::GAMEPAD_AXIS_MAX_ENUM; input++)
@@ -81,6 +88,8 @@ namespace love
                 {
                     float value = joystick->getAxis(JoystickBase::GamepadAxis(input));
                     this->sendGamepadAxisEvent(which, input, value);
+
+                    joystick->clearAxisState(JoystickBase::GamepadAxis(input));
                 }
             }
 
@@ -121,11 +130,17 @@ namespace love
 
                 if (touchType == SUBTYPE_TOUCHMOVED && !dx && !dy)
                     this->events.pop_back();
+
+                this->wasTouched = true;
             }
             else
             {
+                if (!this->wasTouched)
+                    return;
+
                 const auto& previous = this->previousTouch;
                 this->sendTouchEvent(SUBTYPE_TOUCHRELEASE, 0, previous.x, previous.y, 0, 0, 1.0f);
+                this->wasTouched = false;
             }
         }
     }

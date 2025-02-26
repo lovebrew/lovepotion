@@ -27,9 +27,6 @@ namespace love
 
         if (current == this)
             this->attachDefault(STANDARD_DEFAULT);
-
-        for (auto& it : this->reflection.uniforms)
-            delete it.second;
     }
 
     bool ShaderBase::hasStage(ShaderStageType stage)

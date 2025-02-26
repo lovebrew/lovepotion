@@ -3,7 +3,7 @@ R"luastring"--(
 -- There is a matching delimiter at the bottom of the file.
 
 --[[
-Copyright (c) 2006-2021 LOVE Development Team
+Copyright (c) 2006-2024 LOVE Development Team
 
 This software is provided 'as-is', without any express or implied
 warranty.  In no event will the authors be held liable for any damages
@@ -27,171 +27,127 @@ local love = require("love")
 function love.createhandlers()
     -- Standard callback handlers.
     love.handlers = setmetatable({
-        --#region unused
-        -- keypressed = function(button, scancode, isRepeat)
-        --     if love.keypressed then
-        --         return love.keypressed(button, scancode, isRepeat)
-        --     end
-        -- end,
-        -- keyreleased = function(button, scancode)
-        --     if love.keyreleased then
-        --         return love.keyreleased(button, scancode)
-        --     end
-        -- end,
-        --#endregion
-        textinput = function(text)
-            if love.textinput then
-                return love.textinput(text)
-            end
+        keypressed = function(b, s, r)
+            if love.keypressed then return love.keypressed(b, s, r) end
         end,
-        --#region unused
-        -- textedited = function(text, start, length)
-        --     if love.textedited then
-        --         return love.textedited(text, start, length)
-        --     end
-        -- end,
-        -- mousemoved = function(x, y, dx, dy, isTouch)
-        --     if love.mousemoved then
-        --         return love.mousemoved(x, y, dx, dy, isTouch)
-        --     end
-        -- end,
-        -- mousepressed = function(x, y, button, isTouch, presses)
-        --     if love.mousepressed then
-        --         return love.mousepressed(x, y, button, isTouch, presses)
-        --     end
-        -- end,
-        -- mousereleased = function(x, y, button, isTouch, presses)
-        --     if love.mousereleased then
-        --         return love.mousereleased(x, y, button, isTouch, presses)
-        --     end
-        -- end,
-        -- wheelmoved = function(x, y)
-        --     if love.wheelmoved then
-        --         return love.wheelmoved(x, y)
-        --     end
-        -- end,
-        --#endregion
-        touchpressed = function(id, x, y, dx, dy, pressure)
-            if love.touchpressed then
-                return love.touchpressed(id, x, y, dx, dy, pressure)
-            end
+        keyreleased = function(b, s)
+            if love.keyreleased then return love.keyreleased(b, s) end
         end,
-        touchreleased = function(id, x, y, dx, dy, pressure)
-            if love.touchreleased then
-                return love.touchreleased(id, x, y, dx, dy, pressure)
-            end
+        textinput = function(t)
+            if love.textinput then return love.textinput(t) end
         end,
-        touchmoved = function(id, x, y, dx, dy, pressure)
-            if love.touchmoved then
-                return love.touchmoved(id, x, y, dx, dy, pressure)
-            end
+        textedited = function(t, s, l)
+            if love.textedited then return love.textedited(t, s, l) end
         end,
-        joystickpressed = function(joystick, button)
-            if love.joystickpressed then
-                return love.joystickpressed(joystick, button)
-            end
+        mousemoved = function(x, y, dx, dy, t)
+            if love.mousemoved then return love.mousemoved(x, y, dx, dy, t) end
         end,
-        joystickreleased = function(joystick, button)
-            if love.joystickreleased then
-                return love.joystickreleased(joystick, button)
-            end
+        mousepressed = function(x, y, b, t, c)
+            if love.mousepressed then return love.mousepressed(x, y, b, t, c) end
         end,
-        joystickaxis = function(joystick, axis, value)
-            if love.joystickaxis then
-                return love.joystickaxis(joystick, axis, value)
-            end
+        mousereleased = function(x, y, b, t, c)
+            if love.mousereleased then return love.mousereleased(x, y, b, t, c) end
         end,
-        joysticksensorupdated = function(joystick, sensor, ...)
-            if love.joysticksensorupdated then
-                return love.joysticksensorupdated(joystick, sensor, ...)
-            end
+        wheelmoved = function(x, y, px, py, dir)
+            if love.wheelmoved then return love.wheelmoved(x, y, px, py, dir) end
         end,
-        --#region unused
-        -- joystickhat = function(joystick, hat, value)
-        --     if love.joystickhat then
-        --         return love.joystickhat(joystick, hat, value)
-        --     end
-        -- end,
-        --#endregion unused
-        gamepadpressed = function(joystick, button)
-            if love.gamepadpressed then
-                return love.gamepadpressed(joystick, button)
-            end
+        touchpressed = function(id, x, y, dx, dy, p, t, m)
+            if love.touchpressed then return love.touchpressed(id, x, y, dx, dy, p, t, m) end
         end,
-        gamepadreleased = function(joystick, button)
-            if love.gamepadreleased then
-                return love.gamepadreleased(joystick, button)
-            end
+        touchreleased = function(id, x, y, dx, dy, p, t, m)
+            if love.touchreleased then return love.touchreleased(id, x, y, dx, dy, p, t, m) end
         end,
-        gamepadaxis = function(joystick, axis, value)
-            if love.gamepadaxis then
-                return love.gamepadaxis(joystick, axis, value)
-            end
+        touchmoved = function(id, x, y, dx, dy, p, t, m)
+            if love.touchmoved then return love.touchmoved(id, x, y, dx, dy, p, t, m) end
         end,
-        joystickadded = function(joystick)
-            if love.joystickadded then
-                return love.joystickadded(joystick)
-            end
+        joystickpressed = function(j, b)
+            if love.joystickpressed then return love.joystickpressed(j, b) end
         end,
-        joystickremoved = function(joystick)
-            if love.joystickremoved then
-                return love.joystickremoved(joystick)
-            end
+        joystickreleased = function(j, b)
+            if love.joystickreleased then return love.joystickreleased(j, b) end
         end,
-        focus = function(focused)
-            if love.focus then
-                return love.focus(focused)
-            end
+        joystickaxis = function(j, a, v)
+            if love.joystickaxis then return love.joystickaxis(j, a, v) end
         end,
-        --#region unused
-        -- mousefocus = function(mouseFocused)
-        --     if love.mousefocus then
-        --         return love.mousefocus(mouseFocused)
-        --     end
-        -- end,
-        --#endregion unused
-        visible = function(visible)
-            if love.visible then
-                return love.visible(visible)
-            end
+        joystickhat = function(j, h, v)
+            if love.joystickhat then return love.joystickhat(j, h, v) end
+        end,
+        gamepadpressed = function(j, b)
+            if love.gamepadpressed then return love.gamepadpressed(j, b) end
+        end,
+        gamepadreleased = function(j, b)
+            if love.gamepadreleased then return love.gamepadreleased(j, b) end
+        end,
+        gamepadaxis = function(j, a, v)
+            if love.gamepadaxis then return love.gamepadaxis(j, a, v) end
+        end,
+        joystickadded = function(j)
+            if love.joystickadded then return love.joystickadded(j) end
+        end,
+        joystickremoved = function(j)
+            if love.joystickremoved then return love.joystickremoved(j) end
+        end,
+        joysticksensorupdated = function(j, sensorType, x, y, z)
+            if love.joysticksensorupdated then return love.joysticksensorupdated(j, sensorType, x, y, z) end
+        end,
+        focus = function(f)
+            if love.focus then return love.focus(f) end
+        end,
+        mousefocus = function(f)
+            if love.mousefocus then return love.mousefocus(f) end
+        end,
+        visible = function(v)
+            if love.visible then return love.visible(v) end
+        end,
+        exposed = function()
+            if love.exposed then return love.exposed() end
+        end,
+        occluded = function()
+            if love.occluded then return love.occluded() end
         end,
         quit = function()
             return
         end,
-        threaderror = function(thread, error)
-            if love.threaderror then
-                return love.threaderror(thread, error)
-            end
+        threaderror = function(t, err)
+            if love.threaderror then return love.threaderror(t, err) end
         end,
-        resize = function(width, height)
-            if love.resize then
-                return love.resize(width, height)
-            end
+        resize = function(w, h)
+            if love.resize then return love.resize(w, h) end
         end,
-        --#region unused
-        -- filedropped = function(file)
-        --     if love.filedropped then
-        --         return love.filedropped(file)
-        --     end
-        -- end,
-        -- directorydropped = function(directory)
-        --     if love.directorydropped then
-        --         return love.directorydropped(directory)
-        --     end
-        -- end,
-        --#endregion unused
+        filedropped = function(f, x, y)
+            if love.filedropped then return love.filedropped(f, x, y) end
+        end,
+        directorydropped = function(dir, x, y)
+            if love.directorydropped then return love.directorydropped(dir, x, y) end
+        end,
+        dropbegan = function()
+            if love.dropbegan then return love.dropbegan() end
+        end,
+        dropmoved = function(x, y)
+            if love.dropmoved then return love.dropmoved(x, y) end
+        end,
+        dropcompleted = function(x, y)
+            if love.dropcompleted then return love.dropcompleted(x, y) end
+        end,
         lowmemory = function()
-            if love.lowmemory then
-                love.lowmemory()
-            end
+            if love.lowmemory then love.lowmemory() end
             collectgarbage()
             collectgarbage()
         end,
-        -- displayrotated = function(display, orient)
-        --     if love.displayrotated then
-        --         return love.displayrotated(display, orient)
-        --     end
-        -- end,
+        displayrotated = function(display, orient)
+            if love.displayrotated then return love.displayrotated(display, orient) end
+        end,
+        localechanged = function()
+            if love.localechanged then return love.localechanged() end
+        end,
+        audiodisconnected = function(sources)
+            if not love.audiodisconnected or not love.audiodisconnected(sources) then
+                love.audio.setPlaybackDevice()
+            end
+        end,
+        sensorupdated = function(sensorType, x, y, z)
+            if love.sensorupdated then return love.sensorupdated(sensorType, x, y, z) end
+        end,
     }, {
         __index = function(self, name)
             error("Unknown event: " .. name)
@@ -203,88 +159,59 @@ end
 -- Default callbacks.
 -----------------------------------------------------------
 
-local function get_3d_depth(screen)
-    if love._console ~= "3DS" then
-        return nil
-    end
-
-    if not love.graphics.is3D() then
-        return nil
-    end
-
+---Gets the stereoscopic 3D value of the 3D slide on Nintendo 3DS
+---@param screen string The current screen
+---@return number | nil depth The stereoscopic 3D value (0.0 - 1.0)
+local function get_stereoscopic_depth(screen)
+    if love._console ~= "3DS" then return end
     local depth = love.graphics.getDepth()
-
-    if screen == "right" then
-        depth = -depth
-    elseif screen == "bottom" then
-        return nil
-    end
-
-    return depth
+    return screen ~= "bottom" and (screen == "left" and depth or -depth) or 0
 end
 
 function love.run()
-    if love.load then
-        love.load(love.parsedGameArguments, love.rawGameArguments)
-    end
+    print("loading")
+    if love.load then love.load(love.parsedGameArguments, love.rawGameArguments) end
 
-    if love.timer then
-        love.timer.step()
-    end
+    print("stepping")
+    -- We don't want the first frame's dt to include time taken by love.load.
+    if love.timer then love.timer.step() end
 
-    local delta = 0
-
+    -- Main loop time.
     return function()
-        if love.window and MESSAGEBOX then
-            return
-        end
-
-        if love.event and love.event.pump then
+        -- Process events.
+        if love.event then
             love.event.pump()
-
-            for name, a, b, c, d, e, f in love.event.poll() do
+            for name, a, b, c, d, e, f, g, h in love.event.poll() do
                 if name == "quit" then
                     if not love.quit or not love.quit() then
-                        if love.audio then
-                            love.audio.stop()
-                        end
-                        return a or 0
+                        return a or 0, b
                     end
                 end
-                love.handlers[name](a, b, c, d, e, f)
+                love.handlers[name](a, b, c, d, e, f, g, h)
             end
         end
 
-        if love.timer then
-            delta = love.timer.step()
-        end
+        -- Update dt, as we'll be passing it to update
+        local dt = love.timer and love.timer.step() or 0
 
-        if love.update then
-            love.update(delta)
-        end
+        -- Call update and draw
+        if love.update then love.update(dt) end -- will pass 0 if love.timer is disabled
 
         if love.graphics and love.graphics.isActive() then
-            local screens = love.graphics.getScreens()
+            for display_index = 1, love.window.getDisplayCount() do
+                local display_name = love.window.getDisplayName(display_index)
 
-            for _, screen in ipairs(screens) do
-                love.graphics.setActiveScreen(screen)
-
+                love.graphics.setActiveScreen(display_name)
                 love.graphics.origin()
+
                 love.graphics.clear(love.graphics.getBackgroundColor())
 
-                if love.draw then
-                    love.draw(screen, get_3d_depth(screen))
-                end
-
+                if love.draw then love.draw(display_name, get_stereoscopic_depth(display_name)) end
                 love.graphics.copyCurrentScanBuffer()
             end
-
             love.graphics.present()
         end
-
-        if love.timer then
-            love.timer.sleep(0.001)
-        end
+        if love.timer then love.timer.sleep(0.001) end
     end
 end
 
@@ -297,7 +224,7 @@ end
 local utf8 = require("utf8")
 
 local function error_printer(msg, layer)
-    print(debug.traceback("Error: " .. tostring(msg), 1 + (layer or 1)):gsub("\n[^\n]+$", ""))
+    print((debug.traceback("Error: " .. tostring(msg), 1 + (layer or 1)):gsub("\n[^\n]+$", "")))
 end
 
 function love.errhand(msg)
@@ -325,20 +252,16 @@ function love.errhand(msg)
             love.mouse.setCursor()
         end
     end
-
     if love.joystick then
         -- Stop all joystick vibrations.
         for i, v in ipairs(love.joystick.getJoysticks()) do
             v:setVibration()
         end
     end
-
-    if love.audio then
-        love.audio.stop()
-    end
+    if love.audio then love.audio.stop() end
 
     love.graphics.reset()
-    local font = love.graphics.newFont(14)
+    love.graphics.setFont(love.graphics.newFont(15))
 
     love.graphics.setColor(1, 1, 1)
 
@@ -375,64 +298,23 @@ function love.errhand(msg)
     p = p:gsub("\t", "")
     p = p:gsub("%[string \"(.-)\"%]", "%1")
 
-    local screens = love.graphics.getScreens()
-
-    local _, text = font:getWrap(p, love.graphics.getWidth() - 20)
-
-    if #text > 14 then
-        for index = 15, #text do
-            text[index] = nil
-        end
-    end
-
-    table.insert(text, "")
-
-    local not_saved_message = "Press Start to quit or A save this error."
-    local saved_message = "Error saved. Press Start to quit."
-
-    table.insert(text, not_saved_message)
-
     local function draw()
-        if not love.graphics.isActive() then
-            return
-        end
-
-        for _, screen in ipairs(screens) do
-            love.graphics.origin()
-
-            love.graphics.setActiveScreen(screen)
-            love.graphics.clear(0.35, 0.62, 0.86)
-
-            if screen ~= "bottom" then
-                for index = 1, #text do
-                    love.graphics.print(text[index], font, 5, (index - 1) * 16)
-                end
-            end
-
-            love.graphics.copyCurrentScanBuffer()
-        end
-
+        if not love.graphics.isActive() then return end
+        local pos = 70
+        love.graphics.clear(89 / 255, 157 / 255, 220 / 255)
+        love.graphics.printf(p, pos, pos, love.graphics.getWidth() - pos)
         love.graphics.present()
     end
 
-    local fullErrorText, savedMessage = p, false
-    local function saveErrorToFile()
-        if savedMessage then
-            return
-        end
+    local fullErrorText = p
+    local function copyToClipboard()
+        if not love.system then return end
+        love.system.setClipboardText(fullErrorText)
+        p = p .. "\nCopied to clipboard!"
+    end
 
-        local date = os.date("%H%M%S_%m%d%y")
-        local filename = ("errors/%s.txt"):format(date)
-
-        if not love.filesystem then
-            return
-        end
-
-        love.filesystem.createDirectory("errors")
-        love.filesystem.write(filename, fullErrorText)
-
-        text[#text] = saved_message
-        savedMessage = true
+    if love.system then
+        p = p .. "\n\nPress Ctrl+C or tap to copy this error"
     end
 
     return function()
@@ -441,23 +323,22 @@ function love.errhand(msg)
         for e, a, b, c in love.event.poll() do
             if e == "quit" then
                 return 1
-            elseif e == "gamepadpressed" and b == "start" then
+            elseif e == "keypressed" and a == "escape" then
                 return 1
-            elseif e == "gamepadpressed" and b == "a" then
-                saveErrorToFile()
+            elseif e == "keypressed" and a == "c" and love.keyboard.isDown("lctrl", "rctrl") then
+                copyToClipboard()
             elseif e == "touchpressed" then
-                local name = love.filesystem.getIdentity()
-
-                if #name == 0 or name == "Untitled" then
-                    name = "Game"
-                end
-
+                local name = love.window.getTitle()
+                if #name == 0 or name == "Untitled" then name = "Game" end
                 local buttons = { "OK", "Cancel" }
-
+                if love.system then
+                    buttons[3] = "Copy to clipboard"
+                end
                 local pressed = love.window.showMessageBox("Quit " .. name .. "?", "", buttons)
-
                 if pressed == 1 then
                     return 1
+                elseif pressed == 3 then
+                    copyToClipboard()
                 end
             end
         end

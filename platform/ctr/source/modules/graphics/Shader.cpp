@@ -51,8 +51,6 @@ namespace love
 
     bool Shader::loadVolatile()
     {
-        std::string error;
-
         if (this->hasStage(ShaderStageType::SHADERSTAGE_VERTEX))
         {
             const auto* dvlb = (DVLB_s*)this->stages[SHADERSTAGE_VERTEX]->getHandle();

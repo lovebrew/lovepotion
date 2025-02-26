@@ -21,5 +21,6 @@ namespace love
       private:
         vpad::Joystick* gamepad;
         VPADTouchData previousTouch;
+        bool wasTouched;
     };
 } // namespace love

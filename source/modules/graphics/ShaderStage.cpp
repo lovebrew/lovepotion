@@ -5,7 +5,7 @@
 namespace love
 {
     ShaderStageBase::ShaderStageBase(ShaderStageType stage, const std::string& filepath) :
-        stageType(stage),
-        filepath(filepath)
+        filepath(filepath),
+        stageType(stage)
     {}
 } // namespace love

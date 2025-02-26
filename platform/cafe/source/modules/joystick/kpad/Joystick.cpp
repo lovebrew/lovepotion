@@ -199,17 +199,17 @@ namespace love
         {
             T result;
 
-            for (const auto& button : buttons)
-            {
-                if (!Joystick::getConstant(button, result))
-                    continue;
+            // for (const auto& button : buttons)
+            // {
+            //     if (!Joystick::getConstant(button, result))
+            //         continue;
 
-                if (this->state.pressed & result)
-                {
-                    this->state.pressed ^= result;
-                    return true;
-                }
-            }
+            //     if (this->state.pressed & result)
+            //     {
+            //         this->state.pressed ^= result;
+            //         return true;
+            //     }
+            // }
 
             return false;
         }
@@ -219,17 +219,17 @@ namespace love
         {
             T result;
 
-            for (const auto& button : buttons)
-            {
-                if (!Joystick::getConstant(button, result))
-                    continue;
+            // for (const auto& button : buttons)
+            // {
+            //     if (!Joystick::getConstant(button, result))
+            //         continue;
 
-                if (this->state.released & result)
-                {
-                    this->state.released ^= result;
-                    return true;
-                }
-            }
+            //     if (this->state.released & result)
+            //     {
+            //         this->state.released ^= result;
+            //         return true;
+            //     }
+            // }
 
             return false;
         }
@@ -239,19 +239,19 @@ namespace love
             if (!this->isConnected())
                 return false;
 
-            switch (this->gamepadType)
-            {
-                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE:
-                    return isButtonDown<WPADButton>(buttons);
-                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK:
-                    return isButtonDown<WPADButton>(buttons) || isButtonDown<WPADNunchukButton>(buttons);
-                case GAMEPAD_TYPE_NINTENDO_WII_CLASSIC:
-                    return isButtonDown<WPADClassicButton>(buttons);
-                case GAMEPAD_TYPE_NINTENDO_WII_U_PRO:
-                    return isButtonDown<WPADProButton>(buttons);
-                default:
-                    break;
-            }
+            // switch (this->gamepadType)
+            // {
+            //     case GAMEPAD_TYPE_NINTENDO_WII_REMOTE:
+            //         return isButtonDown<WPADButton>(buttons);
+            //     case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK:
+            //         return isButtonDown<WPADButton>(buttons) || isButtonDown<WPADNunchukButton>(buttons);
+            //     case GAMEPAD_TYPE_NINTENDO_WII_CLASSIC:
+            //         return isButtonDown<WPADClassicButton>(buttons);
+            //     case GAMEPAD_TYPE_NINTENDO_WII_U_PRO:
+            //         return isButtonDown<WPADProButton>(buttons);
+            //     default:
+            //         break;
+            // }
 
             return false;
         }
@@ -261,19 +261,19 @@ namespace love
             if (!this->isConnected())
                 return false;
 
-            switch (this->gamepadType)
-            {
-                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE:
-                    return isButtonUp<WPADButton>(buttons);
-                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK:
-                    return isButtonUp<WPADButton>(buttons) || isButtonUp<WPADNunchukButton>(buttons);
-                case GAMEPAD_TYPE_NINTENDO_WII_CLASSIC:
-                    return isButtonUp<WPADClassicButton>(buttons);
-                case GAMEPAD_TYPE_NINTENDO_WII_U_PRO:
-                    return isButtonUp<WPADProButton>(buttons);
-                default:
-                    break;
-            }
+            // switch (this->gamepadType)
+            // {
+            //     case GAMEPAD_TYPE_NINTENDO_WII_REMOTE:
+            //         return isButtonUp<WPADButton>(buttons);
+            //     case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK:
+            //         return isButtonUp<WPADButton>(buttons) || isButtonUp<WPADNunchukButton>(buttons);
+            //     case GAMEPAD_TYPE_NINTENDO_WII_CLASSIC:
+            //         return isButtonUp<WPADClassicButton>(buttons);
+            //     case GAMEPAD_TYPE_NINTENDO_WII_U_PRO:
+            //         return isButtonUp<WPADProButton>(buttons);
+            //     default:
+            //         break;
+            // }
 
             return false;
         }
@@ -286,11 +286,11 @@ namespace love
             if (!Joystick::getConstant(axis, result))
                 return false;
 
-            if ((this->state.held & result) || (this->state.released & result))
-            {
-                this->state.held ^= result;
-                return true;
-            }
+            // if ((this->state.held & result) || (this->state.released & result))
+            // {
+            //     this->state.held ^= result;
+            //     return true;
+            // }
 
             return false;
         }
@@ -300,19 +300,19 @@ namespace love
             if (!this->isConnected())
                 return false;
 
-            switch (this->gamepadType)
-            {
-                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE:
-                    break;
-                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK:
-                    return isAxisValueChanged<NunchuckAxis>(axis);
-                case GAMEPAD_TYPE_NINTENDO_WII_CLASSIC:
-                    return isAxisValueChanged<ClassicAxis>(axis);
-                case GAMEPAD_TYPE_NINTENDO_WII_U_PRO:
-                    return isAxisValueChanged<ProAxis>(axis);
-                default:
-                    break;
-            }
+            // switch (this->gamepadType)
+            // {
+            //     case GAMEPAD_TYPE_NINTENDO_WII_REMOTE:
+            //         break;
+            //     case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK:
+            //         return isAxisValueChanged<NunchuckAxis>(axis);
+            //     case GAMEPAD_TYPE_NINTENDO_WII_CLASSIC:
+            //         return isAxisValueChanged<ClassicAxis>(axis);
+            //     case GAMEPAD_TYPE_NINTENDO_WII_U_PRO:
+            //         return isAxisValueChanged<ProAxis>(axis);
+            //     default:
+            //         break;
+            // }
 
             return false;
         }

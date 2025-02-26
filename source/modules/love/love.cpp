@@ -197,7 +197,7 @@ static void love_atcpanic()
     }
     catch (const std::exception& e)
     {
-        std::printf("Uncaught exception: %s", e.what());
+        std::printf("Uncaught exception: %s\n", e.what());
         std::exit(EXIT_FAILURE);
     }
 }

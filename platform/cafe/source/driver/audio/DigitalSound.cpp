@@ -19,11 +19,6 @@ namespace love
     };
     // clang-format on
 
-    DigitalSound::~DigitalSound()
-    {
-        AXQuit();
-    }
-
     void DigitalSound::initialize()
     {
         if (!AXIsInit())
@@ -31,6 +26,11 @@ namespace love
 
         if (!AXIsInit())
             throw love::Exception("Failed to initialize AX.");
+    }
+
+    void DigitalSound::deInitialize()
+    {
+        AXQuit();
     }
 
     void DigitalSound::updateImpl()

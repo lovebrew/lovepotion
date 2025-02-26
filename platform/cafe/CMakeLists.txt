@@ -32,6 +32,7 @@ source/driver/EventQueue.cpp
 source/modules/audio/Source.cpp
 source/modules/graphics/Graphics.cpp
 source/modules/graphics/Shader.cpp
+source/modules/graphics/ShaderStage.cpp
 source/modules/graphics/Texture.cpp
 source/modules/joystick/vpad/Joystick.cpp
 source/modules/joystick/kpad/Joystick.cpp

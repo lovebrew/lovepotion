@@ -4,6 +4,7 @@
 #include "modules/window/Window.hpp"
 
 #include "modules/graphics/Shader.hpp"
+#include "modules/graphics/ShaderStage.hpp"
 #include "modules/graphics/Texture.hpp"
 #include "modules/graphics/freetype/Font.hpp"
 
@@ -84,6 +85,7 @@ namespace love
     void Graphics::setActiveScreen()
     {
         gx2.ensureInFrame();
+        // gx2.copyCurrentScanBuffer();
     }
 
     void Graphics::clear(OptionalColor color, OptionalInt stencil, OptionalDouble depth)
@@ -314,6 +316,17 @@ namespace love
         return this->newFont(rasterizer.get());
     }
 
+    ShaderStageBase* Graphics::newShaderStageInternal(ShaderStageType stage, const std::string& filepath)
+    {
+        return new ShaderStage(stage, filepath);
+    }
+
+    ShaderBase* Graphics::newShaderInternal(StrongRef<ShaderStageBase> stages[SHADERSTAGE_MAX_ENUM],
+                                            const ShaderBase::CompileOptions& options)
+    {
+        return new Shader(stages, options);
+    }
+
     bool Graphics::setMode(int width, int height, int pixelWidth, int pixelHeight, bool backBufferStencil,
                            bool backBufferDepth, int msaa)
     {
@@ -346,13 +359,22 @@ namespace love
         {
             auto type = (Shader::StandardShader)index;
 
-            try
+            if (!Shader::standardShaders[index])
             {
-                Shader::standardShaders[type] = new Shader(type);
-            }
-            catch (const std::exception& e)
-            {
-                throw;
+                std::vector<std::string> stages {};
+                Shader::CompileOptions options {};
+
+                stages.push_back(Shader::getDefaultStagePath(type, SHADERSTAGE_VERTEX));
+                stages.push_back(Shader::getDefaultStagePath(type, SHADERSTAGE_PIXEL));
+
+                try
+                {
+                    Shader::standardShaders[type] = this->newShader(stages, options);
+                }
+                catch (const std::exception& e)
+                {
+                    throw;
+                }
             }
         }
 
@@ -368,7 +390,7 @@ namespace love
             return;
 
         this->flushBatchedDraws();
-        gx2.deInitialize();
+        // gx2.deInitialize();
     }
 
     bool Graphics::isActive() const

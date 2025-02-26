@@ -30,6 +30,8 @@ namespace love
       public:
         GX2();
 
+        ~GX2();
+
         void initialize();
 
         void deInitialize();

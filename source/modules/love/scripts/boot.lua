@@ -387,22 +387,29 @@ function love.init()
     -- while. We'd rather hit that slowdown here than in event processing
     -- within the first frames.
     if love.event then
-        for i = 1, 2 do love.event.pump() end
+        print("pumping")
+        for _ = 1, 2 do love.event.pump() end
+        print("done")
     end
 
     -- Our first timestep, because window creation can take some time
     if love.timer then
+        print("stepping")
         love.timer.step()
+        print("done")
     end
 
     if love.filesystem then
+        print("Loading game..")
         --love.filesystem._setAndroidSaveExternal(c.externalstorage)
         love.filesystem.setIdentity(c.identity or love.filesystem.getIdentity(), c.appendidentity)
         if love.filesystem.getInfo(main_file) then
+            print(("Found %s"):format(main_file) )
             require(main_file:gsub("%.lua$", ""))
+            print("loaded.")
         end
     end
-
+    print(("No Game Code: %s / Invalid Path: %s"):format(tostring(no_game_code), tostring(invalid_game_path)))
     if no_game_code then
         local opts = love.arg.options
         local gamepath = opts.game.set and opts.game.arg[1] or ""

@@ -13,15 +13,11 @@ namespace love
     class Shader final : public ShaderBase, public Volatile
     {
       public:
-        struct UniformInfo
-        {
-            uint32_t location;
-            std::string name;
-        };
-
-        Shader(StandardShader shader);
+        Shader(StrongRef<ShaderStageBase> stages[SHADERSTAGE_MAX_ENUM], const CompileOptions& options);
 
         virtual ~Shader();
+
+        static const char* getDefaultStagePath(StandardShader shader, ShaderStageType stage);
 
         bool loadVolatile() override;
 
@@ -29,23 +25,20 @@ namespace love
 
         void attach() override;
 
-        ptrdiff_t getHandle() const override;
-
-        const UniformInfo getUniform(const std::string& name) const;
-
-        bool hasUniform(const std::string& name) const;
+        std::string getWarnings() const;
 
         void updateBuiltinUniforms(GraphicsBase* graphics, Uniform* uniform);
 
-        uint32_t getPixelSamplerLocation(int index);
+        ptrdiff_t getHandle() const override;
 
       private:
+        void mapActiveUniforms();
+
+        bool setShaderStages(WHBGfxShaderGroup* group, std::array<StrongRef<ShaderStageBase>, 2> stages);
+
         static constexpr auto INVALIDATE_UNIFORM_BLOCK =
             GX2_INVALIDATE_MODE_CPU | GX2_INVALIDATE_MODE_UNIFORM_BLOCK;
 
-        bool validate(const char* filepath, std::string& error);
         WHBGfxShaderGroup program;
-
-        UniformInfo uniform;
     };
 } // namespace love

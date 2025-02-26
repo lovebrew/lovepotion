@@ -21,9 +21,9 @@ namespace love
     class StreamBuffer final : public StreamBufferBase<T>
     {
       public:
-        StreamBuffer(BufferUsage usage, size_t size) : StreamBufferBase<T>(usage, size), buffer {}
+        StreamBuffer(BufferUsage mode, size_t size) : StreamBufferBase<T>(mode, size), buffer {}
         {
-            const auto flags = getBufferUsage(usage);
+            const auto flags = getBufferUsage(mode);
 
             this->buffer.elemCount = size;
             this->buffer.elemSize  = sizeof(T);
@@ -39,6 +39,9 @@ namespace love
 
         ~StreamBuffer()
         {
+            if (!GX2RBufferExists(&this->buffer))
+                return;
+
             GX2RDestroyBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
         }
 
@@ -58,7 +61,7 @@ namespace love
         {
             GX2RUnlockBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
 
-            if (this->usage == BufferUsage::BUFFERUSAGE_VERTEX)
+            if (this->mode == BufferUsage::BUFFERUSAGE_VERTEX)
                 GX2RSetAttributeBuffer(&this->buffer, 0, this->buffer.elemSize, 0);
 
             return this->index;

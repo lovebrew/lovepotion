@@ -32,6 +32,13 @@ namespace love
             return true;
 
         std::FILE* file = std::fopen(this->filepath.c_str(), "rb");
+
+        if (!file)
+        {
+            this->warnings.append("Failed to open file {:s}", this->filepath.c_str());
+            return false;
+        }
+
         DkshHeader header {};
         void* controlMemory = nullptr;
 

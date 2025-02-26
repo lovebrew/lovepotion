@@ -29,6 +29,11 @@ namespace love
         dirtyProjection(false)
     {}
 
+    GX2::~GX2()
+    {
+        this->deInitialize();
+    }
+
     void GX2::deInitialize()
     {
         if (this->inForeground)
@@ -309,11 +314,14 @@ namespace love
 
     void GX2::bindTextureToUnit(GX2Texture* texture, GX2Sampler* sampler, int unit)
     {
-        auto* shader  = (Shader*)ShaderBase::current;
-        auto location = shader->getPixelSamplerLocation(0);
+        auto* shader = (Shader*)ShaderBase::current;
+        auto* info   = shader->getUniformInfo("texture0");
+
+        if (!info)
+            return;
 
         GX2SetPixelTexture(texture, unit);
-        GX2SetPixelSampler(sampler, location);
+        GX2SetPixelSampler(sampler, info->location);
     }
 
     void GX2::present()
