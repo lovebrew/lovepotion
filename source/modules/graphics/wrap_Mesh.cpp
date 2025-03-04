@@ -52,6 +52,8 @@ int Wrap_Mesh::setVertices(lua_State* L)
     count = count >= 0 ? std::min(count, length) : length;
     if (start + count > total)
         return luaL_error(L, "Too many vertices (expected at most %d, got %d).", total - start, count);
+
+    return 0;
 }
 
 int Wrap_Mesh::getVertexCount(lua_State* L)

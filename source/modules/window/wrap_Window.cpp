@@ -308,7 +308,7 @@ int Wrap_Window::setVSync(lua_State*)
 
 int Wrap_Window::getVSync(lua_State* L)
 {
-    lua_pushnil(L);
+    luax_pushboolean(L, true);
 
     return 1;
 }

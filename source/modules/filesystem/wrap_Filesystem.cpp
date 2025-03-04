@@ -9,6 +9,7 @@
 #include "modules/filesystem/wrap_NativeFile.hpp"
 
 #include "common/Console.hpp"
+#include "common/config.hpp"
 
 using namespace love;
 
@@ -52,6 +53,12 @@ int Wrap_Filesystem::init(lua_State* L)
 
     luax_catchexcept(L, [&] { instance()->init(arg0); });
 
+    return 0;
+}
+
+int Wrap_Filesystem::setAndroidSaveExternal(lua_State* L)
+{
+    LOVE_UNUSED(L);
     return 0;
 }
 
@@ -917,46 +924,47 @@ namespace love
 // clang-format off
 static constexpr luaL_Reg functions[]
 {
-    { "append",                 Wrap_Filesystem::append                 },
-    { "exists",                 Wrap_Filesystem::exists                 },
-    { "getAppdataDirectory",    Wrap_Filesystem::getAppdataDirectory    },
-    { "getExecutablePath",      Wrap_Filesystem::getExecutablePath      },
-    { "getIdentity",            Wrap_Filesystem::getIdentity            },
-    { "getRealDirectory",       Wrap_Filesystem::getRealDirectory       },
-    { "getSaveDirectory",       Wrap_Filesystem::getSaveDirectory       },
-    { "getSource",              Wrap_Filesystem::getSource              },
-    { "getSourceBaseDirectory", Wrap_Filesystem::getSourceBaseDirectory },
-    { "getUserDirectory",       Wrap_Filesystem::getUserDirectory       },
-    { "getWorkingDirectory",    Wrap_Filesystem::getWorkingDirectory    },
-    { "init",                   Wrap_Filesystem::init                   },
-    { "isFused",                Wrap_Filesystem::isFused                },
-    { "load",                   Wrap_Filesystem::load                   },
-    { "setFused",               Wrap_Filesystem::setFused               },
-    { "setIdentity",            Wrap_Filesystem::setIdentity            },
-    { "setSource",              Wrap_Filesystem::setSource              },
-    { "write",                  Wrap_Filesystem::write                  },
-    { "lines",                  Wrap_Filesystem::lines                  },
-    { "setRequirePath",         Wrap_Filesystem::setRequirePath         },
-    { "getRequirePath",         Wrap_Filesystem::getRequirePath         },
-    { "openFile",               Wrap_Filesystem::openFile               },
-    { "openNativeFile",         Wrap_Filesystem::openNativeFile         },
-    { "newFileData",            Wrap_Filesystem::newFileData            },
-    { "getDirectoryItems",      Wrap_Filesystem::getDirectoryItems      },
-    { "createDirectory",        Wrap_Filesystem::createDirectory        },
-    { "remove",                 Wrap_Filesystem::remove                 },
-    { "read",                   Wrap_Filesystem::read                   },
-    { "mount",                  Wrap_Filesystem::mount                  },
-    { "mountFullPath",          Wrap_Filesystem::mountFullPath          },
-    { "mountCommonPath",        Wrap_Filesystem::mountCommonPath        },
-    { "unmount",                Wrap_Filesystem::unmount                },
-    { "unmountFullPath",        Wrap_Filesystem::unmountFullPath        },
-    { "unmountCommonPath",      Wrap_Filesystem::unmountCommonPath      },
-    { "getFullCommonPath",      Wrap_Filesystem::getFullCommonPath      },
-    { "getInfo",                Wrap_Filesystem::getInfo                },
-    { "setSymlinksEnabled",     Wrap_Filesystem::setSymlinksEnabled     },
-    { "areSymlinksEnabled",     Wrap_Filesystem::areSymlinksEnabled     },
-    { "getCRequirePath",        Wrap_Filesystem::getCRequirePath        },
-    { "setCRequirePath",        Wrap_Filesystem::setCRequirePath        }
+    { "append",                  Wrap_Filesystem::append                 },
+    { "exists",                  Wrap_Filesystem::exists                 },
+    { "getAppdataDirectory",     Wrap_Filesystem::getAppdataDirectory    },
+    { "getExecutablePath",       Wrap_Filesystem::getExecutablePath      },
+    { "getIdentity",             Wrap_Filesystem::getIdentity            },
+    { "getRealDirectory",        Wrap_Filesystem::getRealDirectory       },
+    { "getSaveDirectory",        Wrap_Filesystem::getSaveDirectory       },
+    { "getSource",               Wrap_Filesystem::getSource              },
+    { "getSourceBaseDirectory",  Wrap_Filesystem::getSourceBaseDirectory },
+    { "getUserDirectory",        Wrap_Filesystem::getUserDirectory       },
+    { "getWorkingDirectory",     Wrap_Filesystem::getWorkingDirectory    },
+    { "init",                    Wrap_Filesystem::init                   },
+    { "isFused",                 Wrap_Filesystem::isFused                },
+    { "load",                    Wrap_Filesystem::load                   },
+    { "setFused",                Wrap_Filesystem::setFused               },
+    { "setIdentity",             Wrap_Filesystem::setIdentity            },
+    { "setSource",               Wrap_Filesystem::setSource              },
+    { "write",                   Wrap_Filesystem::write                  },
+    { "lines",                   Wrap_Filesystem::lines                  },
+    { "setRequirePath",          Wrap_Filesystem::setRequirePath         },
+    { "getRequirePath",          Wrap_Filesystem::getRequirePath         },
+    { "openFile",                Wrap_Filesystem::openFile               },
+    { "openNativeFile",          Wrap_Filesystem::openNativeFile         },
+    { "newFileData",             Wrap_Filesystem::newFileData            },
+    { "getDirectoryItems",       Wrap_Filesystem::getDirectoryItems      },
+    { "createDirectory",         Wrap_Filesystem::createDirectory        },
+    { "remove",                  Wrap_Filesystem::remove                 },
+    { "read",                    Wrap_Filesystem::read                   },
+    { "mount",                   Wrap_Filesystem::mount                  },
+    { "mountFullPath",           Wrap_Filesystem::mountFullPath          },
+    { "mountCommonPath",         Wrap_Filesystem::mountCommonPath        },
+    { "unmount",                 Wrap_Filesystem::unmount                },
+    { "unmountFullPath",         Wrap_Filesystem::unmountFullPath        },
+    { "unmountCommonPath",       Wrap_Filesystem::unmountCommonPath      },
+    { "getFullCommonPath",       Wrap_Filesystem::getFullCommonPath      },
+    { "getInfo",                 Wrap_Filesystem::getInfo                },
+    { "setSymlinksEnabled",      Wrap_Filesystem::setSymlinksEnabled     },
+    { "areSymlinksEnabled",      Wrap_Filesystem::areSymlinksEnabled     },
+    { "getCRequirePath",         Wrap_Filesystem::getCRequirePath        },
+    { "setCRequirePath",         Wrap_Filesystem::setCRequirePath        },
+    { "_setAndroidSaveExternal", Wrap_Filesystem::setAndroidSaveExternal },
 };
 
 static constexpr lua_CFunction types[] =

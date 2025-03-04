@@ -1,5 +1,8 @@
-#include "modules/graphics/Shader.hpp"
+#include "common/Exception.hpp"
+
 #include "driver/display/deko.hpp"
+#include "modules/graphics/Shader.hpp"
+#include "modules/graphics/ShaderStage.hpp"
 
 #include <cstring>
 
@@ -23,13 +26,31 @@ namespace love
         this->unloadVolatile();
     }
 
+    std::string Shader::getWarnings() const
+    {
+        std::string warnings {};
+        std::string_view stageString;
+
+        for (const auto& stage : this->stages)
+        {
+            if (stage.get() == nullptr)
+                continue;
+
+            const std::string& _warnings = stage->getWarnings();
+            if (!_warnings.empty() && ShaderStageBase::getConstant(stage->getStageType(), stageString))
+                warnings += std::format("{} shader:\n{}", stageString, _warnings);
+        }
+
+        return warnings;
+    }
+
     void Shader::attach()
     {
         if (Shader::current != this)
         {
             Graphics::flushBatchedDrawsGlobal();
 
-            d3d.useProgram(this->program.vertex, this->program.fragment);
+            d3d.useProgram({ this->program.vertex, this->program.fragment });
             ++shaderSwitches;
 
             Shader::current = this;
@@ -58,16 +79,22 @@ namespace love
 
     bool Shader::loadVolatile()
     {
+        for (auto stage : this->stages)
+        {
+            if (stage.get() != nullptr)
+                ((ShaderStage*)stage.get())->loadVolatile();
+        }
+
         if (this->hasStage(ShaderStageType::SHADERSTAGE_VERTEX))
         {
-            auto* stage = (dk::Shader*)this->stages[ShaderStageType::SHADERSTAGE_VERTEX]->getHandle();
-            this->program.vertex = *stage;
+            this->program.vertex =
+                (dk::Shader*)this->stages[ShaderStageType::SHADERSTAGE_VERTEX]->getHandle();
         }
 
         if (this->hasStage(ShaderStageType::SHADERSTAGE_PIXEL))
         {
-            auto* stage = (dk::Shader*)this->stages[ShaderStageType::SHADERSTAGE_PIXEL]->getHandle();
-            this->program.fragment = *stage;
+            this->program.fragment =
+                (dk::Shader*)this->stages[ShaderStageType::SHADERSTAGE_PIXEL]->getHandle();
         }
 
         return true;

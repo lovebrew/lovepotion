@@ -259,9 +259,8 @@ namespace love
         if (module == nullptr)
             throw love::Exception("Font module has not been loaded.");
 
-        StrongRef<Rasterizer> rasterizer = module->newTrueTypeRasterizer(size, settings);
-
-        return this->newFont(rasterizer.get());
+        StrongRef<Rasterizer> r(module->newTrueTypeRasterizer(size, settings), Acquire::NO_RETAIN);
+        return this->newFont(r.get());
     }
 
     ShaderStageBase* Graphics::newShaderStageInternal(ShaderStageType stage, const std::string& filepath)

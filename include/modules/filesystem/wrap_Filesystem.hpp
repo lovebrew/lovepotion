@@ -26,6 +26,8 @@ namespace Wrap_Filesystem
 {
     int init(lua_State* L);
 
+    int setAndroidSaveExternal(lua_State* L);
+
     int setFused(lua_State* L);
 
     int isFused(lua_State* L);

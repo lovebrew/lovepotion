@@ -56,8 +56,6 @@ namespace love
 
         if (this->batchedDrawState.indexBuffer)
             this->batchedDrawState.indexBuffer->release();
-
-        Volatile::unloadAll();
     }
 
     void GraphicsBase::resetProjection()
@@ -437,17 +435,14 @@ namespace love
             state.vertexBufferMap = MapInfo<Vertex>();
         }
 
-        if (attributes.enableBits == 0)
-            return;
-
         state.flushing = true;
 
         // auto originalColor = this->getColor();
         // if (attributes.isEnabled(ATTRIB_COLOR))
         //     this->setColor(Color::WHITE);
 
-        if (state.pushTransform)
-            this->pushIdentityTransform();
+        // if (state.pushTransform)
+        this->pushIdentityTransform();
 
         if (state.lastIndexCount > 0)
         {
@@ -482,8 +477,8 @@ namespace love
         if (usedSizes[1] > 0)
             state.indexBuffer->markUsed(usedSizes[1]);
 
-        if (state.pushTransform)
-            this->popTransform();
+        // if (state.pushTransform)
+        this->popTransform();
 
         // if (attributes.isEnabled(ATTRIB_COLOR))
         //     this->setColor(originalColor);
@@ -522,18 +517,15 @@ namespace love
         validStages[SHADERSTAGE_VERTEX] = true;
         validStages[SHADERSTAGE_PIXEL]  = !Console::is(Console::CTR);
 
-        for (const std::string& filepath : filepaths)
+        for (int index = 0; index < SHADERSTAGE_MAX_ENUM; index++)
         {
-            for (int index = 0; index < SHADERSTAGE_MAX_ENUM; index++)
-            {
-                if (!validStages[index])
-                    continue;
+            if (!validStages[index])
+                continue;
 
-                const auto type = ShaderStageType(index);
+            const auto type = ShaderStageType(index);
 
-                if (stages[index].get() == nullptr)
-                    stages[index].set(this->newShaderStage(type, filepath), Acquire::NO_RETAIN);
-            }
+            if (stages[index].get() == nullptr)
+                stages[index].set(this->newShaderStage(type, filepaths[index]), Acquire::NO_RETAIN);
         }
 
         return this->newShaderInternal(stages, options);

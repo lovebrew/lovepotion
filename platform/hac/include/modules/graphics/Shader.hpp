@@ -14,8 +14,8 @@ namespace love
       public:
         struct Program
         {
-            dk::Shader vertex;
-            dk::Shader fragment;
+            dk::Shader* vertex;
+            dk::Shader* fragment;
         };
 
         Shader(StrongRef<ShaderStageBase> stages[SHADERSTAGE_MAX_ENUM], const CompileOptions& options);
@@ -27,6 +27,8 @@ namespace love
         bool loadVolatile() override;
 
         void unloadVolatile() override;
+
+        std::string getWarnings() const;
 
         void attach() override;
 

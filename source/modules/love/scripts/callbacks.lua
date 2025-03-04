@@ -169,10 +169,8 @@ local function get_stereoscopic_depth(screen)
 end
 
 function love.run()
-    print("loading")
     if love.load then love.load(love.parsedGameArguments, love.rawGameArguments) end
 
-    print("stepping")
     -- We don't want the first frame's dt to include time taken by love.load.
     if love.timer then love.timer.step() end
 
@@ -200,13 +198,14 @@ function love.run()
         if love.graphics and love.graphics.isActive() then
             for display_index = 1, love.window.getDisplayCount() do
                 local display_name = love.window.getDisplayName(display_index)
-
                 love.graphics.setActiveScreen(display_name)
+
                 love.graphics.origin()
 
                 love.graphics.clear(love.graphics.getBackgroundColor())
+                local stereoscopic_depth = get_stereoscopic_depth(display_name)
 
-                if love.draw then love.draw(display_name, get_stereoscopic_depth(display_name)) end
+                if love.draw then love.draw(display_name, stereoscopic_depth) end
                 love.graphics.copyCurrentScanBuffer()
             end
             love.graphics.present()

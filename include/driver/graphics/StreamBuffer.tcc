@@ -38,7 +38,7 @@ namespace love
 
         BufferUsage getMode() const
         {
-            return this->usage;
+            return this->mode;
         }
 
         size_t getUsableSize() const

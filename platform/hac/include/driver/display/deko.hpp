@@ -45,6 +45,8 @@ namespace love
 
         deko3d();
 
+        ~deko3d();
+
         void initialize();
 
         void deInitialize();
@@ -77,7 +79,7 @@ namespace love
 
         void prepareDraw(GraphicsBase* graphics);
 
-        void useProgram(const dk::Shader& vertex, const dk::Shader& fragment);
+        void useProgram(const std::vector<dk::Shader*>& shaders);
 
         void bindBuffer(BufferUsage usage, CMemPool::Handle& memory);
 

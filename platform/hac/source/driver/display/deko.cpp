@@ -4,6 +4,8 @@
 #include "modules/graphics/Shader.hpp"
 #include "modules/graphics/Texture.hpp"
 
+#include <glm/gtc/type_ptr.hpp>
+
 namespace love
 {
     deko3d::deko3d() :
@@ -18,6 +20,11 @@ namespace love
         code(CMemPool(this->device, SHADER_USE_FLAGS, SHADER_POOL_SIZE)),
         framebufferSlot(-1)
     {}
+
+    deko3d::~deko3d()
+    {
+        this->deInitialize();
+    }
 
     void deko3d::initialize()
     {
@@ -59,11 +66,11 @@ namespace love
 
     void deko3d::createFramebuffers()
     {
-        const auto info = getScreenInfo()[0];
+        const auto& info = getScreenInfo(DEFAULT_SCREEN);
 
         this->depthbuffer.create(info, this->device, this->images, true);
 
-        for (size_t index = 0; index < this->targets.size(); ++index)
+        for (size_t index = 0; index < this->targets.size(); index++)
         {
             this->framebuffers[index].create(info, this->device, this->images, false);
             this->targets[index] = this->framebuffers[index].getImage();
@@ -128,7 +135,7 @@ namespace love
     //     return this->framebuffers[this->framebufferSlot].getImage();
     // }
 
-    void deko3d::useProgram(const dk::Shader& vertex, const dk::Shader& fragment)
+    void deko3d::useProgram(const std::vector<dk::Shader*>& shaders)
     {
         this->ensureInFrame();
 
@@ -136,7 +143,7 @@ namespace love
             return;
 
         // clang-format off
-        this->commandBuffer.bindShaders(DkStageFlag_GraphicsMask, { &vertex, &fragment });
+        this->commandBuffer.bindShaders(DkStageFlag_GraphicsMask, { shaders[0], shaders[1] });
         this->commandBuffer.bindUniformBuffer(DkStage_Vertex, 0, this->uniform.getGpuAddr(), this->uniform.getSize());
         // clang-format on
     }
@@ -177,7 +184,8 @@ namespace love
             dk::ImageView depth { *this->depthbuffer.getImage() };
             dk::ImageView target { *framebuffer };
 
-            this->commandBuffer.bindRenderTargets(&target, &depth);
+            this->commandBuffer.barrier(DkBarrier_Fragments, 0);
+            this->commandBuffer.bindRenderTargets(&target);
         }
     }
 
@@ -229,6 +237,18 @@ namespace love
         this->commandBuffer.draw(primitive, vertexCount, 1, firstVertex, 0);
     }
 
+    static glm::mat4 updateTransform(const Matrix4& transform)
+    {
+        glm::mat4 result(1.0f);
+
+        float* dest      = glm::value_ptr(result);
+        const float* src = transform.getElements();
+
+        std::memcpy(dest, src, 16 * sizeof(float));
+
+        return result;
+    }
+
     void deko3d::prepareDraw(GraphicsBase* graphics)
     {
         if (!this->swapchain)
@@ -244,9 +264,13 @@ namespace love
 
         if (Shader::current != nullptr)
         {
-            ((Shader*)Shader::current)->updateBuiltinUniforms(graphics, this->transform.modelView);
-            this->commandBuffer.pushConstants(this->uniform.getGpuAddr(), this->uniform.getSize(), 0,
-                                              TRANSFORM_SIZE, &this->transform);
+            const auto& transform = graphics->getTransform();
+            // this->transform.modelView = updateTransform(transform);
+
+            const auto address = this->uniform.getGpuAddr();
+            const auto size    = this->uniform.getSize();
+
+            this->commandBuffer.pushConstants(address, size, 0, TRANSFORM_SIZE, &this->transform);
         }
     }
 
@@ -400,6 +424,12 @@ namespace love
         value.width  = rect.w;
         value.height = rect.h;
 
+        if constexpr (std::is_same_v<T, DkViewport>)
+        {
+            value.near = -10.0f;
+            value.far  = 10.0f;
+        }
+
         return value;
     }
 
@@ -407,8 +437,8 @@ namespace love
     {
         this->ensureInFrame();
 
-        const auto scissor  = rect == Rect::EMPTY ? this->context.scissor : rect;
-        DkScissor dkScissor = dkRectFromRect<DkScissor>(scissor);
+        const auto scissor = rect == Rect::EMPTY ? this->context.scissor : rect;
+        auto dkScissor     = dkRectFromRect<DkScissor>(scissor);
 
         this->commandBuffer.setScissors(0, dkScissor);
     }
@@ -417,13 +447,11 @@ namespace love
     {
         this->ensureInFrame();
 
-        const auto viewport   = rect == Rect::EMPTY ? this->context.viewport : rect;
-        DkViewport dkViewport = dkRectFromRect<DkViewport>(viewport);
+        const auto viewport = rect == Rect::EMPTY ? this->context.viewport : rect;
+        auto view           = dkRectFromRect<DkViewport>(viewport);
 
-        this->commandBuffer.setViewports(0, dkViewport);
-
-        this->transform.projection =
-            glm::ortho(0.0f, (float)viewport.w, (float)viewport.h, 0.0f, -10.0f, 10.0f);
+        this->commandBuffer.setViewports(0, view);
+        this->transform.projection = glm::ortho(0.0f, view.width, view.height, 0.0f, view.near, view.far);
     }
 
     deko3d d3d;

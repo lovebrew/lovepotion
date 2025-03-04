@@ -11,10 +11,7 @@ namespace love
     class StreamBuffer final : public StreamBufferBase<T>
     {
       public:
-        StreamBuffer(BufferUsage usage, size_t size) :
-            StreamBufferBase<T>(usage, size),
-            memory {},
-            sliceSize(0)
+        StreamBuffer(BufferUsage mode, size_t size) : StreamBufferBase<T>(mode, size), memory {}, sliceSize(0)
         {
             this->sliceSize = (size + DK_CMDMEM_ALIGNMENT - 1) & ~(DK_CMDMEM_ALIGNMENT - 1);
         }
@@ -47,7 +44,7 @@ namespace love
 
         ptrdiff_t getHandle() const
         {
-            return 0;
+            return (ptrdiff_t)this->memory.getCpuAddr();
         }
 
       private:

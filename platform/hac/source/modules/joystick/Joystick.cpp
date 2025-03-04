@@ -22,14 +22,12 @@ namespace love
 
         this->instanceId = 0;
 
-        padInitialize(&this->state, HidNpadIdType(index));
-        padUpdate(&this->state);
+        if (deviceId == 0)
+            padInitializeDefault(&this->state);
+        else
+            padInitialize(&this->state, HidNpadIdType(index));
 
-        if (padIsHandheld(&this->state))
-        {
-            padInitialize(&this->state, HidNpadIdType_Handheld, HidNpadIdType(index));
-            padUpdate(&this->state);
-        }
+        padUpdate(&this->state);
 
         const uint32_t tag = padGetStyleSet(&this->state);
 

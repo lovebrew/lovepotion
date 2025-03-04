@@ -6,7 +6,9 @@ namespace love
     {}
 
     Framebuffer::~Framebuffer()
-    {}
+    {
+        this->destroy();
+    }
 
     void Framebuffer::create(const ScreenInfo& info, dk::Device& device, CMemPool& images, bool depth)
     {
