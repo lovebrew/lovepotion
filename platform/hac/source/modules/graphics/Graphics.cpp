@@ -83,40 +83,40 @@ namespace love
         d3d.ensureInFrame();
     }
 
-    void Graphics::backbufferChanged(int width, int height, int pixelWidth, int pixelHeight, bool stencil,
-                                     bool depth, int msaa)
-    {
-        bool changed = width != this->width || height != this->height || pixelWidth != this->pixelWidth ||
-                       pixelHeight != this->pixelHeight;
+    // void Graphics::backbufferChanged(int width, int height, int pixelWidth, int pixelHeight, bool stencil,
+    //                                  bool depth, int msaa)
+    // {
+    //     bool changed = width != this->width || height != this->height || pixelWidth != this->pixelWidth ||
+    //                    pixelHeight != this->pixelHeight;
 
-        changed |= stencil != this->backBufferHasStencil || depth != this->backBufferHasDepth;
-        changed |= msaa != this->requestedBackbufferMSAA;
+    //     changed |= stencil != this->backBufferHasStencil || depth != this->backBufferHasDepth;
+    //     changed |= msaa != this->requestedBackbufferMSAA;
 
-        this->width  = width;
-        this->height = height;
+    //     this->width  = width;
+    //     this->height = height;
 
-        this->pixelWidth  = pixelWidth;
-        this->pixelHeight = pixelHeight;
+    //     this->pixelWidth  = pixelWidth;
+    //     this->pixelHeight = pixelHeight;
 
-        this->backBufferHasStencil    = stencil;
-        this->backBufferHasDepth      = depth;
-        this->requestedBackbufferMSAA = msaa;
+    //     this->backBufferHasStencil    = stencil;
+    //     this->backBufferHasDepth      = depth;
+    //     this->requestedBackbufferMSAA = msaa;
 
-        if (!this->isRenderTargetActive())
-        {
-            d3d.setViewport({ 0, 0, pixelWidth, pixelHeight });
+    //     if (!this->isRenderTargetActive())
+    //     {
+    //         d3d.setViewport({ 0, 0, pixelWidth, pixelHeight });
 
-            if (this->states.back().scissor)
-                this->setScissor(this->states.back().scissorRect);
+    //         if (this->states.back().scissor)
+    //             this->setScissor(this->states.back().scissorRect);
 
-            this->resetProjection();
-        }
+    //         this->resetProjection();
+    //     }
 
-        if (!changed)
-            return;
+    //     if (!changed)
+    //         return;
 
-        d3d.onModeChanged();
-    }
+    //     d3d.onModeChanged();
+    // }
 
     void Graphics::clear(OptionalColor color, OptionalInt stencil, OptionalDouble depth)
     {
@@ -409,6 +409,7 @@ namespace love
         this->flushBatchedDraws();
 
         Volatile::unloadAll();
+        d3d.deInitialize();
         this->created = false;
     }
 

@@ -30,6 +30,7 @@ target_sources(${PROJECT_NAME} PRIVATE
 source/boot.cpp
 source/common/screen.cpp
 source/driver/audio/DigitalSound.cpp
+source/driver/audio/DigitalSoundMemory.cpp
 source/driver/audio/MemoryPool.cpp
 source/driver/display/deko3d/CIntrusiveTree.cpp
 source/driver/display/deko3d/CMemPool.cpp

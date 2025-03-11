@@ -15,21 +15,26 @@ namespace love
         touches {},
         oldTouches {}
     {
-        std::array<HidNpadIdType, 9> ids { HidNpadIdType_Handheld, HidNpadIdType_No1, HidNpadIdType_No2,
-                                           HidNpadIdType_No3,      HidNpadIdType_No4, HidNpadIdType_No5,
-                                           HidNpadIdType_No6,      HidNpadIdType_No7, HidNpadIdType_No8 };
+        // std::array<HidNpadIdType, 9> ids { HidNpadIdType_Handheld, HidNpadIdType_No1, HidNpadIdType_No2,
+        //                                    HidNpadIdType_No3,      HidNpadIdType_No4, HidNpadIdType_No5,
+        //                                    HidNpadIdType_No6,      HidNpadIdType_No7, HidNpadIdType_No8 };
 
-        for (int index = 0; index < this->padStyleUpdates.size(); index++)
-            hidAcquireNpadStyleSetUpdateEventHandle(ids[index], &this->padStyleUpdates[index], true);
+        // for (int index = 0; index < this->padStyleUpdates.size(); index++)
+        //     hidAcquireNpadStyleSetUpdateEventHandle(ids[index], &this->padStyleUpdates[index], true);
+
+        appletLockExit();
+        appletSetFocusHandlingMode(AppletFocusHandlingMode_NoSuspend);
     }
 
     void EventQueue::deInitialize()
     {
-        for (int index = 0; index < this->padStyleUpdates.size(); index++)
-            eventClose(&this->padStyleUpdates[index]);
+        appletSetFocusHandlingMode(AppletFocusHandlingMode_SuspendHomeSleepNotify);
+        appletUnlockExit();
+        // for (int index = 0; index < this->padStyleUpdates.size(); index++)
+        //     eventClose(&this->padStyleUpdates[index]);
     }
 
-    static void checkFocus()
+    void EventQueue::checkFocus()
     {
         auto focused = (appletGetFocusState() == AppletFocusState_InFocus);
 
@@ -42,7 +47,7 @@ namespace love
 
             if (shouldClose)
             {
-                EventQueue::getInstance().sendQuit();
+                this->sendQuit();
                 return;
             }
 
@@ -54,7 +59,7 @@ namespace love
                     AppletFocusState focusState = appletGetFocusState();
 
                     focused = (focusState == AppletFocusState_InFocus);
-                    EventQueue::getInstance().sendFocus(focused);
+                    this->sendFocus(focused);
 
                     if (focused == oldFocused)
                         break;
@@ -68,8 +73,8 @@ namespace love
                 }
                 case AppletMessage_OperationModeChanged:
                 {
-                    auto info = love::getScreenInfo(Screen(0));
-                    EventQueue::getInstance().sendResize(info.width, info.height);
+                    auto info = love::getScreenInfo(DEFAULT_SCREEN);
+                    this->sendResize(info.width, info.height);
 
                     break;
                 }
@@ -138,16 +143,16 @@ namespace love
 
         int current = JOYSTICK_MODULE()->getJoystickCount();
 
-        for (int index = 0; index < this->padStyleUpdates.size(); index++)
-        {
-            if (R_SUCCEEDED(eventWait(&this->padStyleUpdates[index], 0)))
-            {
-                int newCount = JOYSTICK_MODULE()->getJoystickCount();
+        // for (int index = 0; index < this->padStyleUpdates.size(); index++)
+        // {
+        //     if (R_SUCCEEDED(eventWait(&this->padStyleUpdates[index], 0)))
+        //     {
+        //         int newCount = JOYSTICK_MODULE()->getJoystickCount();
 
-                if (newCount != current)
-                    this->sendJoystickStatus(newCount > current, index);
-            }
-        }
+        //         if (newCount != current)
+        //             this->sendJoystickStatus(newCount > current, index);
+        //     }
+        // }
 
         for (int index = 0; index < current; index++)
         {

@@ -507,6 +507,7 @@ source/modules/timer/wrap_Timer.cpp
 source/modules/touch/Touch.cpp
 source/modules/touch/wrap_Touch.cpp
 source/modules/window/wrap_Window.cpp
+source/modules/window/Window.cpp
 source/modules/data/misc/Compressor.cpp
 source/modules/data/misc/HashFunction.cpp
 source/modules/filesystem/physfs/File.cpp

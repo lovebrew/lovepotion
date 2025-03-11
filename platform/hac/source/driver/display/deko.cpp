@@ -8,17 +8,7 @@
 
 namespace love
 {
-    deko3d::deko3d() :
-        context {},
-        transform {},
-        device(dk::DeviceMaker {}.setFlags(DkDeviceFlags_DepthMinusOneToOne).create()),
-        mainQueue(dk::QueueMaker { this->device }.setFlags(DkQueueFlags_Graphics).create()),
-        textureQueue(dk::QueueMaker { this->device }.setFlags(DkQueueFlags_Graphics).create()),
-        swapchain {},
-        images(CMemPool(this->device, GPU_USE_FLAGS, GPU_POOL_SIZE)),
-        data(CMemPool(this->device, CPU_USE_FLAGS, CPU_POOL_SIZE)),
-        code(CMemPool(this->device, SHADER_USE_FLAGS, SHADER_POOL_SIZE)),
-        framebufferSlot(-1)
+    deko3d::deko3d() : context {}, transform {}, framebufferSlot(-1)
     {}
 
     deko3d::~deko3d()
@@ -26,15 +16,38 @@ namespace love
         this->deInitialize();
     }
 
+    CMemPool& deko3d::getMemoryPool(MemoryPool pool)
+    {
+        switch (pool)
+        {
+            case MEMORYPOOL_IMAGE:
+            default:
+                return *this->images;
+            case MEMORYPOOL_CODE:
+                return *this->code;
+            case MEMORYPOOL_DATA:
+                return *this->data;
+        }
+    }
+
     void deko3d::initialize()
     {
         if (this->initialized)
             return;
 
-        this->uniform             = this->data.allocate(TRANSFORM_SIZE, DK_UNIFORM_BUF_ALIGNMENT);
+        this->device       = dk::DeviceMaker {}.setFlags(DkDeviceFlags_DepthMinusOneToOne).create();
+        this->mainQueue    = dk::QueueMaker { this->device }.setFlags(DkQueueFlags_Graphics).create();
+        this->textureQueue = dk::QueueMaker { this->device }.setFlags(DkQueueFlags_Graphics).create();
+
+        this->images.emplace(this->device, GPU_USE_FLAGS, GPU_POOL_SIZE);
+        this->code.emplace(this->device, SHADER_USE_FLAGS, SHADER_POOL_SIZE);
+        this->data.emplace(this->device, CPU_USE_FLAGS, CPU_POOL_SIZE);
+
+        this->uniform = this->data->allocate(TRANSFORM_SIZE, DK_UNIFORM_BUF_ALIGNMENT);
+
         this->transform.modelView = glm::mat4(1.0f);
 
-        this->commands.allocate(this->data, COMMAND_SIZE);
+        this->commands.allocate(*this->data, COMMAND_SIZE);
         this->commandBuffer = dk::CmdBufMaker { this->device }.create();
 
         this->createFramebuffers();
@@ -47,8 +60,8 @@ namespace love
 
         this->context.color.setBlendEnable(0, true);
 
-        this->imageSet.allocate(this->data);
-        this->samplerSet.allocate(this->data);
+        this->imageSet.allocate(*this->data);
+        this->samplerSet.allocate(*this->data);
 
         this->ensureInFrame();
 
@@ -68,11 +81,11 @@ namespace love
     {
         const auto& info = getScreenInfo(DEFAULT_SCREEN);
 
-        this->depthbuffer.create(info, this->device, this->images, true);
+        this->depthbuffer.create(info, this->device, *this->images, true);
 
         for (size_t index = 0; index < this->targets.size(); index++)
         {
-            this->framebuffers[index].create(info, this->device, this->images, false);
+            this->framebuffers[index].create(info, this->device, *this->images, false);
             this->targets[index] = this->framebuffers[index].getImage();
         }
 

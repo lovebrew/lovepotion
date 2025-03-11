@@ -964,7 +964,7 @@ static constexpr luaL_Reg functions[]
     { "areSymlinksEnabled",      Wrap_Filesystem::areSymlinksEnabled     },
     { "getCRequirePath",         Wrap_Filesystem::getCRequirePath        },
     { "setCRequirePath",         Wrap_Filesystem::setCRequirePath        },
-    { "_setAndroidSaveExternal", Wrap_Filesystem::setAndroidSaveExternal },
+    { "_setAndroidSaveExternal", Wrap_Filesystem::setAndroidSaveExternal }
 };
 
 static constexpr lua_CFunction types[] =

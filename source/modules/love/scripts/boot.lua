@@ -324,7 +324,7 @@ function love.init()
     } do
         if c.modules[v] then
             local success, msg = pcall(require, "love." .. v)
-            if v == "audio" and not success and msg:find("ndsp") then
+            if v == "audio" and not success then
                 error(msg)
             end
         end

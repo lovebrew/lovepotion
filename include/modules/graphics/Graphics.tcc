@@ -656,6 +656,8 @@ namespace love
             this->deviceProjectionMatrix = projection;
         }
 
+        void backbufferChanged(int width, int height, double pixelWidth, double pixelHeight);
+
         const Matrix4& getDeviceProjection() const
         {
             return this->deviceProjectionMatrix;

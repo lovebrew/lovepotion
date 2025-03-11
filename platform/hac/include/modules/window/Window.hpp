@@ -8,23 +8,20 @@
 
 namespace love
 {
-    class Window final : public WindowBase<Window>
+    class Window final : public WindowBase
     {
       public:
         Window();
 
         virtual ~Window();
 
-        void setGraphics(Graphics* graphics)
-        {
-            this->graphics.set(graphics);
-        }
+        void setGraphics(GraphicsBase* graphics);
 
         void close();
 
         bool setWindow(int width = 800, int height = 600, WindowSettings* settings = nullptr);
 
-        void updateSettingsImpl(const WindowSettings& settings, bool updateGraphicsViewport);
+        virtual void updateSettings(const WindowSettings& settings, bool updateGraphicsViewport) override;
 
         bool onSizeChanged(int width, int height);
 
@@ -37,6 +34,6 @@ namespace love
       private:
         void close(bool allowExceptions);
 
-        StrongRef<Graphics> graphics;
+        StrongRef<GraphicsBase> graphics;
     };
 } // namespace love

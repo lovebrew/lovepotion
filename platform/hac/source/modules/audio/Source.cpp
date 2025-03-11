@@ -1,5 +1,5 @@
 #include "modules/audio/Source.hpp"
-#include "driver/audio/DigitalSoundMem.hpp"
+#include "driver/audio/DigitalSound.hpp"
 
 #include <cstring>
 
@@ -11,7 +11,7 @@ namespace love
         size(data->getSize()),
         nsamples(data->getSampleCount())
     {
-        this->buffer.data_pcm16 = (int16_t*)DigitalSoundMemory::getInstance().allocate(size);
+        this->buffer.data_pcm16 = (int16_t*)DigitalSound::getInstance().allocateBuffer(size);
 
         if (this->buffer.data_pcm16 == nullptr)
             throw love::Exception(E_OUT_OF_MEMORY);
@@ -41,6 +41,6 @@ namespace love
 
     StaticDataBuffer::~StaticDataBuffer()
     {
-        DigitalSoundMemory::getInstance().free(this->buffer.data_pcm16);
+        DigitalSound::getInstance().freeBuffer(this->buffer.data_pcm16);
     }
 } // namespace love

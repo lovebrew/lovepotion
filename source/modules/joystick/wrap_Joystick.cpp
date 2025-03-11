@@ -442,7 +442,7 @@ int Wrap_Joystick::getPosition(lua_State*L)
     const auto type = base->getGamepadType();
 
     if (type != GAMEPAD_TYPE_NINTENDO_WII_REMOTE && type != GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK)
-        return luaL_error(L, "Invalid controller! Must be of type Wii Remote");
+        return luaL_error(L, "Invalid controller! Must be of type Wii Remote.");
 
     auto position = ((kpad::Joystick*)base)->getPosition();
 
@@ -458,7 +458,7 @@ int Wrap_Joystick::getAngle(lua_State*L)
     const auto type = base->getGamepadType();
 
     if (type != GAMEPAD_TYPE_NINTENDO_WII_REMOTE && type != GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK)
-        return luaL_error(L, "Invalid controller! Must be of type Wii Remote");
+        return luaL_error(L, "Invalid controller! Must be of type Wii Remote.");
 
     auto angle = ((kpad::Joystick*)base)->getAngle();
 

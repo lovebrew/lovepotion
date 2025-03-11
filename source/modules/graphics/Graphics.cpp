@@ -581,6 +581,9 @@ namespace love
             instance->flushBatchedDraws();
     }
 
+    void GraphicsBase::backbufferChanged(int width, int height, double pixelWidth, double pixelHeight)
+    {}
+
     void GraphicsBase::advanceStreamBuffers()
     {
         if (this->batchedDrawState.vertexBuffer)

@@ -89,19 +89,7 @@ namespace love
             this->createFramebuffers();
         }
 
-        CMemPool& getMemoryPool(MemoryPool pool)
-        {
-            switch (pool)
-            {
-                default:
-                case MEMORYPOOL_IMAGE:
-                    return images;
-                case MEMORYPOOL_CODE:
-                    return code;
-                case MEMORYPOOL_DATA:
-                    return data;
-            }
-        }
+        CMemPool& getMemoryPool(MemoryPool pool);
 
         dk::Device getDevice()
         {
@@ -278,9 +266,9 @@ namespace love
         dk::UniqueCmdBuf commandBuffer;
         dk::UniqueSwapchain swapchain;
 
-        CMemPool images;
-        CMemPool data;
-        CMemPool code;
+        std::optional<CMemPool> images;
+        std::optional<CMemPool> data;
+        std::optional<CMemPool> code;
 
         int framebufferSlot;
 

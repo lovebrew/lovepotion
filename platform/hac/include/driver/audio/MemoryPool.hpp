@@ -1,37 +1,37 @@
 #pragma once
 
-#include "common/Singleton.tcc"
-
 #include <stdlib.h>
 
 #include <switch.h>
 
 namespace love
 {
-    struct Chunk
+    struct MemoryChunk
     {
-        uint8_t* address;
-        size_t size;
+        uint8_t* address { nullptr };
+        size_t size { 0 };
     };
 
-    struct Block
+    struct MemoryBlock
     {
-        Block* prev;
-        Block* next;
+        MemoryBlock* prev { nullptr };
+        MemoryBlock* next { nullptr };
 
-        uint8_t* base;
-        size_t size;
+        uint8_t* base { nullptr };
+        size_t size { 0 };
 
-        static Block* create(uint8_t* base, size_t size)
+        static MemoryBlock* create(uint8_t* base, size_t size)
         {
-            auto* block = (Block*)malloc(sizeof(Block));
+            if (!base || size == 0)
+                return nullptr;
 
-            if (block == nullptr)
+            auto* block = (MemoryBlock*)malloc(sizeof(MemoryBlock));
+
+            if (!block)
                 return nullptr;
 
             block->prev = nullptr;
             block->next = nullptr;
-
             block->base = base;
             block->size = size;
 
@@ -39,87 +39,43 @@ namespace love
         }
     };
 
-    struct Pool
+    struct MemoryPool
     {
-        Block* first;
-        Block* last;
+      public:
+        MemoryPool();
+
+        ~MemoryPool();
+
+        MemoryPool(const MemoryPool&)            = delete;
+        MemoryPool& operator=(const MemoryPool&) = delete;
+
+        MemoryPool(MemoryPool&& other) noexcept;
+
+        MemoryPool& operator=(MemoryPool&& other) noexcept;
 
         bool ready()
         {
             return this->first != nullptr;
         }
 
-        void addBlock(Block* block)
-        {
-            block->prev = this->last;
+        void addBlock(MemoryBlock* block);
 
-            if (this->last != nullptr)
-                this->last->next = block;
+        void deleteBlock(MemoryBlock* block);
 
-            if (!this->first)
-                this->first = block;
+        void insertBefore(MemoryBlock* block, MemoryBlock* newBlock);
 
-            this->last = block;
-        }
+        void insertAfter(MemoryBlock* block, MemoryBlock* newBlock);
 
-        void deleteBlock(Block* block)
-        {
-            auto* prev   = block->prev;
-            auto*& pNext = (prev) ? prev->next : this->first;
+        void coalesceRight(MemoryBlock* block);
 
-            auto* next   = block->next;
-            auto*& nNext = (next) ? next->prev : this->last;
+        bool allocate(MemoryChunk& chunk, size_t size);
 
-            pNext = next;
-            nNext = prev;
+        void deallocate(const MemoryChunk& chunk);
 
-            std::free(block);
-        }
+        void destroy();
 
-        void insertBefore(Block* block, Block* newBlock)
-        {
-            auto* prev  = block->prev;
-            auto& pNext = (prev) ? prev->next : this->first;
-
-            block->prev    = newBlock;
-            newBlock->next = block;
-
-            newBlock->prev = prev;
-
-            pNext = newBlock;
-        }
-
-        void insertAfter(Block* block, Block* newBlock)
-        {
-            auto* next  = block->next;
-            auto& nPrev = (next) ? next->prev : this->last;
-
-            block->next    = newBlock;
-            newBlock->prev = block;
-
-            newBlock->next = next;
-
-            nPrev = newBlock;
-        }
-
-        void coalesceRight(Block* block);
-
-        bool allocate(Chunk& chunk, size_t size);
-
-        void deallocate(const Chunk& chunk);
-
-        void destroy()
-        {
-            Block* next = nullptr;
-
-            for (auto* block = this->first; block; block = next)
-            {
-                next = block->next;
-                std::free(block);
-            }
-
-            this->first = nullptr;
-            this->last  = nullptr;
-        }
+      private:
+        MemoryBlock* first;
+        MemoryBlock* last;
     };
 } // namespace love

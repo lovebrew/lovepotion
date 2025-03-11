@@ -328,7 +328,7 @@ namespace love
         }
     }
 
-    void Event::pump()
+    void Event::pump(float timeout)
     {
         while (EventQueue::getInstance().poll(&this->event))
         {

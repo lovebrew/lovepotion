@@ -23,7 +23,7 @@ namespace love
 
         void clear();
 
-        void pump();
+        void pump(float timeout = 0.0f);
 
         Message* wait();
 

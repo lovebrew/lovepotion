@@ -9,6 +9,9 @@ static constexpr char event_lua[] = {
 #include "modules/event/wrap_Event.lua"
 };
 
+#define E_ARGUMENT_CANNOT_BE_STORED \
+    "Argument %d can't be stored safely\nExpected boolean, number, string or userdata."
+
 using namespace love;
 
 #define instance() (Module::getInstance<Event>(Module::M_EVENT))
@@ -40,7 +43,8 @@ static int w_poll_i(lua_State* L)
 
 int Wrap_Event::pump(lua_State* L)
 {
-    luax_catchexcept(L, [&] { instance()->pump(); });
+    float timeout = luaL_optnumber(L, 1, 0.0f);
+    luax_catchexcept(L, [&] { instance()->pump(timeout); });
 
     return 0;
 }
@@ -78,7 +82,7 @@ int Wrap_Event::push(lua_State* L)
         if (args.back().getType() == Variant::UNKNOWN)
         {
             args.clear();
-            return luaL_error(L, "Unknown variant type.");
+            return luaL_error(L, E_ARGUMENT_CANNOT_BE_STORED, index);
         }
     }
 
@@ -99,10 +103,11 @@ int Wrap_Event::clear(lua_State* L)
 
 int Wrap_Event::quit(lua_State* L)
 {
-    const int length = std::max(lua_gettop(L), 1);
-    std::vector<Variant> args {};
 
     luax_catchexcept(L, [&] {
+        std::vector<Variant> args {};
+        const int length = std::max(lua_gettop(L), 1);
+
         for (int index = 1; index <= length; index++)
             args.push_back(luax_checkvariant(L, index));
 
@@ -117,10 +122,11 @@ int Wrap_Event::quit(lua_State* L)
 
 int Wrap_Event::restart(lua_State* L)
 {
-    const int length = lua_gettop(L);
-    std::vector<Variant> args {};
 
     luax_catchexcept(L, [&] {
+        std::vector<Variant> args {};
+        const int length = lua_gettop(L);
+
         args.emplace_back("restart", strlen("restart"));
 
         for (int index = 1; index <= length; index++)

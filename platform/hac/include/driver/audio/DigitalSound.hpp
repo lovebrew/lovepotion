@@ -2,6 +2,7 @@
 
 #include "driver/DigitalSound.tcc"
 
+#include <memory>
 #include <mutex>
 #include <thread>
 
@@ -9,11 +10,15 @@
 
 namespace love
 {
+    class DigitalSoundMemory;
+
     using AudioBuffer = AudioDriverWaveBuf;
 
     class DigitalSound : public DigitalSoundBase<DigitalSound>
     {
       public:
+        DigitalSound();
+
         virtual void initialize() override;
 
         virtual void deInitialize() override;
@@ -54,6 +59,9 @@ namespace love
 
         void channelStop(size_t id);
 
+        void* allocateBuffer(size_t size);
+        void freeBuffer(void* buffer);
+
         // clang-format off
         ENUMMAP_DECLARE(AudioFormats, EncodingFormat, PcmFormat,
             { ENCODING_PCM8,  PcmFormat_Int8  },
@@ -67,5 +75,6 @@ namespace love
         std::mutex mutex;
         AudioDriver driver;
         bool resetChannel;
+        DigitalSoundMemory* memory;
     };
 } // namespace love

@@ -172,7 +172,7 @@ int Wrap_Audio::getVolume(lua_State* L)
 }
 
 // clang-format off
-static constexpr luaL_Reg functions[]=
+static constexpr luaL_Reg functions[] =
 {
     { "newSource", Wrap_Audio::newSource },
     { "play",      Wrap_Audio::play      },
@@ -182,7 +182,7 @@ static constexpr luaL_Reg functions[]=
     { "getVolume", Wrap_Audio::getVolume }
 };
 
-static constexpr lua_CFunction types[]=
+static constexpr lua_CFunction types[] =
 {
     love::open_source
 };

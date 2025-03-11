@@ -2,7 +2,7 @@
 #include "common/Result.hpp"
 
 #include "driver/audio/DigitalSound.hpp"
-#include "driver/audio/DigitalSoundMem.hpp"
+#include "driver/audio/DigitalSoundMemory.hpp"
 
 #include <cstring>
 
@@ -19,33 +19,22 @@ namespace love
 
     static constexpr uint8_t sinkChannels[2] = { 0, 1 };
 
+    DigitalSound::DigitalSound() : memory(new DigitalSoundMemory())
+    {}
+
     void DigitalSound::initialize()
     {
-        if (bool result = DigitalSoundMemory::getInstance().initialize(); !result)
-            throw love::Exception("Failed to create audio memory pool!");
-
         if (auto result = Result(audrenInitialize(&config)); !result)
             throw love::Exception("Failed to initialize audren: {:x}", result.get());
 
         if (auto result = Result(audrvCreate(&this->driver, &config, 2)); !result)
             throw love::Exception("Failed to create audio driver: {:x}", result.get());
 
-        // clang-format off
-        const auto size = DigitalSoundMemory::getInstance().getSize();
-        int poolId = audrvMemPoolAdd(&this->driver, DigitalSoundMemory::getInstance().getBaseAddress(), size);
-        // clang-format on
+        this->memory->initialize(&this->driver);
 
-        if (poolId == -1)
-            throw love::Exception("Failed to add memory pool!");
+        const auto id = audrvDeviceSinkAdd(&this->driver, AUDREN_DEFAULT_DEVICE_NAME, 2, sinkChannels);
 
-        bool attached = audrvMemPoolAttach(&this->driver, poolId);
-
-        if (!attached)
-            throw love::Exception("Failed to attach memory pool!");
-
-        int sinkId = audrvDeviceSinkAdd(&this->driver, AUDREN_DEFAULT_DEVICE_NAME, 2, sinkChannels);
-
-        if (sinkId == -1)
+        if (id == -1)
             throw love::Exception("Failed to add sink to driver!");
 
         if (auto result = Result(audrvUpdate(&this->driver)); !result)
@@ -62,10 +51,10 @@ namespace love
         if (!this->initialized)
             return;
 
+        delete this->memory;
+
         audrvClose(&this->driver);
         audrenExit();
-
-        std::free(DigitalSoundMemory::getInstance().getBaseAddress());
 
         this->initialized = false;
     }
@@ -99,7 +88,7 @@ namespace love
 
         if (size != 0)
         {
-            buffer.data_pcm16 = (int16_t*)DigitalSoundMemory::getInstance().allocate(size);
+            buffer.data_pcm16 = (int16_t*)this->memory->allocate(size);
 
             if (buffer.data_pcm16 == nullptr)
                 throw love::Exception(E_OUT_OF_MEMORY);
@@ -112,7 +101,7 @@ namespace love
 
     void DigitalSound::freeBuffer(const AudioBuffer& buffer)
     {
-        DigitalSoundMemory::getInstance().free(buffer.data_pcm16);
+        this->memory->free(buffer.data_pcm16);
     }
 
     bool DigitalSound::isBufferDone(const AudioBuffer& buffer) const
@@ -223,6 +212,16 @@ namespace love
         std::unique_lock lock(this->mutex);
 
         audrvVoiceStop(&this->driver, id);
+    }
+
+    void* DigitalSound::allocateBuffer(size_t size)
+    {
+        return this->memory->allocate(size);
+    }
+
+    void DigitalSound::freeBuffer(void* buffer)
+    {
+        this->memory->free(buffer);
     }
 
     int8_t DigitalSound::getFormat(int channels, int bitDepth)

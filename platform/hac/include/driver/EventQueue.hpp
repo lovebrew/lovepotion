@@ -19,6 +19,8 @@ namespace love
       private:
         std::array<Event, 9> padStyleUpdates;
 
+        void checkFocus();
+
         HidTouchScreenState touchState;
         int previousTouchCount;
 

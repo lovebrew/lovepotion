@@ -9,15 +9,6 @@ namespace love
       public:
         Graphics();
 
-        void backbufferChanged(int width, int height, int pixelWidth, int pixelHeight, bool backBufferStencil,
-                               bool backBufferDepth, int msaa);
-
-        void backbufferChanged(int width, int height, int pixelWidth, int pixelHeight)
-        {
-            this->backbufferChanged(width, height, pixelWidth, pixelHeight, this->backBufferHasStencil,
-                                    this->backBufferHasDepth, this->requestedBackbufferMSAA);
-        }
-
         virtual void initCapabilities() override;
 
         virtual void clear(OptionalColor color, OptionalInt stencil, OptionalDouble depth) override;

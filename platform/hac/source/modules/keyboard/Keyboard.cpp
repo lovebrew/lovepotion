@@ -38,5 +38,7 @@ namespace love
 
         if (Result(swkbdShow(&this->config, this->text.get(), length)))
             EventQueue::getInstance().sendTextInput(this->text);
+
+        swkbdClose(&this->config);
     }
 } // namespace love

@@ -70,16 +70,10 @@ namespace love
                 std::vector<JoystickBase::GamepadButton> inputs = { JoystickBase::GamepadButton(input) };
 
                 if (joystick->isDown(inputs))
-                {
                     this->sendGamepadButtonEvent(SUBTYPE_GAMEPADDOWN, which, input);
-                    joystick->clearPressedButtonState(JoystickBase::GamepadButton(input));
-                }
 
                 if (joystick->isUp(inputs))
-                {
                     this->sendGamepadButtonEvent(SUBTYPE_GAMEPADUP, which, input);
-                    joystick->clearReleasedButtonState(JoystickBase::GamepadButton(input));
-                }
             }
 
             for (int input = 0; input < JoystickBase::GAMEPAD_AXIS_MAX_ENUM; input++)
@@ -88,8 +82,6 @@ namespace love
                 {
                     float value = joystick->getAxis(JoystickBase::GamepadAxis(input));
                     this->sendGamepadAxisEvent(which, input, value);
-
-                    joystick->clearAxisState(JoystickBase::GamepadAxis(input));
                 }
             }
 

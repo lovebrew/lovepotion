@@ -182,26 +182,11 @@ static constexpr const char* ERROR_PANIC = "PANIC: unprotected error in call to 
 static int love_atpanic(lua_State* L)
 {
     char message[0x80] {};
-    snprintf(message, sizeof(message), ERROR_PANIC, lua_tostring(L, -1));
+    std::snprintf(message, sizeof(message), ERROR_PANIC, lua_tostring(L, -1));
+    std::printf("%s\n", message);
 
-    printf("%s\n", message);
     return 0;
 }
-
-#if __DEBUG__
-static void love_atcpanic()
-{
-    try
-    {
-        throw;
-    }
-    catch (const std::exception& e)
-    {
-        std::printf("Uncaught exception: %s\n", e.what());
-        std::exit(EXIT_FAILURE);
-    }
-}
-#endif
 
 static void luax_addcompatibilityalias(lua_State* L, const char* module, const char* name, const char* alias)
 {
@@ -299,10 +284,6 @@ int love_initialize(lua_State* L)
     love::luax_preload(L, luaopen_https, "https");
 
     lua_atpanic(L, love_atpanic);
-
-#if __DEBUG__
-    std::set_terminate(love_atcpanic);
-#endif
 
     return 1;
 }

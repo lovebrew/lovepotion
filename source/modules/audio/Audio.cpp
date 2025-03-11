@@ -44,10 +44,10 @@ namespace love
         this->poolThread->setFinish();
         this->poolThread->wait();
 
+        DigitalSound::getInstance().deInitialize();
+
         delete this->poolThread;
         delete this->pool;
-
-        DigitalSound::getInstance().deInitialize();
     }
 
     Source* Audio::newSource(SoundData* soundData) const

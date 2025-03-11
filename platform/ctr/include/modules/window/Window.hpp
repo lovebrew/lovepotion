@@ -8,14 +8,14 @@
 
 namespace love
 {
-    class Window final : public WindowBase<Window>
+    class Window final : public WindowBase
     {
       public:
         Window();
 
         virtual ~Window();
 
-        void setGraphics(Graphics* graphics)
+        void setGraphics(GraphicsBase* graphics)
         {
             this->graphics.set(graphics);
         }
@@ -37,6 +37,6 @@ namespace love
       private:
         void close(bool allowExceptions);
 
-        StrongRef<Graphics> graphics;
+        StrongRef<GraphicsBase> graphics;
     };
 } // namespace love

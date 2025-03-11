@@ -99,13 +99,15 @@ static Keyboard::KeyboardResult textInputValidationCallback(const Keyboard::Keyb
 
 int Wrap_Keyboard::setTextInput(lua_State* L)
 {
+    // clang-format off
     Keyboard::KeyboardOptions options {
-        type : Keyboard::TYPE_NORMAL,
-        password : false,
-        hint : "",
-        maxLength : Keyboard::DEFAULT_INPUT_LENGTH,
-        callback : nullptr
+        .type = Keyboard::TYPE_NORMAL,
+        .password = false,
+        .hint = "",
+        .maxLength = Keyboard::DEFAULT_INPUT_LENGTH,
+        .callback = { nullptr }
     };
+    // clang-format on
 
     bool enable = luax_checkboolean(L, 1);
 

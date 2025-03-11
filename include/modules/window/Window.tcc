@@ -21,7 +21,6 @@ namespace love
         return highDPIAllowed;
     }
 
-    template<class T>
     class WindowBase : public Module
     {
       public:
@@ -135,30 +134,7 @@ namespace love
             return this->open;
         }
 
-        void updateSettings(const WindowSettings& newSettings, bool updateGraphicsViewport)
-        {
-            this->pixelWidth  = windowWidth;
-            this->pixelHeight = windowHeight;
-
-            this->settings.fullscreen = newSettings.fullscreen;
-            this->settings.fsType     = newSettings.fsType;
-
-            this->settings.vsync = newSettings.vsync;
-
-            this->settings.minwidth  = newSettings.minwidth;
-            this->settings.minheight = newSettings.minheight;
-
-            this->settings.resizable  = newSettings.resizable;
-            this->settings.borderless = newSettings.borderless;
-            this->settings.centered   = newSettings.centered;
-
-            this->settings.usedpiscale = newSettings.usedpiscale;
-
-            this->settings.stencil = newSettings.stencil;
-            this->settings.depth   = newSettings.depth;
-
-            static_cast<T*>(this)->updateSettingsImpl(newSettings, updateGraphicsViewport);
-        }
+        virtual void updateSettings(const WindowSettings& newSettings, bool updateGraphicsViewport);
 
         void getWindow(int& width, int& height, WindowSettings& newSettings)
         {
