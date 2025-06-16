@@ -172,21 +172,3 @@ using EnumMap = MapT<K, V, N>;
         return name.getKey(in, out);                                                 \
     }
 // clang-format on
-
-// clang-format off
-#define MAP_DECLARE(name, type_a, type_b, ...)                                       \
-    static constexpr MapT<type_a, type_b> name {                                     \
-        std::array<std::pair<type_a, type_b>,                                        \
-        (std::initializer_list<std::pair<type_a, type_b>> { __VA_ARGS__ }).size()> { \
-            { __VA_ARGS__ }                                                          \
-        }                                                                            \
-    };                                                                               \
-    static inline bool getConstant(type_a in, type_b& out)                           \
-    {                                                                                \
-        return name.getValue(in, out);                                               \
-    }                                                                                \
-    static inline bool getConstant(type_b in, type_a& out)                           \
-    {                                                                                \
-        return name.getKey(in, out);                                                 \
-    }
-// clang-format on

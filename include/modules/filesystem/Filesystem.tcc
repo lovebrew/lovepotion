@@ -100,14 +100,14 @@ namespace love
         FileData* newFileData(const void* data, size_t size, const std::string& filename) const;
 
         // clang-format off
-        STRINGMAP_DECLARE(fileTypes, FileType,
+        STRINGMAP_DECLARE(FileTypes, FileType,
             { "file",      FILETYPE_FILE      },
             { "directory", FILETYPE_DIRECTORY },
             { "symlink",   FILETYPE_SYMLINK   },
             { "other",     FILETYPE_OTHER     }
         );
 
-        STRINGMAP_DECLARE(commonPaths, CommonPath,
+        STRINGMAP_DECLARE(CommonPaths, CommonPath,
             { "appsavedir",    COMMONPATH_APP_SAVEDIR    },
             { "appdocuments",  COMMONPATH_APP_DOCUMENTS  },
             { "userhome",      COMMONPATH_USER_HOME      },
@@ -116,12 +116,12 @@ namespace love
             { "userdocuments", COMMONPATH_USER_DOCUMENTS }
         );
 
-        STRINGMAP_DECLARE(mountPermissions, MountPermissions,
+        STRINGMAP_DECLARE(MountPermissionsType, MountPermissions,
             { "read",      MOUNT_PERMISSIONS_READ      },
             { "readwrite", MOUNT_PERMISSIONS_READWRITE }
         );
 
-        STRINGMAP_DECLARE(loadModes, LoadMode,
+        STRINGMAP_DECLARE(LoadModes, LoadMode,
             { "b",  LOADMODE_BINARY },
             { "t",  LOADMODE_TEXT   },
             { "bt", LOADMODE_ANY    }

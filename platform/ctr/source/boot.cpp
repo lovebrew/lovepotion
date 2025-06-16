@@ -21,7 +21,7 @@ namespace love
         { "ptm:u",   BIND(ptmuInit),                                  &ptmuExit              },
         { "ac:u",    BIND(acInit),                                    &acExit                },
         { "cfg:u",   BIND(cfguInit),                                  &cfguExit              },
-        { "frd:u",   BIND(frdInit),                                   &frdExit               },
+        { "frd:u",   BIND(frdInit, false),                            &frdExit               },
         { "ir:rst",  BIND(irrstInit),                                 &irrstExit             }
     }};
     // clang-format on
@@ -58,7 +58,7 @@ namespace love
         for (auto& service : services)
         {
             if (auto result = service.init(); !result)
-                return displayError("Failed to initialize {:s}.", result.get(), service.name);
+                return displayError("Failed to initialize {:s}.", result, service.name);
         }
 
         romfsInit();

@@ -10,15 +10,13 @@ namespace love
     concept NNResult = requires(T t)
     {
         { t.value } -> std::same_as<int32_t&>;
+        { t.value } -> std::same_as<const int32_t&>;
     };
     // clang-format on
 
     class Result
     {
       public:
-        Result() : value(0)
-        {}
-
         Result(int32_t value) : value(value)
         {}
 
@@ -26,38 +24,39 @@ namespace love
         Result(T t) : value(t.value)
         {}
 
-        /**
-         * @brief Check if the result was successful (>= 0).
-         */
-        bool success() const
-        {
-            return this->value >= 0;
-        }
-
-        /**
-         * @brief Check if the result was a failure (< 0).
-         */
-        bool failed() const
-        {
-            return this->value < 0;
-        }
-
-        /**
-         * @brief Check if the result was a failure with a specific error code.
-         */
-        bool failed(int32_t error) const
-        {
-            return this->value == error;
-        }
-
         int32_t get() const
         {
             return this->value;
         }
 
-        explicit operator bool() const
+        operator int32_t() const
+        {
+            return this->value;
+        }
+
+        bool success() const
+        {
+            return this->value >= 0;
+        }
+
+        bool failed() const
+        {
+            return this->value < 0;
+        }
+
+        operator bool() const
         {
             return this->success();
+        }
+
+        bool operator==(Result& other) const
+        {
+            return this->value == other.value;
+        }
+
+        bool operator==(int32_t value) const
+        {
+            return this->value == value;
         }
 
       private:

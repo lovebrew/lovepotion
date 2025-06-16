@@ -111,7 +111,7 @@ int Wrap_DataModule::encode(lua_State* L)
 
     data::EncodeFormat format = data::ENCODE_MAX_ENUM;
     if (!data::getConstant(formatName, format))
-        return luax_enumerror(L, "encode format", data::encodeFormats, formatName);
+        return luax_enumerror(L, "encode format", data::EncodeFormats, formatName);
 
     size_t srcLength   = 0;
     const char* source = nullptr;
@@ -164,7 +164,7 @@ int Wrap_DataModule::decode(lua_State* L)
 
     data::EncodeFormat format = data::ENCODE_MAX_ENUM;
     if (!data::getConstant(formatName, format))
-        return luax_enumerror(L, "decode format", data::encodeFormats, formatName);
+        return luax_enumerror(L, "decode format", data::EncodeFormats, formatName);
 
     size_t srcLength   = 0;
     const char* source = nullptr;
@@ -215,7 +215,7 @@ int Wrap_DataModule::hash(lua_State* L)
     const char* formatString = luaL_checkstring(L, 2);
 
     if (!HashFunction::getConstant(formatString, function))
-        return luax_enumerror(L, "hash function", HashFunction::hashFunctions, formatString);
+        return luax_enumerror(L, "hash function", HashFunction::HashFunctions, formatString);
 
     HashFunction::Value value {};
     if (lua_isstring(L, 3))
@@ -426,7 +426,7 @@ namespace love
         auto containerType          = data::CONTAINER_MAX_ENUM;
 
         if (!data::getConstant(containerString, containerType))
-            luax_enumerror(L, "data container type", data::containerTypes, containerString);
+            luax_enumerror(L, "data container type", data::ContainerTypes, containerString);
 
         return containerType;
     }

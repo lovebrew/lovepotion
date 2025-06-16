@@ -4,52 +4,53 @@
 
 namespace love
 {
-    class Graphics : public GraphicsBase
+    class Graphics final : public GraphicsBase
     {
       public:
         Graphics();
 
-        virtual void initCapabilities() override;
+        virtual ~Graphics();
 
-        virtual void clear(OptionalColor color, OptionalInt stencil, OptionalDouble depth) override;
+        void initCapabilities() override;
 
-        virtual void clear(const std::vector<OptionalColor>& colors, OptionalInt stencil,
-                           OptionalDouble depth) override;
+        void clear(OptionalColor color, OptionalInt stencil, OptionalDouble depth) override;
 
-        virtual void present(void* screenshotCallbackData) override;
+        void clear(const std::vector<OptionalColor>& colors, OptionalInt stencil,
+                   OptionalDouble depth) override;
 
-        virtual void setScissor(const Rect& scissor) override;
+        void present(void* screenshotCallbackData) override;
 
-        virtual void setScissor() override;
+        void setScissor(const Rect& scissor) override;
 
-        virtual void setFrontFaceWinding(Winding winding) override;
+        void setScissor() override;
 
-        virtual void setColorMask(ColorChannelMask mask) override;
+        void setFrontFaceWinding(Winding winding) override;
 
-        virtual void setBlendState(const BlendState& state) override;
+        void setColorMask(ColorChannelMask mask) override;
 
-        virtual void setPointSize(float size) override;
+        void setBlendState(const BlendState& state) override;
 
-        virtual FontBase* newFont(Rasterizer* data) override;
+        void setPointSize(float size) override;
 
-        virtual FontBase* newDefaultFont(int size, const Rasterizer::Settings& settings) override;
+        FontBase* newFont(Rasterizer* data) override;
 
-        virtual TextureBase* newTexture(const TextureBase::Settings& settings,
-                                        const TextureBase::Slices* data = nullptr) override;
+        FontBase* newDefaultFont(int size, const Rasterizer::Settings& settings) override;
 
-        virtual ShaderStageBase* newShaderStageInternal(ShaderStageType stage,
-                                                        const std::string& filepath) override;
+        TextureBase* newTexture(const TextureBase::Settings& settings,
+                                const TextureBase::Slices* data = nullptr) override;
 
-        virtual ShaderBase* newShaderInternal(StrongRef<ShaderStageBase> stages[SHADERSTAGE_MAX_ENUM],
-                                              const ShaderBase::CompileOptions& options) override;
+        ShaderStageBase* newShaderStageInternal(ShaderStageType stage, const std::string& filepath) override;
 
-        virtual bool setMode(int width, int height, int pixelWidth, int pixelHeight, bool backBufferStencil,
-                             bool backBufferDepth, int msaa) override;
+        ShaderBase* newShaderInternal(StrongRef<ShaderStageBase> stages[SHADERSTAGE_MAX_ENUM],
+                                      const ShaderBase::CompileOptions& options) override;
 
-        virtual void setRenderTargetsInternal(const RenderTargets& targets, int pixelWidth, int pixelHeight,
-                                              bool hasSRGBTexture) override;
+        bool setMode(int width, int height, int pixelWidth, int pixelHeight, bool backBufferStencil,
+                     bool backBufferDepth, int msaa) override;
 
-        virtual bool isPixelFormatSupported(PixelFormat format, uint32_t usage) override;
+        void setRenderTargetsInternal(const RenderTargets& targets, int pixelWidth, int pixelHeight,
+                                      bool hasSRGBTexture) override;
+
+        bool isPixelFormatSupported(PixelFormat format, uint32_t usage) override;
 
         void draw(const DrawIndexedCommand& command) override;
 
@@ -57,9 +58,7 @@ namespace love
 
         using GraphicsBase::draw;
 
-        bool isActive() const;
-
-        virtual void unsetMode() override;
+        void unsetMode() override;
 
         void setActiveScreen() override;
 

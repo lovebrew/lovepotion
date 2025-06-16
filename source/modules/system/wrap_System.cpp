@@ -109,6 +109,16 @@ int Wrap_System::getProductInfo(lua_State* L)
     return 3;
 }
 
+int Wrap_System::getFriendInfo(lua_State* L)
+{
+    auto info = instance()->getFriendInfo();
+
+    luax_pushstring(L, info.username);
+    luax_pushstring(L, info.friendCode);
+
+    return 2;
+}
+
 // clang-format off
 static constexpr luaL_Reg functions[] =
 {
@@ -122,10 +132,30 @@ static constexpr luaL_Reg functions[] =
     { "getPreferredLocales", Wrap_System::getPreferredLocales },
     { "getNetworkInfo",      Wrap_System::getNetworkInfo      },
     { "getProductInfo",      Wrap_System::getProductInfo      },
+    { "getFriendInfo",       Wrap_System::getFriendInfo       },
     { "getOS",               Wrap_System::getOS               }
 };
 
 #if defined(__3DS__)
+int Wrap_System::getPlayCoins(lua_State* L)
+{
+    int coins = 0;
+
+    luax_catchexcept(L, [&]() { coins = instance()->getPlayCoins(); });
+    lua_pushinteger(L, coins);
+
+    return 1;
+}
+
+int Wrap_System::setPlayCoins(lua_State* L)
+{
+    int coins = luaL_checkinteger(L, 1);
+
+    luax_catchexcept(L, [&]() { instance()->setPlayCoins(coins); });
+
+    return 0;
+}
+
 static constexpr std::array<luaL_Reg, 2> platformFunctions =
 {{
     { "getPlayCoins", Wrap_System::getPlayCoins },

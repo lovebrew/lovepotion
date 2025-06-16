@@ -24,7 +24,7 @@ namespace love
         std::vector<std::string> getPreferredLocales() const;
 
         // clang-format off
-        STRINGMAP_DECLARE(HacLanguages, SetLanguage,
+        STRINGMAP_DECLARE(SystemLanguages, SetLanguage,
             { "jp",      SetLanguage_JA     },
             { "en_US",   SetLanguage_ENUS   },
             { "fr",      SetLanguage_FR     },
@@ -45,28 +45,28 @@ namespace love
             { "pt_BR",   SetLanguage_PTBR   }
         );
 
-        STRINGMAP_DECLARE(HacModels, SetSysProductModel,
-            { "Invalid",           SetSysProductModel_Invalid },
-            { "Erista",            SetSysProductModel_Nx      },
-            { "Erista Simulation", SetSysProductModel_Copper  },
-            { "Mariko",            SetSysProductModel_Iowa    },
-            { "Mariko Lite",       SetSysProductModel_Hoag    },
-            { "Mariko Simulation", SetSysProductModel_Calcio  },
-            { "Mariko OLED",       SetSysProductModel_Aula    }
+        STRINGMAP_DECLARE(SystemModels, SetSysProductModel,
+            { "invalid", SetSysProductModel_Invalid },
+            { "nx",      SetSysProductModel_Nx      },
+            { "copper",  SetSysProductModel_Copper  },
+            { "iowa",    SetSysProductModel_Iowa    },
+            { "hoag",    SetSysProductModel_Hoag    },
+            { "calico",  SetSysProductModel_Calcio  },
+            { "aula",    SetSysProductModel_Aula    }
         );
 
-        STRINGMAP_DECLARE(HacRegions, SetRegion,
-            { "JPN", SetRegion_JPN },
-            { "USA", SetRegion_USA },
-            { "EUR", SetRegion_EUR },
-            { "AUS", SetRegion_AUS },
-            { "HTK", SetRegion_HTK },
-            { "CHN", SetRegion_CHN }
+        STRINGMAP_DECLARE(SystemRegions, SetRegion,
+            { "jpn", SetRegion_JPN },
+            { "usa", SetRegion_USA },
+            { "eur", SetRegion_EUR },
+            { "aus", SetRegion_AUS },
+            { "htk", SetRegion_HTK },
+            { "chn", SetRegion_CHN }
         );
 
-        STRINGMAP_DECLARE(HacColorThemes, ColorSetId,
-            { "Light", ColorSetId_Light },
-            { "Dark",  ColorSetId_Dark  }
+        STRINGMAP_DECLARE(SystemColorThemes, ColorSetId,
+            { "light", ColorSetId_Light },
+            { "dark",  ColorSetId_Dark  }
         );
 
         using SystemBase::getConstant;

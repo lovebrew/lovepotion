@@ -29,8 +29,8 @@ namespace
     }
 } // namespace
 
-#define W_MODULE_OVERRIDE   "Warning: overwriting module instance %s with new instance %s\n"
-#define W_MODULE_REGISTERED "Module '%s' already registered!"
+#define W_MODULE_OVERRIDE   "Warning: overwriting module instance {:s} with new instance {:s}\n"
+#define W_MODULE_REGISTERED "Module '{:s}' already registered!"
 
 namespace love
 {
@@ -70,8 +70,9 @@ namespace love
         if (instance == nullptr)
             throw Exception("Module instance is null.");
 
+        std::string name(instance->getName());
         ModuleRegistry& registry = registryInstance();
-        auto iterator            = registry.find(instance->name);
+        auto iterator            = registry.find(name);
 
         if (iterator != registry.end())
         {
@@ -81,7 +82,7 @@ namespace love
             throw Exception(W_MODULE_REGISTERED, instance->getName());
         }
 
-        registry.insert(std::make_pair(instance->name, instance));
+        registry.insert(std::make_pair(name, instance));
         ModuleType type = instance->getModuleType();
 
         if (type != M_UNKNOWN)
@@ -93,7 +94,7 @@ namespace love
         }
     }
 
-    Module* Module::getInstance(const char* name)
+    Module* Module::getInstance(const std::string& name)
     {
         ModuleRegistry& registry = registryInstance();
         auto iterator            = registry.find(name);

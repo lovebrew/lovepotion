@@ -33,7 +33,7 @@ namespace love
 
             virtual bool isDown(std::span<GamepadButton> buttons) const override;
 
-            void clearButtonState(GamepadButton button);
+            virtual bool isHeld(std::span<GamepadButton> buttons) const override;
 
             virtual bool isUp(std::span<GamepadButton> buttons) const override;
 

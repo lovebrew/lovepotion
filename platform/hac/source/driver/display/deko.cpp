@@ -86,16 +86,13 @@ namespace love
         for (size_t index = 0; index < this->targets.size(); index++)
         {
             this->framebuffers[index].create(info, this->device, *this->images, false);
-            this->targets[index] = this->framebuffers[index].getImage();
+            this->targets[index] = &this->framebuffers[index].getImage();
         }
 
         this->swapchain = dk::SwapchainMaker { this->device, nwindowGetDefault(), this->targets }.create();
 
-        this->context.viewport = Rect { 0, 0, info.width, info.height };
-        this->context.scissor  = Rect { 0, 0, info.width, info.height };
-
-        this->setViewport(this->context.viewport);
-        this->setScissor(this->context.scissor);
+        this->setViewport({ 0, 0, info.width, info.height });
+        this->setScissor({ 0, 0, info.width, info.height });
     }
 
     void deko3d::destroyFramebuffers()
@@ -109,11 +106,12 @@ namespace love
         this->commandBuffer.clear();
         this->swapchain.destroy();
 
-        this->context.boundFramebuffer = nullptr;
+        // this->context.boundFramebuffer = nullptr;
         for (auto& framebuffer : this->framebuffers)
             framebuffer.destroy();
 
         this->depthbuffer.destroy();
+        this->framebufferSlot = -1;
     }
 
     void deko3d::ensureInFrame()
@@ -182,7 +180,7 @@ namespace love
             this->framebufferSlot = this->mainQueue.acquireImage(this->swapchain);
 
         if (!framebuffer)
-            framebuffer = this->framebuffers[this->framebufferSlot].getImage();
+            framebuffer = &this->framebuffers[this->framebufferSlot].getImage();
 
         bool bindingModified = false;
 
@@ -194,7 +192,7 @@ namespace love
 
         if (bindingModified)
         {
-            dk::ImageView depth { *this->depthbuffer.getImage() };
+            dk::ImageView depth { this->depthbuffer.getImage() };
             dk::ImageView target { *framebuffer };
 
             this->commandBuffer.barrier(DkBarrier_Fragments, 0);
@@ -204,6 +202,9 @@ namespace love
 
     void deko3d::bindBuffer(BufferUsage usage, CMemPool::Handle& handle)
     {
+        if (!this->inFrame || !handle)
+            return;
+
         if (usage == BUFFERUSAGE_VERTEX)
             this->commandBuffer.bindVtxBuffer(0, handle.getGpuAddr(), handle.getSize());
         else if (usage == BUFFERUSAGE_INDEX)
@@ -294,12 +295,8 @@ namespace love
 
         if (this->inFrame)
         {
-            GraphicsBase::flushBatchedDrawsGlobal();
-            GraphicsBase::advanceStreamBuffersGlobal();
-
             this->mainQueue.submitCommands(this->commands.end(this->commandBuffer));
             this->mainQueue.presentImage(this->swapchain, this->framebufferSlot);
-
             this->inFrame = false;
         }
 
@@ -454,6 +451,7 @@ namespace love
         auto dkScissor     = dkRectFromRect<DkScissor>(scissor);
 
         this->commandBuffer.setScissors(0, dkScissor);
+        this->context.scissor = scissor;
     }
 
     void deko3d::setViewport(const Rect& rect)
@@ -465,6 +463,7 @@ namespace love
 
         this->commandBuffer.setViewports(0, view);
         this->transform.projection = glm::ortho(0.0f, view.width, view.height, 0.0f, view.near, view.far);
+        this->context.viewport     = viewport;
     }
 
     deko3d d3d;

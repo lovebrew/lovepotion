@@ -160,7 +160,7 @@ int Wrap_Filesystem::mountFullPath(lua_State* L)
     {
         const char* type = luaL_checkstring(L, 3);
         if (!Filesystem::getConstant(type, permissions))
-            return luax_enumerror(L, "mount permissions", Filesystem::mountPermissions, type);
+            return luax_enumerror(L, "mount permissions", Filesystem::MountPermissionsType, type);
     }
 
     bool append = luax_optboolean(L, 4, false);
@@ -175,7 +175,7 @@ int Wrap_Filesystem::mountCommonPath(lua_State* L)
     auto commonPath           = Filesystem::COMMONPATH_MAX_ENUM;
 
     if (!Filesystem::getConstant(commonPathStr, commonPath))
-        return luax_enumerror(L, "common path", Filesystem::commonPaths, commonPathStr);
+        return luax_enumerror(L, "common path", Filesystem::CommonPaths, commonPathStr);
 
     const char* mountPoint = luaL_checkstring(L, 2);
 
@@ -184,7 +184,7 @@ int Wrap_Filesystem::mountCommonPath(lua_State* L)
     {
         const char* type = luaL_checkstring(L, 3);
         if (!Filesystem::getConstant(type, permissions))
-            return luax_enumerror(L, "mount permissions", Filesystem::mountPermissions, type);
+            return luax_enumerror(L, "mount permissions", Filesystem::MountPermissionsType, type);
     }
 
     bool append = luax_optboolean(L, 4, false);
@@ -225,7 +225,7 @@ int Wrap_Filesystem::unmountCommonPath(lua_State* L)
     auto commonPath           = Filesystem::COMMONPATH_MAX_ENUM;
 
     if (!Filesystem::getConstant(commonPathStr, commonPath))
-        return luax_enumerror(L, "common path", Filesystem::commonPaths, commonPathStr);
+        return luax_enumerror(L, "common path", Filesystem::CommonPaths, commonPathStr);
 
     luax_pushboolean(L, instance()->unmount(commonPath));
 
@@ -239,7 +239,7 @@ int Wrap_Filesystem::openFile(lua_State* L)
 
     File::Mode mode = File::MODE_CLOSED;
     if (!File::getConstant(modeString, mode))
-        return luax_enumerror(L, "file open mode", File::openModes, modeString);
+        return luax_enumerror(L, "file open mode", File::OpenModes, modeString);
 
     FileBase* file = nullptr;
 
@@ -265,7 +265,7 @@ int Wrap_Filesystem::openNativeFile(lua_State* L)
 
     File::Mode mode = File::MODE_CLOSED;
     if (!File::getConstant(modeString, mode))
-        return luax_enumerror(L, "file open mode", File::openModes, modeString);
+        return luax_enumerror(L, "file open mode", File::OpenModes, modeString);
 
     FileBase* file = nullptr;
 
@@ -290,7 +290,7 @@ int Wrap_Filesystem::getFullCommonPath(lua_State* L)
     auto commonPath           = Filesystem::COMMONPATH_MAX_ENUM;
 
     if (!Filesystem::getConstant(commonPathStr, commonPath))
-        return luax_enumerror(L, "common path", Filesystem::commonPaths, commonPathStr);
+        return luax_enumerror(L, "common path", Filesystem::CommonPaths, commonPathStr);
 
     luax_pushstring(L, instance()->getFullCommonPath(commonPath));
 
@@ -520,7 +520,7 @@ int Wrap_Filesystem::load(lua_State* L)
     {
         const char* modeStr = luaL_checkstring(L, 2);
         if (!Filesystem::getConstant(modeStr, mode))
-            return luax_enumerror(L, "load mode", Filesystem::loadModes, modeStr);
+            return luax_enumerror(L, "load mode", Filesystem::LoadModes, modeStr);
     }
 
     Data* data = nullptr;
@@ -578,7 +578,7 @@ int Wrap_Filesystem::getInfo(lua_State* L)
     {
         const char* typeString = luaL_checkstring(L, start);
         if (!Filesystem::getConstant(typeString, filterType))
-            return luax_enumerror(L, "file type", Filesystem::fileTypes, typeString);
+            return luax_enumerror(L, "file type", Filesystem::FileTypes, typeString);
 
         start++;
     }

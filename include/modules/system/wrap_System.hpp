@@ -27,6 +27,8 @@ namespace Wrap_System
 
     int getOS(lua_State* L);
 
+    int getFriendInfo(lua_State* L);
+
     int getPlayCoins(lua_State* L);
 
     int setPlayCoins(lua_State* L);

@@ -3,6 +3,7 @@
 
 #include "modules/event/Event.hpp"
 
+#include "modules/graphics/Graphics.tcc"
 #include "modules/joystick/JoystickModule.hpp"
 #include "modules/touch/Touch.hpp"
 
@@ -126,6 +127,8 @@ namespace love
                 result = new Message("textinput", args);
                 break;
             }
+            default:
+                break;
         }
 
         return result;

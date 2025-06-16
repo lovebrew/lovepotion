@@ -60,7 +60,7 @@ namespace love
         virtual bool isSupported(Function function) const = 0;
 
         // clang-format off
-        STRINGMAP_DECLARE(hashFunctions, Function,
+        STRINGMAP_DECLARE(HashFunctions, Function,
             { "md5",    FUNCTION_MD5    },
             { "sha1",   FUNCTION_SHA1   },
             { "sha224", FUNCTION_SHA224 },

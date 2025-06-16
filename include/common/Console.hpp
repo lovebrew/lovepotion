@@ -17,7 +17,7 @@ namespace love
 
         static constexpr std::string_view Name = __CONSOLE__;
 
-        static constexpr Platform Current = (Name == "3DS") ? CTR : (Name == "Switch") ? HAC : CAFE;
+        static constexpr Platform Current = (Name == "3ds") ? CTR : (Name == "switch") ? HAC : CAFE;
 
         static constexpr bool is(Platform platform)
         {

@@ -29,6 +29,8 @@ namespace love
 
         virtual bool isDown(std::span<GamepadButton> buttons) const override;
 
+        virtual bool isHeld(std::span<GamepadButton> buttons) const override;
+
         virtual bool isUp(std::span<GamepadButton> buttons) const override;
 
         virtual bool isAxisChanged(GamepadAxis axis) const override;

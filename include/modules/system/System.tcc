@@ -61,7 +61,7 @@ namespace love
         };
 
         // clang-format off
-        STRINGMAP_DECLARE(powerStates, PowerState,
+        STRINGMAP_DECLARE(PowerStates, PowerState,
             { "unknown",   POWER_UNKNOWN    },
             { "battery",   POWER_BATTERY    },
             { "nobattery", POWER_NO_BATTERY },
@@ -69,7 +69,7 @@ namespace love
             { "charged",   POWER_CHARGED    }
         );
 
-        STRINGMAP_DECLARE(networkStates, NetworkState,
+        STRINGMAP_DECLARE(NetworkStates, NetworkState,
             { "unknown",      NETWORK_UNKNOWN      },
             { "disconnected", NETWORK_DISCONNECTED },
             { "connected",    NETWORK_CONNECTED    }

@@ -24,8 +24,6 @@ namespace love
 
         bool setWindow(int width = 800, int height = 600, WindowSettings* settings = nullptr);
 
-        void updateSettingsImpl(const WindowSettings& settings, bool updateGraphicsViewport);
-
         bool onSizeChanged(int width, int height);
 
         void setDisplaySleepEnabled(bool enable);

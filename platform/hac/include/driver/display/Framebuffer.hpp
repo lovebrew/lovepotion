@@ -20,9 +20,9 @@ namespace love
 
         void destroy();
 
-        dk::Image* getImage()
+        dk::Image& getImage()
         {
-            return std::addressof(this->image);
+            return this->image;
         }
 
       private:

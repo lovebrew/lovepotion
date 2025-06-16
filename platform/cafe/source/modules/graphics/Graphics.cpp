@@ -392,12 +392,6 @@ namespace love
         // gx2.deInitialize();
     }
 
-    bool Graphics::isActive() const
-    {
-        auto* window = Module::getInstance<Window>(M_WINDOW);
-        return this->active && this->created && window != nullptr && window->isOpen();
-    }
-
     void Graphics::setViewport(int x, int y, int width, int height)
     {
         gx2.setViewport({ x, y, width, height });

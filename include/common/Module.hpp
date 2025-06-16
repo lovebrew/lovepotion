@@ -50,7 +50,7 @@ namespace love
             return this->name.c_str();
         }
 
-        static Module* getInstance(const char* name);
+        static Module* getInstance(const std::string& name);
 
         template<typename T>
         static T* getInstance(ModuleType type)
@@ -58,9 +58,9 @@ namespace love
             return type != M_UNKNOWN ? (T*)instances[type] : nullptr;
         }
 
+      private:
         static void registerInstance(Module* instance);
 
-      private:
         ModuleType moduleType;
         std::string name;
 

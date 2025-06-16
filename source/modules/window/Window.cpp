@@ -24,4 +24,28 @@ namespace love
         this->settings.stencil = newSettings.stencil;
         this->settings.depth   = newSettings.depth;
     }
+
+    void WindowBase::getWindow(int& width, int& height, WindowSettings& newSettings)
+    {
+        width  = windowWidth;
+        height = windowHeight;
+
+        newSettings = settings;
+    }
+
+    bool WindowBase::setFullscreen(bool fullscreen, FullscreenType type)
+    {
+        WindowSettings newSettings = settings;
+        newSettings.fullscreen     = fullscreen;
+        newSettings.fsType         = type;
+
+        this->updateSettings(newSettings, true);
+
+        return true;
+    }
+
+    bool WindowBase::setFullscreen(bool fullscreen)
+    {
+        return this->setFullscreen(fullscreen, this->settings.fsType);
+    }
 } // namespace love

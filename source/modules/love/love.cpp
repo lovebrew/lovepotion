@@ -283,7 +283,7 @@ int love_initialize(lua_State* L)
     love::luax_preload(L, luaopen_luautf8, "utf8");
     love::luax_preload(L, luaopen_https, "https");
 
-    lua_atpanic(L, love_atpanic);
+    // lua_atpanic(L, love_atpanic);
 
     return 1;
 }

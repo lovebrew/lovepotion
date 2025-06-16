@@ -2,6 +2,7 @@
 
 #include "modules/graphics/Polyline.hpp"
 #include "modules/graphics/SpriteBatch.hpp"
+#include "modules/window/Window.tcc"
 
 #include "common/Console.hpp"
 #include "common/screen.hpp"
@@ -84,6 +85,12 @@ namespace love
     double GraphicsBase::getScreenDPIScale() const
     {
         return 1.0;
+    }
+
+    bool GraphicsBase::isActive() const
+    {
+        auto* window = Module::getInstance<WindowBase>(M_WINDOW);
+        return this->active && this->created && window != nullptr && window->isOpen();
     }
 
     void GraphicsBase::restoreState(const DisplayState& state)
@@ -524,7 +531,7 @@ namespace love
 
             const auto type = ShaderStageType(index);
 
-            if (stages[index].get() == nullptr)
+            if (validStages[index] && stages[index].get() == nullptr)
                 stages[index].set(this->newShaderStage(type, filepaths[index]), Acquire::NO_RETAIN);
         }
 

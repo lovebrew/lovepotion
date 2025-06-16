@@ -116,14 +116,14 @@ namespace love
         }
 
         // clang-format off
-        STRINGMAP_DECLARE(openModes, Mode,
+        STRINGMAP_DECLARE(OpenModes, Mode,
             { "c", MODE_CLOSED },
             { "r", MODE_READ   },
             { "w", MODE_WRITE  },
             { "a", MODE_APPEND }
         );
 
-        STRINGMAP_DECLARE(bufferModes, BufferMode,
+        STRINGMAP_DECLARE(BufferModes, BufferMode,
             { "none", BUFFER_NONE },
             { "line", BUFFER_LINE },
             { "full", BUFFER_FULL }

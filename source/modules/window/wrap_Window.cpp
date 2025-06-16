@@ -87,19 +87,16 @@ int Wrap_Window::setMode(lua_State* L)
     if (lua_isnoneornil(L, 3))
     {
         // clang-format off
-        luax_catchexcept(L, [&] {
-            luax_pushboolean(L, instance()->setWindow(width, height, nullptr));
-        });
+        luax_catchexcept(L, [&] { luax_pushboolean(L, instance()->setWindow(width, height, nullptr)); });
         // clang-format on
+        return 1;
     }
 
     Window::WindowSettings settings {};
     readWindowSettings(L, 3, settings);
 
     // clang-format off
-    luax_catchexcept(L, [&] {
-        luax_pushboolean(L, instance()->setWindow(width, height, &settings));
-    });
+    luax_catchexcept(L, [&] { luax_pushboolean(L, instance()->setWindow(width, height, &settings)); });
     // clang-format on
 
     return 1;
@@ -127,9 +124,7 @@ int Wrap_Window::updateMode(lua_State* L)
         readWindowSettings(L, index, settings);
 
     // clang-format off
-    luax_catchexcept(L, [&] {
-        luax_pushboolean(L, instance()->setWindow(width, height, &settings));
-    });
+    luax_catchexcept(L, [&] { luax_pushboolean(L, instance()->setWindow(width, height, &settings)); });
     // clang-format on
 
     return 1;
@@ -138,7 +133,7 @@ int Wrap_Window::updateMode(lua_State* L)
 int Wrap_Window::getMode(lua_State* L)
 {
     int w, h;
-    Window::WindowSettings settings;
+    Window::WindowSettings settings {};
     instance()->getWindow(w, h, settings);
 
     lua_pushnumber(L, w);
@@ -413,7 +408,6 @@ int Wrap_Window::isMinimized(lua_State* L)
     return 1;
 }
 
-// TODO: Call an internal function in Lua from C++ with our data
 int Wrap_Window::showMessageBox(lua_State* L)
 {
     Window::MessageBoxData data {};

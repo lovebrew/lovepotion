@@ -19,7 +19,7 @@ namespace love
     {
         const auto result = Result(ndspInit());
 
-        if (result.failed(DSP_FIRM_MISSING_ERROR_CODE))
+        if (result == DSP_FIRM_MISSING_ERROR_CODE)
             throw love::Exception(E_AUDIO_NOT_INITIALIZED " (dspfirm.cdc not found)");
 
         if (result.failed())

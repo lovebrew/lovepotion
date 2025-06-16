@@ -136,28 +136,11 @@ namespace love
 
         virtual void updateSettings(const WindowSettings& newSettings, bool updateGraphicsViewport);
 
-        void getWindow(int& width, int& height, WindowSettings& newSettings)
-        {
-            width       = this->windowWidth;
-            height      = this->windowHeight;
-            newSettings = this->settings;
-        }
+        void getWindow(int& width, int& height, WindowSettings& newSettings);
 
-        bool setFullscreen(bool fullscreen, FullscreenType fstype)
-        {
-            WindowSettings newSettings = settings;
-            newSettings.fullscreen     = fullscreen;
-            newSettings.fsType         = fstype;
+        bool setFullscreen(bool fullscreen, FullscreenType type);
 
-            this->updateSettings(newSettings, true);
-
-            return true;
-        }
-
-        bool setFullscreen(bool fullscreen)
-        {
-            return this->setFullscreen(fullscreen, this->settings.fsType);
-        }
+        bool setFullscreen(bool fullscreen);
 
         int getDisplayCount() const
         {

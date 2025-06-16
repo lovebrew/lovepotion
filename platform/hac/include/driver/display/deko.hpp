@@ -91,7 +91,7 @@ namespace love
 
         CMemPool& getMemoryPool(MemoryPool pool);
 
-        dk::Device getDevice()
+        dk::Device& getDevice()
         {
             return this->device;
         }
@@ -272,7 +272,7 @@ namespace love
 
         int framebufferSlot;
 
-        Framebuffer framebuffers[MAX_RENDERTARGETS];
+        std::array<Framebuffer, MAX_RENDERTARGETS> framebuffers;
         Framebuffer depthbuffer;
 
         CCmdMemRing<MAX_RENDERTARGETS> commands;

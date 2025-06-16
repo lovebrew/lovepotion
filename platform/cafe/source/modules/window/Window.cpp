@@ -36,7 +36,7 @@ namespace love
     bool Window::setWindow(int width, int height, WindowSettings* settings)
     {
         if (!this->graphics.get())
-            this->graphics.set(Module::getInstance<Graphics>(Module::M_GRAPHICS));
+            this->graphics.set(Module::getInstance<GraphicsBase>(Module::M_GRAPHICS));
 
         this->close();
 

@@ -16,7 +16,8 @@
 namespace love
 {
     Shader::Shader(StrongRef<ShaderStageBase> stages[SHADERSTAGE_MAX_ENUM], const CompileOptions& options) :
-        ShaderBase(stages, options)
+        ShaderBase(stages, options),
+        program { nullptr, nullptr }
     {
         this->loadVolatile();
     }
@@ -101,7 +102,10 @@ namespace love
     }
 
     void Shader::unloadVolatile()
-    {}
+    {
+        this->program.vertex   = nullptr;
+        this->program.fragment = nullptr;
+    }
 
     void Shader::updateBuiltinUniforms(GraphicsBase* graphics, glm::mat4& model)
     {}

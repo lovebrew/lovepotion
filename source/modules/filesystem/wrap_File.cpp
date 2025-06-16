@@ -39,7 +39,7 @@ int Wrap_File::open(lua_State* L)
 
     File::Mode mode = File::MODE_MAX_ENUM;
     if (!File::getConstant(modeString, mode))
-        return luax_enumerror(L, "file open mode", File::openModes, modeString);
+        return luax_enumerror(L, "file open mode", File::OpenModes, modeString);
 
     try
     {
@@ -334,7 +334,7 @@ int Wrap_File::setBuffer(lua_State* L)
 
     File::BufferMode mode = File::BUFFER_MAX_ENUM;
     if (!File::getConstant(string, mode))
-        return luax_enumerror(L, "file buffer mode", File::bufferModes, string);
+        return luax_enumerror(L, "file buffer mode", File::BufferModes, string);
 
     bool success = false;
 

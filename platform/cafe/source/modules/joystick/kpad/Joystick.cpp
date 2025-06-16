@@ -256,6 +256,28 @@ namespace love
             return false;
         }
 
+        bool Joystick::isHeld(std::span<Joystick::GamepadButton> buttons) const
+        {
+            if (!this->isConnected())
+                return false;
+
+            // switch (this->gamepadType)
+            // {
+            //     case GAMEPAD_TYPE_NINTENDO_WII_REMOTE:
+            //         break;
+            //     case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK:
+            //         return isButtonHeld<WPADButton>(buttons) || isButtonHeld<WPADNunchukButton>(buttons);
+            //     case GAMEPAD_TYPE_NINTENDO_WII_CLASSIC:
+            //         return isButtonHeld<WPADClassicButton>(buttons);
+            //     case GAMEPAD_TYPE_NINTENDO_WII_U_PRO:
+            //         return isButtonHeld<WPADProButton>(buttons);
+            //     default:
+            //         break;
+            // }
+
+            return false;
+        }
+
         bool Joystick::isUp(std::span<GamepadButton> buttons) const
         {
             if (!this->isConnected())

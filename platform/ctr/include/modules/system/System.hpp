@@ -26,7 +26,7 @@ namespace love
         void setPlayCoins(int amount);
 
         // clang-format off
-        STRINGMAP_DECLARE(systemLanguages, CFG_Language,
+        STRINGMAP_DECLARE(SystemLanguages, CFG_Language,
             { "jp",    CFG_LANGUAGE_JP },
             { "en",    CFG_LANGUAGE_EN },
             { "fr",    CFG_LANGUAGE_FR },
@@ -41,23 +41,23 @@ namespace love
             { "zh_TW", CFG_LANGUAGE_TW }
         );
 
-        STRINGMAP_DECLARE(systemRegions, CFG_Region,
-            { "JPN", CFG_REGION_JPN },
-            { "USA", CFG_REGION_USA },
-            { "EUR", CFG_REGION_EUR },
-            { "AUS", CFG_REGION_AUS },
-            { "CHN", CFG_REGION_CHN },
-            { "KOR", CFG_REGION_KOR },
-            { "TWN", CFG_REGION_TWN }
+        STRINGMAP_DECLARE(SystemRegions, CFG_Region,
+            { "jpn", CFG_REGION_JPN },
+            { "usa", CFG_REGION_USA },
+            { "eur", CFG_REGION_EUR },
+            { "aus", CFG_REGION_AUS },
+            { "chn", CFG_REGION_CHN },
+            { "kor", CFG_REGION_KOR },
+            { "twn", CFG_REGION_TWN }
         );
 
-        STRINGMAP_DECLARE(systemModels, CFG_SystemModel,
-            { "CTR",  CFG_MODEL_3DS    },
-            { "SPR",  CFG_MODEL_3DSXL  },
-            { "KTR",  CFG_MODEL_N3DS   },
-            { "FTR",  CFG_MODEL_2DS    },
-            { "RED",  CFG_MODEL_N3DSXL },
-            { "JAN",  CFG_MODEL_N2DSXL }
+        STRINGMAP_DECLARE(SystemModels, CFG_SystemModel,
+            { "ctr",  CFG_MODEL_3DS    },
+            { "spr",  CFG_MODEL_3DSXL  },
+            { "ktr",  CFG_MODEL_N3DS   },
+            { "ftr",  CFG_MODEL_2DS    },
+            { "red",  CFG_MODEL_N3DSXL },
+            { "jan",  CFG_MODEL_N2DSXL }
         );
 
         using SystemBase::getConstant;

@@ -12,24 +12,24 @@ namespace love
 
         ~Graphics();
 
-        virtual void initCapabilities() override;
+        void initCapabilities() override;
 
-        virtual void clear(OptionalColor color, OptionalInt stencil, OptionalDouble depth) override;
+        void clear(OptionalColor color, OptionalInt stencil, OptionalDouble depth) override;
 
-        virtual void clear(const std::vector<OptionalColor>& colors, OptionalInt stencil,
-                           OptionalDouble depth) override;
+        void clear(const std::vector<OptionalColor>& colors, OptionalInt stencil,
+                   OptionalDouble depth) override;
 
-        virtual void present(void* screenshotCallbackData) override;
+        void present(void* screenshotCallbackData) override;
 
-        virtual void setScissor(const Rect& scissor) override;
+        void setScissor(const Rect& scissor) override;
 
-        virtual void setScissor() override;
+        void setScissor() override;
 
-        virtual void setFrontFaceWinding(Winding winding) override;
+        void setFrontFaceWinding(Winding winding) override;
 
-        virtual void setColorMask(ColorChannelMask mask) override;
+        void setColorMask(ColorChannelMask mask) override;
 
-        virtual void setPointSize(float size) override
+        void setPointSize(float size) override
         {
             if (size != this->states.back().pointSize)
                 this->flushBatchedDraws();
@@ -37,19 +37,19 @@ namespace love
             this->states.back().pointSize = size;
         }
 
-        virtual void setBlendState(const BlendState& state) override;
+        void setBlendState(const BlendState& state) override;
 
-        virtual FontBase* newFont(Rasterizer* data) override;
+        FontBase* newFont(Rasterizer* data) override;
 
-        virtual FontBase* newDefaultFont(int size, const Rasterizer::Settings& settings) override;
+        FontBase* newDefaultFont(int size, const Rasterizer::Settings& settings) override;
 
-        virtual bool setMode(int width, int height, int pixelWidth, int pixelHeight, bool backBufferStencil,
-                             bool backBufferDepth, int msaa) override;
+        bool setMode(int width, int height, int pixelWidth, int pixelHeight, bool backBufferStencil,
+                     bool backBufferDepth, int msaa) override;
 
-        virtual void setRenderTargetsInternal(const RenderTargets& targets, int pixelWidth, int pixelHeight,
-                                              bool hasSRGBTexture) override;
+        void setRenderTargetsInternal(const RenderTargets& targets, int pixelWidth, int pixelHeight,
+                                      bool hasSRGBTexture) override;
 
-        virtual bool isPixelFormatSupported(PixelFormat format, uint32_t usage) override;
+        bool isPixelFormatSupported(PixelFormat format, uint32_t usage) override;
 
         void draw(const DrawIndexedCommand& command) override;
 
@@ -59,9 +59,7 @@ namespace love
 
         void points(Vector2* positions, const Color* colors, int count);
 
-        bool isActive() const;
-
-        virtual void unsetMode() override;
+        void unsetMode() override;
 
         void setActiveScreen() override;
 
@@ -69,14 +67,13 @@ namespace love
 
         C3D_RenderTarget* getInternalBackbuffer() const;
 
-        virtual TextureBase* newTexture(const TextureBase::Settings& settings,
-                                        const TextureBase::Slices* data = nullptr) override;
+        TextureBase* newTexture(const TextureBase::Settings& settings,
+                                const TextureBase::Slices* data = nullptr) override;
 
-        virtual ShaderStageBase* newShaderStageInternal(ShaderStageType stage,
-                                                        const std::string& filepath) override;
+        ShaderStageBase* newShaderStageInternal(ShaderStageType stage, const std::string& filepath) override;
 
-        virtual ShaderBase* newShaderInternal(StrongRef<ShaderStageBase> stages[SHADERSTAGE_MAX_ENUM],
-                                              const ShaderBase::CompileOptions& options) override;
+        ShaderBase* newShaderInternal(StrongRef<ShaderStageBase> stages[SHADERSTAGE_MAX_ENUM],
+                                      const ShaderBase::CompileOptions& options) override;
 
         bool is3D() const;
 

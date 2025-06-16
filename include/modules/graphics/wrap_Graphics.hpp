@@ -147,7 +147,7 @@ namespace Wrap_Graphics
 
     int draw(lua_State* L);
 
-    int newMesh(lua_State* L);
+    // int newMesh(lua_State* L);
 
     int newTextBatch(lua_State* L);
 

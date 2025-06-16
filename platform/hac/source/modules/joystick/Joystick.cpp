@@ -120,6 +120,25 @@ namespace love
         return false;
     }
 
+    bool Joystick::isHeld(std::span<GamepadButton> buttons) const
+    {
+        if (!this->isConnected())
+            return false;
+
+        HidNpadButton result;
+
+        for (GamepadButton button : buttons)
+        {
+            if (!Joystick::getConstant(button, result))
+                continue;
+
+            if (padGetButtons(&this->state) & result)
+                return true;
+        }
+
+        return false;
+    }
+
     bool Joystick::isUp(std::span<GamepadButton> buttons) const
     {
         if (!this->isConnected())

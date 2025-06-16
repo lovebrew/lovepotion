@@ -162,6 +162,8 @@ namespace love
 
         virtual bool isDown(std::span<GamepadButton> buttons) const = 0;
 
+        virtual bool isHeld(std::span<GamepadButton> buttons) const = 0;
+
         virtual bool isUp(std::span<GamepadButton> buttons) const = 0;
 
         virtual bool isAxisChanged(GamepadAxis axis) const = 0;

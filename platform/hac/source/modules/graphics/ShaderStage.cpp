@@ -95,6 +95,9 @@ namespace love
             .setControl(controlMemory)
             .initialize(this->shader);
 
+        std::free(controlMemory);
+        std::fclose(file);
+
         return true;
     }
 

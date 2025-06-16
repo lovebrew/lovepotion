@@ -4,7 +4,7 @@ project(lovepotion LANGUAGES C CXX)
 add_executable(${PROJECT_NAME})
 dkp_target_generate_symbol_list(${PROJECT_NAME})
 
-target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_23)
 
 find_package(Git QUIET)
 if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
@@ -55,7 +55,7 @@ if(NINTENDO_3DS)
     add_subdirectory(platform/ctr)
 
     target_compile_definitions(${PROJECT_NAME} PRIVATE
-        __CONSOLE__="3DS" __OS__="Horizon"
+        __CONSOLE__="3ds" __OS__="horizon"
         __RENDERER_NAME__="citro3d" __RENDERER_VERSION__="1.7.0"
         __RENDERER_VENDOR__="devkitPro" __RENDERER_DEVICE__="DMP PICA200"
     )
@@ -90,7 +90,7 @@ if (NINTENDO_SWITCH)
     add_subdirectory(platform/hac)
 
     target_compile_definitions(${PROJECT_NAME} PRIVATE
-        __CONSOLE__="Switch" __OS__="Horizon"
+        __CONSOLE__="switch" __OS__="horizon"
         __RENDERER_NAME__="deko3d" __RENDERER_VERSION__="0.5.0"
         __RENDERER_VENDOR__="devkitPro" __RENDERER_DEVICE__="NVIDIA Tegra X1"
     )
@@ -143,7 +143,7 @@ if (NINTENDO_WIIU)
     add_subdirectory(platform/cafe)
 
     target_compile_definitions(${PROJECT_NAME} PRIVATE
-        __CONSOLE__="Wii U" __OS__="Cafe" LOVE_BIG_ENDIAN
+        __CONSOLE__="wiiu" __OS__="cafe" LOVE_BIG_ENDIAN
         __RENDERER_NAME__="GX2" __RENDERER_VERSION__="1.0.0"
         __RENDERER_VENDOR__="AMD" __RENDERER_DEVICE__="GPU7"
     )
@@ -446,9 +446,7 @@ source/modules/graphics/ShaderStage.cpp
 source/modules/graphics/DrawCommand.cpp
 source/modules/graphics/Graphics.cpp
 source/modules/graphics/FontBase.cpp
-source/modules/graphics/Mesh.cpp
 source/modules/graphics/Polyline.cpp
-source/modules/graphics/wrap_Mesh.cpp
 source/modules/graphics/TextBatch.cpp
 source/modules/graphics/renderstate.cpp
 source/modules/graphics/samplerstate.cpp

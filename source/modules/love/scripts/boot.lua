@@ -450,6 +450,8 @@ return function()
         result, main = xpcall(love.run, deferErrhand)
         if result then
             func = main
+        elseif inerror then -- Error in the error handler
+            print(("Error: %s"):format(tostring(main)))
         end
     end
 

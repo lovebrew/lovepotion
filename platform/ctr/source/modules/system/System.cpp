@@ -1,4 +1,5 @@
 #include "modules/system/System.hpp"
+#include <utf8.h>
 
 namespace love
 {
@@ -54,7 +55,7 @@ namespace love
         NetworkState state = NetworkState::NETWORK_UNKNOWN;
 
         signal = osGetWifiStrength();
-        state = (status > 0) ? NetworkState::NETWORK_CONNECTED : NetworkState::NETWORK_DISCONNECTED;
+        state  = (status > 0) ? NetworkState::NETWORK_CONNECTED : NetworkState::NETWORK_DISCONNECTED;
 
         return state;
     }
@@ -76,9 +77,7 @@ namespace love
     {
         FriendInfo info {};
 
-        char username[0x1C] = { 0 };
-
-        FriendKey key = {};
+        FriendKey key {};
         uint64_t code = 0;
 
         if (R_SUCCEEDED(FRD_GetMyFriendKey(&key)))
@@ -87,8 +86,10 @@ namespace love
                 info.friendCode = MAKE_FRIEND_CODE(code);
         }
 
-        if (R_SUCCEEDED(FRD_GetMyScreenName(username, 0x1C)))
-            info.username = username;
+        MiiScreenName name {};
+
+        if (R_SUCCEEDED(FRD_GetMyScreenName(&name)))
+            info.username = utf8::utf16to8(reinterpret_cast<const char16_t*>(name));
 
         return info;
     }
@@ -138,11 +139,12 @@ namespace love
         Handle playCoinsFile;
         const uint32_t path[3] = { MEDIATYPE_NAND, 0xF000000B, 0x00048000 };
 
-        const FS_Path archivePath = { PATH_BINARY, 0xC, path };
-        const FS_Path filePath    = fsMakePath(PATH_UTF16, u"/gamecoin.dat");
+        const FS_Path archivePath { PATH_BINARY, 0xC, path };
+        const FS_Path filePath = fsMakePath(PATH_UTF16, u"/gamecoin.dat");
 
-        Result res = FSUSER_OpenFileDirectly(&playCoinsFile, ARCHIVE_SHARED_EXTDATA, archivePath,
-                                             filePath, FS_OPEN_READ | FS_OPEN_WRITE, 0);
+        const auto mode = FS_OPEN_READ | FS_OPEN_WRITE;
+        Result res =
+            FSUSER_OpenFileDirectly(&playCoinsFile, ARCHIVE_SHARED_EXTDATA, archivePath, filePath, mode, 0);
 
         if (R_FAILED(res))
             throw love::Exception("Failed to open gamecoin.dat.");
@@ -153,8 +155,7 @@ namespace love
     void System::setPlayCoins(int amount)
     {
         if (amount < 0 || amount > 300)
-            throw love::Exception("Cannot set Play Coin count to %d! Must be within [0, 300].",
-                                  amount);
+            throw love::Exception("Cannot set Play Coin count to %d! Must be within [0, 300].", amount);
 
         Handle playCoinsFile = openPlayCoinsFile();
 

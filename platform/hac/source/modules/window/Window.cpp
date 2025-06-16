@@ -6,13 +6,15 @@ namespace love
 {
     Window::Window() : WindowBase("love.window.deko3d")
     {
-        this->setDisplaySleepEnabled(false);
+        d3d.initialize();
+        // this->setDisplaySleepEnabled(false);
     }
 
     Window::~Window()
     {
         this->close(false);
         this->graphics.set(nullptr);
+        d3d.deInitialize();
     }
 
     void Window::setGraphics(GraphicsBase* graphics)
@@ -41,7 +43,7 @@ namespace love
     bool Window::setWindow(int width, int height, WindowSettings* settings)
     {
         if (!this->graphics.get())
-            this->graphics.set(Module::getInstance<Graphics>(Module::M_GRAPHICS));
+            this->graphics.set(Module::getInstance<GraphicsBase>(Module::M_GRAPHICS));
 
         this->close();
 

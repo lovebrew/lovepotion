@@ -54,12 +54,12 @@ namespace love
                   HashFunction::Value& output);
 
         // clang-format off
-        STRINGMAP_DECLARE(encodeFormats, EncodeFormat,
+        STRINGMAP_DECLARE(EncodeFormats, EncodeFormat,
             { "base64", ENCODE_BASE64 },
             { "hex",    ENCODE_HEX    }
         );
 
-        STRINGMAP_DECLARE(containerTypes, ContainerType,
+        STRINGMAP_DECLARE(ContainerTypes, ContainerType,
             { "data",   CONTAINER_DATA   },
             { "string", CONTAINER_STRING }
         );

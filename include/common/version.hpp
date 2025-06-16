@@ -39,15 +39,11 @@ namespace love
         }
 
         template<typename T>
-        requires std::constructible_from<std::string_view, T> ||
-                 std::convertible_to<T, std::string_view>
+        requires std::constructible_from<std::string_view, T> || std::convertible_to<T, std::string_view>
         constexpr Version(T&& version) : Version(std::string_view(std::forward<T>(version)))
         {}
 
-        Version(uint8_t major, uint8_t minor, uint8_t micro) :
-            major(major),
-            minor(minor),
-            revision(micro)
+        Version(uint8_t major, uint8_t minor, uint8_t micro) : major(major), minor(minor), revision(micro)
         {}
 
         constexpr std::strong_ordering operator<=>(const Version&) const noexcept = default;
@@ -77,6 +73,6 @@ namespace love
     static constexpr Version LOVE_POTION(__APP_VERSION__);
     static constexpr Version LOVE_FRAMEWORK(__LOVE_VERSION__);
 
-    static constexpr const char* CODENAME                     = "";
+    static constexpr const char* CODENAME                     = "Bestest Friend";
     static constexpr std::array<const char*, 1> COMPATIBILITY = { __LOVE_VERSION__ };
 } // namespace love

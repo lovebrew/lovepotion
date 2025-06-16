@@ -53,7 +53,6 @@ source/modules/joystick/Joystick.cpp
 source/modules/joystick/JoystickModule.cpp
 source/modules/keyboard/Keyboard.cpp
 source/modules/system/System.cpp
-source/modules/system/wrap_System.cpp
 source/modules/timer/Timer.cpp
 source/modules/window/Window.cpp
 )

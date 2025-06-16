@@ -358,12 +358,6 @@ namespace love
             c3d.setScissor(state.scissorRect);
     }
 
-    bool Graphics::isActive() const
-    {
-        auto* window = Module::getInstance<Window>(M_WINDOW);
-        return this->active && this->created && window != nullptr && window->isOpen();
-    }
-
     void Graphics::setViewport(int x, int y, int width, int height)
     {
         c3d.setViewport(width, height, true);

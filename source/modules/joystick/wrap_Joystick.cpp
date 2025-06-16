@@ -167,7 +167,7 @@ int Wrap_Joystick::isDown(lua_State* L)
         }
     }
 
-    luax_pushboolean(L, self->isDown(buttons));
+    luax_pushboolean(L, self->isHeld(buttons));
 
     return 1;
 }
@@ -268,7 +268,7 @@ int Wrap_Joystick::isGamepadDown(lua_State* L)
         }
     }
 
-    luax_pushboolean(L, self->isDown(buttons));
+    luax_pushboolean(L, self->isHeld(buttons));
 
     return 1;
 }

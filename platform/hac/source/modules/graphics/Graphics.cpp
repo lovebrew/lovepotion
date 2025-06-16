@@ -33,6 +33,9 @@ namespace love
         }
     }
 
+    Graphics::~Graphics()
+    {}
+
     void Graphics::initCapabilities()
     {
         // clang-format off
@@ -82,41 +85,6 @@ namespace love
     {
         d3d.ensureInFrame();
     }
-
-    // void Graphics::backbufferChanged(int width, int height, int pixelWidth, int pixelHeight, bool stencil,
-    //                                  bool depth, int msaa)
-    // {
-    //     bool changed = width != this->width || height != this->height || pixelWidth != this->pixelWidth ||
-    //                    pixelHeight != this->pixelHeight;
-
-    //     changed |= stencil != this->backBufferHasStencil || depth != this->backBufferHasDepth;
-    //     changed |= msaa != this->requestedBackbufferMSAA;
-
-    //     this->width  = width;
-    //     this->height = height;
-
-    //     this->pixelWidth  = pixelWidth;
-    //     this->pixelHeight = pixelHeight;
-
-    //     this->backBufferHasStencil    = stencil;
-    //     this->backBufferHasDepth      = depth;
-    //     this->requestedBackbufferMSAA = msaa;
-
-    //     if (!this->isRenderTargetActive())
-    //     {
-    //         d3d.setViewport({ 0, 0, pixelWidth, pixelHeight });
-
-    //         if (this->states.back().scissor)
-    //             this->setScissor(this->states.back().scissorRect);
-
-    //         this->resetProjection();
-    //     }
-
-    //     if (!changed)
-    //         return;
-
-    //     d3d.onModeChanged();
-    // }
 
     void Graphics::clear(OptionalColor color, OptionalInt stencil, OptionalDouble depth)
     {
@@ -201,6 +169,9 @@ namespace love
         if (this->isRenderTargetActive())
             throw love::Exception("present cannot be called while a render target is active.");
 
+        this->flushBatchedDraws();
+        this->advanceStreamBuffers();
+
         d3d.present();
 
         this->drawCalls        = 0;
@@ -255,7 +226,7 @@ namespace love
         state.winding = winding;
 
         if (this->isRenderTargetActive())
-            winding = (winding == WINDING_CW) ? WINDING_CCW : WINDING_CW; // ???
+            winding = (winding == WINDING_CW) ? WINDING_CCW : WINDING_CW;
 
         d3d.setVertexWinding(winding);
     }
@@ -350,8 +321,6 @@ namespace love
     bool Graphics::setMode(int width, int height, int pixelWidth, int pixelHeight, bool backBufferStencil,
                            bool backBufferDepth, int msaa)
     {
-        d3d.initialize();
-
         this->created = true;
         this->initCapabilities();
 
@@ -407,16 +376,8 @@ namespace love
             return;
 
         this->flushBatchedDraws();
-
         Volatile::unloadAll();
-        d3d.deInitialize();
         this->created = false;
-    }
-
-    bool Graphics::isActive() const
-    {
-        auto* window = Module::getInstance<Window>(M_WINDOW);
-        return this->active && this->created && window != nullptr && window->isOpen();
     }
 
     void Graphics::draw(const DrawIndexedCommand& command)
@@ -426,8 +387,9 @@ namespace love
         d3d.bindTextureToUnit(command.texture, 0);
         d3d.setCullMode(command.cullMode);
 
-        DkPrimitive primitive;
-        deko3d::getConstant(command.primitiveType, primitive);
+        DkPrimitive primitive = DkPrimitive(-1);
+        if (!deko3d::getConstant(command.primitiveType, primitive))
+            throw love::Exception("Invalid primitive type {:d}.", (int)command.primitiveType);
 
         const auto indexCount    = command.indexCount;
         const auto offset        = command.indexBufferOffset;
@@ -444,8 +406,9 @@ namespace love
         d3d.bindTextureToUnit(command.texture, 0);
         d3d.setCullMode(command.cullMode);
 
-        DkPrimitive primitive;
-        deko3d::getConstant(command.primitiveType, primitive);
+        DkPrimitive primitive = DkPrimitive(-1);
+        if (!deko3d::getConstant(command.primitiveType, primitive))
+            throw love::Exception("Invalid primitive type {:d}.", (int)command.primitiveType);
 
         d3d.draw(primitive, command.vertexCount, command.vertexStart);
         ++drawCalls;

@@ -56,33 +56,26 @@ namespace love
 
         // clang-format off
         STRINGMAP_DECLARE(SystemModels, BSPHardwareVersion,
-            { "Hollywood English Sample 1",   BSP_HARDWARE_VERSION_HOLLYWOOD_ENG_SAMPLE_1     } ,
-            { "Hollywood English Sample 2",   BSP_HARDWARE_VERSION_HOLLYWOOD_ENG_SAMPLE_2     } ,
-            { "Hollywood Production For Wii", BSP_HARDWARE_VERSION_HOLLYWOOD_PROD_FOR_WII     } ,
-            { "Hollywood Cortado",            BSP_HARDWARE_VERSION_HOLLYWOOD_CORTADO          } ,
-            { "Hollywood Cortado Espresso",   BSP_HARDWARE_VERSION_HOLLYWOOD_CORTADO_ESPRESSO } ,
-            { "Bollywood",                    BSP_HARDWARE_VERSION_BOLLYWOOD                  } ,
-            { "Bollywood Production For Wii", BSP_HARDWARE_VERSION_BOLLYWOOD_PROD_FOR_WII     } ,
-            { "Latte A11 Ev",                 BSP_HARDWARE_VERSION_LATTE_A11_EV               } ,
-            { "Latte A11 Cat",                BSP_HARDWARE_VERSION_LATTE_A11_CAT              } ,
-            { "Latte A12 Ev",                 BSP_HARDWARE_VERSION_LATTE_A12_EV               } ,
-            { "Latte A12 Cat",                BSP_HARDWARE_VERSION_LATTE_A12_CAT              } ,
-            { "Latte A2x Ev",                 BSP_HARDWARE_VERSION_LATTE_A2X_EV               } ,
-            { "Latte A2x Cat",                BSP_HARDWARE_VERSION_LATTE_A2X_CAT              } ,
-            { "Latte A3x Ev",                 BSP_HARDWARE_VERSION_LATTE_A3X_EV               } ,
-            { "Latte A3x Cat",                BSP_HARDWARE_VERSION_LATTE_A3X_CAT              } ,
-            { "Latte A3x Cafe",               BSP_HARDWARE_VERSION_LATTE_A3X_CAFE             } ,
-            { "Latte A4x Ev",                 BSP_HARDWARE_VERSION_LATTE_A4X_EV               } ,
-            { "Latte A4x Cat",                BSP_HARDWARE_VERSION_LATTE_A4X_CAT              } ,
-            { "Latte A4x Cafe",               BSP_HARDWARE_VERSION_LATTE_A4X_CAFE             } ,
-            { "Latte A5x Ev",                 BSP_HARDWARE_VERSION_LATTE_A5X_EV               } ,
-            { "Latte A5x Ev Y",               BSP_HARDWARE_VERSION_LATTE_A5X_EV_Y             } ,
-            { "Latte A5x Cat",                BSP_HARDWARE_VERSION_LATTE_A5X_CAT              } ,
-            { "Latte A5x Cafe",               BSP_HARDWARE_VERSION_LATTE_A5X_CAFE             } ,
-            { "Latte B1x Ev",                 BSP_HARDWARE_VERSION_LATTE_B1X_EV               } ,
-            { "Latte B1x Ev Y",               BSP_HARDWARE_VERSION_LATTE_B1X_EV_Y             } ,
-            { "Latte B1x Cat",                BSP_HARDWARE_VERSION_LATTE_B1X_CAT              } ,
-            { "Latte B1x Cafe",               BSP_HARDWARE_VERSION_LATTE_B1X_CAFE             }
+            { "lattea11ev",   BSP_HARDWARE_VERSION_LATTE_A11_EV   } ,
+            { "lattea11cat",  BSP_HARDWARE_VERSION_LATTE_A11_CAT  } ,
+            { "lattea12ev",   BSP_HARDWARE_VERSION_LATTE_A12_EV   } ,
+            { "lattea12cat",  BSP_HARDWARE_VERSION_LATTE_A12_CAT  } ,
+            { "lattea2xev",   BSP_HARDWARE_VERSION_LATTE_A2X_EV   } ,
+            { "lattea2xcat",  BSP_HARDWARE_VERSION_LATTE_A2X_CAT  } ,
+            { "lattea3xev",   BSP_HARDWARE_VERSION_LATTE_A3X_EV   } ,
+            { "lattea3xcat",  BSP_HARDWARE_VERSION_LATTE_A3X_CAT  } ,
+            { "lattea3xcafe", BSP_HARDWARE_VERSION_LATTE_A3X_CAFE } ,
+            { "lattea4xev",   BSP_HARDWARE_VERSION_LATTE_A4X_EV   } ,
+            { "lattea4xcat",  BSP_HARDWARE_VERSION_LATTE_A4X_CAT  } ,
+            { "lattea4xcafe", BSP_HARDWARE_VERSION_LATTE_A4X_CAFE } ,
+            { "lattea5xev",   BSP_HARDWARE_VERSION_LATTE_A5X_EV   } ,
+            { "lattea5xevy",  BSP_HARDWARE_VERSION_LATTE_A5X_EV_Y } ,
+            { "lattea5xcat",  BSP_HARDWARE_VERSION_LATTE_A5X_CAT  } ,
+            { "lattea5xcafe", BSP_HARDWARE_VERSION_LATTE_A5X_CAFE } ,
+            { "latteb1xev",   BSP_HARDWARE_VERSION_LATTE_B1X_EV   } ,
+            { "latteb1xevy",  BSP_HARDWARE_VERSION_LATTE_B1X_EV_Y } ,
+            { "latteb1xcat",  BSP_HARDWARE_VERSION_LATTE_B1X_CAT  } ,
+            { "latteb1xcafe", BSP_HARDWARE_VERSION_LATTE_B1X_CAFE }
         );
 
         STRINGMAP_DECLARE(SystemLanguages, USCLanguage,
@@ -101,12 +94,12 @@ namespace love
         );
 
         STRINGMAP_DECLARE(SystemRegions, MCPRegion,
-            { "JP", MCP_REGION_JAPAN  },
-            { "US", MCP_REGION_USA    },
-            { "EU", MCP_REGION_EUROPE },
-            { "CN", MCP_REGION_CHINA  },
-            { "KR", MCP_REGION_KOREA  },
-            { "TW", MCP_REGION_TAIWAN }
+            { "jp", MCP_REGION_JAPAN  },
+            { "us", MCP_REGION_USA    },
+            { "eu", MCP_REGION_EUROPE },
+            { "cn", MCP_REGION_CHINA  },
+            { "kr", MCP_REGION_KOREA  },
+            { "tw", MCP_REGION_TAIWAN }
         );
         // clang-format on
 

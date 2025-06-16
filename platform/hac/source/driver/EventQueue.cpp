@@ -2,12 +2,15 @@
 
 #include "driver/EventQueue.hpp"
 
+#include "modules/graphics/Graphics.hpp"
 #include "modules/joystick/JoystickModule.hpp"
-
-#define JOYSTICK_MODULE() love::Module::getInstance<love::JoystickModule>(love::Module::M_JOYSTICK)
 
 namespace love
 {
+
+#define JOYSTICK_MODULE() Module::getInstance<JoystickModule>(Module::M_JOYSTICK)
+#define GRAPHICS_MODULE() Module::getInstance<GraphicsBase>(Module::M_GRAPHICS)
+
     EventQueue::EventQueue() :
         EventQueueBase<EventQueue>(),
         padStyleUpdates {},
