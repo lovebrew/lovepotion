@@ -24,7 +24,7 @@ namespace love
 
         bool setWindow(int width = 800, int height = 600, WindowSettings* settings = nullptr);
 
-        void updateSettingsImpl(const WindowSettings& settings, bool updateGraphicsViewport);
+        void updateSettings(const WindowSettings& settings, bool updateGraphicsViewport) override;
 
         bool onSizeChanged(int width, int height);
 

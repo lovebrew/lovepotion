@@ -22,6 +22,8 @@ namespace love
             this->graphics.set(graphics);
         }
 
+        void updateSettings(const WindowSettings& settings, bool updateGraphicsViewport) override;
+
         bool setWindow(int width = 800, int height = 600, WindowSettings* settings = nullptr);
 
         bool onSizeChanged(int width, int height);

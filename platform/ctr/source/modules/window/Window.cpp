@@ -51,8 +51,10 @@ namespace love
         return true;
     }
 
-    void Window::updateSettingsImpl(const WindowSettings& settings, bool updateGraphicsViewport)
+    void Window::updateSettings(const WindowSettings& settings, bool updateGraphicsViewport)
     {
+        WindowBase::updateSettings(settings, updateGraphicsViewport);
+
         if (updateGraphicsViewport && this->graphics.get())
         {
             double scaledw, scaledh;

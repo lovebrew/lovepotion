@@ -9,8 +9,7 @@ namespace love
     template<typename T>
     concept NNResult = requires(T t)
     {
-        { t.value } -> std::same_as<int32_t&>;
-        { t.value } -> std::same_as<const int32_t&>;
+        { t.value } -> std::convertible_to<int32_t>;
     };
     // clang-format on
 

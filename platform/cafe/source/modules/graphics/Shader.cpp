@@ -1,4 +1,5 @@
 #include "common/Exception.hpp"
+#include "common/config.hpp"
 #include "common/screen.hpp"
 
 #include "modules/graphics/Shader.hpp"
