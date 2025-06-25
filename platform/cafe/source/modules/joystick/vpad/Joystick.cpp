@@ -1,3 +1,5 @@
+#include <cstring>
+
 #include "modules/joystick/vpad/Joystick.hpp"
 
 namespace love
@@ -19,6 +21,7 @@ namespace love
 
         void Joystick::update()
         {
+            std::memset(&this->state, 0, sizeof(this->state));
             VPADRead(VPAD_CHAN_0, &this->status, 1, &this->error);
 
             const auto& status = this->status;

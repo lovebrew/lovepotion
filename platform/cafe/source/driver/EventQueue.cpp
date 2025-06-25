@@ -102,15 +102,15 @@ namespace love
 
             if (status.tpNormal.touched)
             {
-                // clang-format off
-                VPADGetTPCalibratedPointEx(VPAD_CHAN_0, VPAD_TP_854X480, &status.tpNormal, &status.tpNormal);
-                // clang-format on
 
-                float x = status.tpNormal.x, y = status.tpNormal.y;
+                VPADTouchData data {};
+                VPADGetTPCalibratedPointEx(VPAD_CHAN_0, VPAD_TP_854X480, &data, &status.tpNormal);
+
+                float x = data.x, y = data.y;
                 float dx = 0, dy = 0;
 
-                dx = (status.tpNormal.x - this->previousTouch.x);
-                dy = (status.tpNormal.y - this->previousTouch.y);
+                dx = (data.x - this->previousTouch.x);
+                dy = (data.y - this->previousTouch.y);
 
                 if (dx == 0 && dy == 0)
                     touchType = SUBTYPE_TOUCHPRESS;
