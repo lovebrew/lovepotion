@@ -278,8 +278,8 @@ namespace love
 
         if (Shader::current != nullptr)
         {
-            const auto& transform = graphics->getTransform();
-            // this->transform.modelView = updateTransform(transform);
+            const auto& transform     = graphics->getTransform();
+            this->transform.modelView = updateTransform(transform);
 
             const auto address = this->uniform.getGpuAddr();
             const auto size    = this->uniform.getSize();

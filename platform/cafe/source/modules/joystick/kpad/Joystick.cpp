@@ -1,5 +1,6 @@
-#include "common/screen.hpp"
+#include <cstring>
 
+#include "common/screen.hpp"
 #include "modules/joystick/kpad/Joystick.hpp"
 
 namespace love
@@ -21,6 +22,7 @@ namespace love
 
         void Joystick::update()
         {
+            std::memset(&this->state, 0, sizeof(this->state));
             KPADReadEx(WPAD_CHAN_0, &this->status, 1, &this->error);
 
             if (this->error != KPAD_ERROR_NO_SAMPLES)
