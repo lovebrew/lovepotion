@@ -211,8 +211,8 @@ namespace love
         {
             quad->setTextureCoordinate(0, getVertex(0.0f, 0.0f, virtualSize, realSize));
             quad->setTextureCoordinate(1, getVertex(0.0f, virtualSize.y, virtualSize, realSize));
-            quad->setTextureCoordinate(2, getVertex(virtualSize.x, virtualSize.y, virtualSize, realSize));
-            quad->setTextureCoordinate(3, getVertex(virtualSize.x, 0.0f, virtualSize, realSize));
+            quad->setTextureCoordinate(2, getVertex(virtualSize.x, 0.0f, virtualSize, realSize));
+            quad->setTextureCoordinate(3, getVertex(virtualSize.x, virtualSize.y, virtualSize, realSize));
 
             return;
         }
