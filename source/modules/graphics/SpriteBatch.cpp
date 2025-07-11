@@ -223,6 +223,15 @@ namespace love
         auto data = graphics->requestBatchedDraw(command);
 
         Vertex* stream = (Vertex*)data.stream;
-        std::copy_n(this->buffer.data() + start, command.vertexCount, stream);
+
+        auto& m_transform = graphics->getTransform();
+        m_transform.transformXY(stream, this->buffer.data() + start, command.vertexCount);
+
+        for (int index = 0; index < command.vertexCount; index++)
+        {
+            stream[index].s     = this->buffer[start * 4 + index].s;
+            stream[index].t     = this->buffer[start * 4 + index].t;
+            stream[index].color = this->buffer[start * 4 + index].color;
+        }
     }
 } // namespace love
