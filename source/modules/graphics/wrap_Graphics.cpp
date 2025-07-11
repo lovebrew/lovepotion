@@ -1032,6 +1032,43 @@ int Wrap_Graphics::newImage(lua_State* L)
     return newTexture(L);
 }
 
+int Wrap_Graphics::newCanvas(lua_State* L)
+{
+    luax_checkgraphicscreated(L);
+
+    TextureBase::Settings settings {};
+    OptionalBool forceRenderTarget(true);
+    bool setDPIScale = false;
+
+    if (lua_istable(L, 1))
+        luax_checktexturesettings(L, 1, false, true, true, forceRenderTarget, settings, setDPIScale);
+    else
+    {
+        settings.width  = luaL_optinteger(L, 1, instance()->getWidth());
+        settings.height = luaL_optinteger(L, 2, instance()->getHeight());
+
+        int start = 3;
+        if (lua_isnumber(L, 3))
+        {
+            settings.layers = luaL_checkinteger(L, 3);
+            settings.type   = TEXTURE_2D_ARRAY;
+            start           = 4;
+        }
+
+        luax_checktexturesettings(L, start, true, true, false, forceRenderTarget, settings, setDPIScale);
+    }
+
+    if (!setDPIScale)
+        settings.dpiScale = instance()->getScreenDPIScale();
+
+    TextureBase* texture = nullptr;
+    luax_catchexcept(L, [&]() { texture = instance()->newTexture(settings); });
+
+    luax_pushtype(L, texture);
+    texture->release();
+    return 1;
+}
+
 int Wrap_Graphics::newArrayTexture(lua_State* L)
 {
     luax_checkgraphicscreated(L);
@@ -1361,14 +1398,26 @@ int Wrap_Graphics::getStats(lua_State* L)
     lua_pushinteger(L, stats.drawCallsBatched);
     lua_setfield(L, -2, "drawcallsbatched");
 
+    lua_pushinteger(L, stats.renderTargetSwitches);
+    lua_setfield(L, -2, "canvasswitches");
+
     lua_pushinteger(L, stats.shaderSwitches);
     lua_setfield(L, -2, "shaderswitches");
 
     lua_pushinteger(L, stats.textures);
     lua_setfield(L, -2, "textures");
 
+    lua_pushinteger(L, stats.fonts);
+    lua_setfield(L, -2, "fonts");
+
+    lua_pushinteger(L, stats.buffers);
+    lua_setfield(L, -2, "buffers");
+
     lua_pushnumber(L, (lua_Number)stats.textureMemory);
     lua_setfield(L, -2, "texturememory");
+
+    lua_pushnumber(L, (lua_Number)stats.bufferMemory);
+    lua_setfield(L, -2, "buffermemory");
 
     lua_pushnumber(L, (lua_Number)stats.cpuProcessingTime);
     lua_setfield(L, -2, "cpuprocessingtime");
@@ -1949,6 +1998,7 @@ static constexpr luaL_Reg functions[] =
     { "points",                 Wrap_Graphics::points                },
     { "line",                   Wrap_Graphics::line                  },
 
+    { "newCanvas",              Wrap_Graphics::newCanvas             },
     { "newTexture",             Wrap_Graphics::newTexture            },
     { "newQuad",                Wrap_Graphics::newQuad               },
     { "newImage",               Wrap_Graphics::newImage              },

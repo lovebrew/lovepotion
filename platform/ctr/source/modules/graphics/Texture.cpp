@@ -8,7 +8,7 @@
 
 namespace love
 {
-    static void createFramebufferObject(C3D_RenderTarget*& target, C3D_Tex* texture, uint16_t width,
+    static void createFramebufferObject(C3D_RenderTarget*& target, C3D_Tex*& texture, uint16_t width,
                                         uint16_t height, bool clear)
     {
         texture = new C3D_Tex();
@@ -16,16 +16,14 @@ namespace love
         if (!C3D_TexInitVRAM(texture, width, height, GPU_RGBA8))
             throw love::Exception("Failed to create framebuffer texture!");
 
-        auto* previousFramebuffer = c3d.getFramebuffer();
-
         target = C3D_RenderTargetCreateFromTex(texture, GPU_TEXFACE_2D, 0, GPU_RB_DEPTH16);
 
+        if (!target)
+            throw love::Exception("Failed to create framebuffer object!");
+
         c3d.bindFramebuffer(target);
-
         if (clear)
-            c3d.clear({ 0, 0, 0, 0 });
-
-        c3d.bindFramebuffer(previousFramebuffer);
+            c3d.clear(Color::CLEAR);
     }
 
     static void createTextureObject(C3D_Tex*& texture, PixelFormat format, uint16_t width, uint16_t height)

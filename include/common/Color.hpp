@@ -15,6 +15,7 @@ namespace love
       public:
         static constexpr float WHITE[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
         static constexpr float BLACK[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+        static constexpr float CLEAR[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
         Color() : r(0), g(0), b(0), a(0)
         {}

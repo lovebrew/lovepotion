@@ -1,5 +1,7 @@
-#include "modules/graphics/wrap_Texture.hpp"
+#include "common/Console.hpp"
+
 #include "modules/graphics/Graphics.hpp"
+#include "modules/graphics/wrap_Texture.hpp"
 
 using namespace love;
 
@@ -414,15 +416,94 @@ int Wrap_Texture::generateMipmaps(lua_State* L)
     return 0;
 }
 
-// TODO: Implement this
 int Wrap_Texture::replacePixels(lua_State* L)
 {
+    auto* self                          = luax_checktexture(L, 1);
+    ImageData* data                     = nullptr;
+    CompressedImageData* compressedData = nullptr;
+
+    if (luax_istype(L, 2, CompressedImageData::type))
+        compressedData = luax_checktype<CompressedImageData>(L, 2);
+    else
+        data = luax_checktype<ImageData>(L, 2);
+
+    int slice          = 0;
+    int dstMip         = 0;
+    int x              = 0;
+    int y              = 0;
+    bool reloadMipmaps = self->getMipmapsMode() == TextureBase::MIPMAPS_AUTO;
+
+    if (self->getTextureType() != TEXTURE_2D)
+        slice = luaL_checkinteger(L, 3) - 1;
+
+    dstMip = luaL_optinteger(L, 4, 1) - 1;
+
+    if (!lua_isnoneornil(L, 5))
+    {
+        x = luaL_checkinteger(L, 5);
+        y = luaL_checkinteger(L, 6);
+
+        if (reloadMipmaps)
+            reloadMipmaps = luax_optboolean(L, 7, reloadMipmaps);
+    }
+
+    if (compressedData != nullptr)
+    {
+        int srcMip = 0;
+        if (compressedData->getMipmapCount() > 1)
+            srcMip = luaL_checkinteger(L, 8) - 1;
+
+        if (srcMip < 0 || srcMip > compressedData->getMipmapCount())
+            return luaL_error(L, "Invalid source mipmap level.");
+
+        luax_catchexcept(L, [&]() {
+            self->replacePixels(compressedData->getSlice(0, srcMip), slice, dstMip, x, y, reloadMipmaps);
+        });
+    }
+    else
+        luax_catchexcept(L, [&]() { self->replacePixels(data, slice, dstMip, x, y, reloadMipmaps); });
+
     return 0;
 }
 
 // TODO: Implement this
 int Wrap_Texture::renderTo(lua_State* L)
 {
+    GraphicsBase::RenderTarget target(luax_checktexture(L, 1));
+    int args  = lua_gettop(L);
+    int start = 2;
+
+    if (target.texture->getTextureType() != TEXTURE_2D)
+    {
+        target.slice = luaL_checkinteger(L, 2) - 1;
+        start++;
+    }
+
+    luaL_checktype(L, start, LUA_TFUNCTION);
+    auto graphics = Module::getInstance<Graphics>(Module::M_GRAPHICS);
+
+    if (graphics)
+    {
+        GraphicsBase::RenderTargets old = graphics->getRenderTargets();
+        for (auto color : old.colors)
+            color.texture->retain();
+
+        if (old.depthStencil.texture != nullptr)
+            old.depthStencil.texture->retain();
+
+        // clang-format off
+        luax_catchexcept(L,
+        [&]() { graphics->setRenderTarget(target, 0); },
+        [&](bool error) {
+            if (error)
+            {
+                for (auto color : old.colors)
+                    color.texture->release();
+            }
+        });
+        // clang-format on
+    }
+
     return 0;
 }
 

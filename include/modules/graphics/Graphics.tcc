@@ -686,6 +686,16 @@ namespace love
         virtual void setRenderTargetsInternal(const RenderTargets& targets, int pixelWidth, int pixelHeight,
                                               bool hasSRGBTexture) = 0;
 
+        RenderTargets getRenderTargets() const;
+
+        void setRenderTarget(RenderTarget target, uint32_t flags);
+
+        void setRenderTargets(const RenderTargetsStrongRef& targets);
+
+        void setRenderTargets(const RenderTargets& targets);
+
+        void setRenderTarget();
+
         virtual bool isPixelFormatSupported(PixelFormat format, uint32_t usage) = 0;
 
         double getCurrentDPIScale() const;
@@ -786,6 +796,7 @@ namespace love
 
         int drawCallsBatched;
         int drawCalls;
+        int renderTargetSwitchCount;
 
         BatchedDrawState batchedDrawState;
         std::vector<uint8_t> scratchBuffer;

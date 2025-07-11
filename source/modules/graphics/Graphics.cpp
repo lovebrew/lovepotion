@@ -116,7 +116,7 @@ namespace love
 
         this->setFont(state.font.get());
         this->setShader(state.shader.get());
-        // this->setRenderTargets(state.renderTargets);
+        this->setRenderTargets(state.renderTargets);
 
         // this->setStencilState(state.stencil);
         // this->setDepthMode(state.depthTest, state.depthWrite);
@@ -184,6 +184,173 @@ namespace love
             this->resetProjection();
     }
 
+    void GraphicsBase::setRenderTarget()
+    {
+        DisplayState& state = this->states.back();
+
+        if (state.renderTargets.colors.empty() && state.renderTargets.depthStencil.texture == nullptr)
+            return;
+
+        const RenderTargetsStrongRef previous = state.renderTargets;
+        flushBatchedDraws();
+
+        bool gammaCorrect = isGammaCorrect();
+        this->setRenderTargetsInternal(RenderTargets(), this->pixelWidth, this->pixelHeight, gammaCorrect);
+
+        state.renderTargets = RenderTargetsStrongRef();
+        this->renderTargetSwitchCount++;
+
+        for (const auto& target : previous.colors)
+        {
+            if (target.texture && target.texture->getMipmapsMode() == TextureBase::MIPMAPS_AUTO &&
+                target.mipmap == 0)
+            {
+                target.texture->generateMipmaps();
+            }
+        }
+    }
+
+    void GraphicsBase::setRenderTarget(RenderTarget target, uint32_t flags)
+    {
+        if (target.texture == nullptr)
+            return this->setRenderTarget();
+
+        RenderTargets targets {};
+        targets.colors.push_back(target);
+        targets.temporaryFlags = flags;
+
+        this->setRenderTargets(targets);
+    }
+
+    void GraphicsBase::setRenderTargets(const RenderTargets& targets)
+    {
+        DisplayState& state = this->states.back();
+        int count           = (int)targets.colors.size();
+
+        RenderTarget firstTarget = targets.getFirstTarget();
+        auto* firstTexture       = firstTarget.texture;
+
+        if (firstTexture == nullptr)
+            return this->setRenderTarget();
+
+        const auto& previousRef = state.renderTargets;
+        if (count == (int)previousRef.colors.size())
+        {
+            bool modified = false;
+            for (int index = 0; index < count; index++)
+            {
+                if (targets.colors[index] != previousRef.colors[index])
+                {
+                    modified = true;
+                    break;
+                }
+            }
+
+            if (!modified && targets.depthStencil != previousRef.depthStencil)
+                modified = true;
+
+            if (targets.temporaryFlags != previousRef.temporaryFlags)
+                modified = true;
+
+            if (!modified)
+                return;
+        }
+
+        const RenderTargetsStrongRef previous = previousRef;
+        if (count > capabilities.limits[LIMIT_RENDER_TARGETS])
+            throw love::Exception("This system can't simultaneously render to {:d} textures", count);
+
+        bool hasSRGBTexture = false;
+
+        int pixelWidth  = firstTexture->getPixelWidth(firstTarget.mipmap);
+        int pixelHeight = firstTexture->getPixelHeight(firstTarget.mipmap);
+        int reqMSAA     = firstTexture->getRequestedMSAA();
+
+        for (int index = 0; index < count; index++)
+        {
+            auto* color        = targets.colors[index].texture;
+            PixelFormat format = color->getPixelFormat();
+            int mipmap         = targets.colors[index].mipmap;
+            int slice          = targets.colors[index].slice;
+
+            if (!color->isRenderTarget())
+                throw love::Exception("Texture must be created as a canvas to be used in setCanvas.");
+
+            if (mipmap < 0 || mipmap >= color->getMipmapCount())
+                throw love::Exception("Invalid mipmap level: {:d}.", mipmap + 1);
+
+            if (!color->isValidSlice(slice, mipmap))
+                throw love::Exception("Invalid slice index: {:d}.", slice + 1);
+
+            if (color->getPixelWidth(mipmap) != pixelWidth || color->getPixelHeight(mipmap) != pixelHeight)
+                throw love::Exception("All textures must have the same pixel dimensions.");
+
+            if (color->getRequestedMSAA() != reqMSAA)
+                throw love::Exception("All textures must have the same MSAA value.");
+
+            if (isPixelFormatDepthStencil(format))
+            {
+                throw love::Exception("Depth/Stencil format textures must be used with the 'depthstencil' "
+                                      "field of the table passed into setCanvas.");
+            }
+
+            if (isPixelFormatSRGB(format))
+                hasSRGBTexture = true;
+        }
+
+        if (targets.depthStencil.texture != nullptr)
+            return;
+
+        flushBatchedDraws();
+
+        if (targets.depthStencil.texture == nullptr && targets.temporaryFlags != 0)
+            return;
+        else
+            this->setRenderTargetsInternal(targets, pixelWidth, pixelHeight, hasSRGBTexture);
+
+        RenderTargetsStrongRef references {};
+        references.colors.reserve(targets.colors.size());
+
+        for (auto color : targets.colors)
+            references.colors.emplace_back(color.texture, color.slice, color.mipmap);
+
+        references.depthStencil =
+            RenderTargetStrongRef(targets.depthStencil.texture, targets.depthStencil.slice);
+        references.temporaryFlags = targets.temporaryFlags;
+
+        std::swap(state.renderTargets, references);
+        renderTargetSwitchCount++;
+
+        for (const auto& target : previous.colors)
+        {
+            if (target.texture && target.texture->getMipmapsMode() == TextureBase::MIPMAPS_AUTO &&
+                target.mipmap != 0)
+            {
+                target.texture->generateMipmaps();
+            }
+        }
+
+        if (targets.depthStencil.texture == nullptr && targets.temporaryFlags != 0)
+            return;
+    }
+
+    GraphicsBase::RenderTargets GraphicsBase::getRenderTargets() const
+    {
+        const auto& current = this->states.back().renderTargets;
+
+        RenderTargets targets {};
+        targets.colors.reserve(current.colors.size());
+
+        for (const auto& target : current.colors)
+            targets.colors.emplace_back(target.texture.get(), target.slice, target.mipmap);
+
+        targets.depthStencil = RenderTarget(current.depthStencil.texture, current.depthStencil.slice,
+                                            current.depthStencil.mipmap);
+
+        targets.temporaryFlags = current.temporaryFlags;
+        return targets;
+    }
+
     void GraphicsBase::setScissor(const Rect& scissor)
     {
         this->flushBatchedDraws();
@@ -231,12 +398,16 @@ namespace love
         if (this->batchedDrawState.vertexCount > 0)
             stats.drawCalls++;
 
-        stats.drawCallsBatched  = this->drawCallsBatched;
-        stats.textures          = TextureBase::textureCount;
-        stats.textureMemory     = TextureBase::totalGraphicsMemory;
-        stats.shaderSwitches    = ShaderBase::shaderSwitches;
-        stats.cpuProcessingTime = GraphicsBase::cpuProcessingTime;
-        stats.gpuDrawingTime    = GraphicsBase::gpuDrawingTime;
+        stats.renderTargetSwitches = this->renderTargetSwitchCount;
+        stats.drawCallsBatched     = this->drawCallsBatched;
+        stats.textures             = TextureBase::textureCount;
+        stats.textureMemory        = TextureBase::totalGraphicsMemory;
+        stats.fonts                = FontBase::fontCount;
+        stats.buffers              = 0;
+        stats.bufferMemory         = 0;
+        stats.shaderSwitches       = ShaderBase::shaderSwitches;
+        stats.cpuProcessingTime    = GraphicsBase::cpuProcessingTime;
+        stats.gpuDrawingTime       = GraphicsBase::gpuDrawingTime;
 
         return stats;
     }
