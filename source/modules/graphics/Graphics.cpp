@@ -167,6 +167,34 @@ namespace love
         this->setFont(state.font.get());
         this->setShader(state.shader.get());
 
+        const auto& previousTargets = state.renderTargets;
+        const auto& currentTargets  = current.renderTargets;
+
+        bool targetsChanged = previousTargets.colors.size() != currentTargets.colors.size();
+
+        if (!targetsChanged)
+        {
+            // clang-format off
+            for (size_t index = 0; index < previousTargets.colors.size() && index < currentTargets.colors.size(); index++)
+            {
+                if (previousTargets.colors[index] != currentTargets.colors[index])
+                {
+                    targetsChanged = true;
+                    break;
+                }
+            }
+            // clang-format on
+
+            if (!targetsChanged && previousTargets.depthStencil != currentTargets.depthStencil)
+                targetsChanged = true;
+
+            if (previousTargets.temporaryFlags != currentTargets.temporaryFlags)
+                targetsChanged = true;
+        }
+
+        if (targetsChanged)
+            this->setRenderTargets(state.renderTargets);
+
         // if (this->stencil != state.stencil)
         //     this->setStencilState(state.stencil);
 
@@ -222,6 +250,21 @@ namespace love
         this->setRenderTargets(targets);
     }
 
+    void GraphicsBase::setRenderTargets(const RenderTargetsStrongRef& rts)
+    {
+        RenderTargets targets {};
+        targets.colors.reserve(rts.colors.size());
+
+        for (const auto& target : rts.colors)
+            targets.colors.emplace_back(target.texture.get(), target.slice, target.mipmap);
+
+        auto depthStencil      = rts.depthStencil;
+        targets.depthStencil   = RenderTarget(depthStencil.texture, depthStencil.slice, depthStencil.mipmap);
+        targets.temporaryFlags = rts.temporaryFlags;
+
+        this->setRenderTargets(targets);
+    }
+
     void GraphicsBase::setRenderTargets(const RenderTargets& targets)
     {
         DisplayState& state = this->states.back();
@@ -234,6 +277,7 @@ namespace love
             return this->setRenderTarget();
 
         const auto& previousRef = state.renderTargets;
+
         if (count == (int)previousRef.colors.size())
         {
             bool modified = false;
@@ -314,8 +358,8 @@ namespace love
         for (auto color : targets.colors)
             references.colors.emplace_back(color.texture, color.slice, color.mipmap);
 
-        references.depthStencil =
-            RenderTargetStrongRef(targets.depthStencil.texture, targets.depthStencil.slice);
+        auto depthStencil         = targets.depthStencil;
+        references.depthStencil   = RenderTargetStrongRef(depthStencil.texture, depthStencil.slice);
         references.temporaryFlags = targets.temporaryFlags;
 
         std::swap(state.renderTargets, references);
@@ -324,7 +368,7 @@ namespace love
         for (const auto& target : previous.colors)
         {
             if (target.texture && target.texture->getMipmapsMode() == TextureBase::MIPMAPS_AUTO &&
-                target.mipmap != 0)
+                target.mipmap == 0)
             {
                 target.texture->generateMipmaps();
             }
@@ -344,10 +388,10 @@ namespace love
         for (const auto& target : current.colors)
             targets.colors.emplace_back(target.texture.get(), target.slice, target.mipmap);
 
-        targets.depthStencil = RenderTarget(current.depthStencil.texture, current.depthStencil.slice,
-                                            current.depthStencil.mipmap);
-
+        auto& depthStencil     = current.depthStencil;
+        targets.depthStencil   = RenderTarget(depthStencil.texture, depthStencil.slice, depthStencil.mipmap);
         targets.temporaryFlags = current.temporaryFlags;
+
         return targets;
     }
 
@@ -615,9 +659,9 @@ namespace love
 
         state.flushing = true;
 
-        // auto originalColor = this->getColor();
-        // if (attributes.isEnabled(ATTRIB_COLOR))
-        //     this->setColor(Color::WHITE);
+        auto originalColor = this->getColor();
+        if (attributes.isEnabled(ATTRIB_COLOR))
+            this->setColor(Color::WHITE);
 
         if (state.pushTransform)
             this->pushIdentityTransform();
@@ -658,8 +702,8 @@ namespace love
         if (state.pushTransform)
             this->popTransform();
 
-        // if (attributes.isEnabled(ATTRIB_COLOR))
-        //     this->setColor(originalColor);
+        if (attributes.isEnabled(ATTRIB_COLOR))
+            this->setColor(originalColor);
 
         state.lastVertexCount = 0;
         state.lastIndexCount  = 0;

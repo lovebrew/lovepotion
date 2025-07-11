@@ -148,6 +148,9 @@ namespace love
 
     void citro3d::bindFramebuffer(C3D_RenderTarget* framebuffer)
     {
+        if (!this->inFrame)
+            this->ensureInFrame();
+
         bool bindingModified = false;
 
         if (this->context.boundFramebuffer != framebuffer)

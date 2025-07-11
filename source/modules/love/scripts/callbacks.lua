@@ -297,23 +297,20 @@ function love.errhand(msg)
     p = p:gsub("\t", "")
     p = p:gsub("%[string \"(.-)\"%]", "%1")
 
+    local pos = 70
     local function draw()
         if not love.graphics.isActive() then return end
-        local pos = 70
-        love.graphics.clear(89 / 255, 157 / 255, 220 / 255)
-        love.graphics.printf(p, pos, pos, love.graphics.getWidth() - pos)
+        for display_index = 1, love.window.getDisplayCount() do
+            local display_name = love.window.getDisplayName(display_index)
+            love.graphics.setActiveScreen(display_name)
+            love.graphics.origin()
+
+            love.graphics.clear(89 / 255, 157 / 255, 220 / 255)
+
+            love.graphics.printf(p, pos, pos, love.graphics.getWidth() - pos)
+            love.graphics.copyCurrentScanBuffer()
+        end
         love.graphics.present()
-    end
-
-    local fullErrorText = p
-    local function copyToClipboard()
-        if not love.system then return end
-        love.system.setClipboardText(fullErrorText)
-        p = p .. "\nCopied to clipboard!"
-    end
-
-    if love.system then
-        p = p .. "\n\nPress Ctrl+C or tap to copy this error"
     end
 
     return function()
@@ -322,23 +319,8 @@ function love.errhand(msg)
         for e, a, b, c in love.event.poll() do
             if e == "quit" then
                 return 1
-            elseif e == "keypressed" and a == "escape" then
-                return 1
-            elseif e == "keypressed" and a == "c" and love.keyboard.isDown("lctrl", "rctrl") then
-                copyToClipboard()
             elseif e == "touchpressed" then
-                local name = love.window.getTitle()
-                if #name == 0 or name == "Untitled" then name = "Game" end
-                local buttons = { "OK", "Cancel" }
-                if love.system then
-                    buttons[3] = "Copy to clipboard"
-                end
-                local pressed = love.window.showMessageBox("Quit " .. name .. "?", "", buttons)
-                if pressed == 1 then
-                    return 1
-                elseif pressed == 3 then
-                    copyToClipboard()
-                end
+                return 1
             end
         end
 
@@ -349,6 +331,5 @@ function love.errhand(msg)
         end
     end
 end
-
 -- DO NOT REMOVE THE NEXT LINE. It is used to load this file as a C++ string.
 --)luastring"--"

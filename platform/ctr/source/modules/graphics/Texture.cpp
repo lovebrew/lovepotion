@@ -97,12 +97,7 @@ namespace love
         }
 
         if (this->target != nullptr)
-        {
             C3D_RenderTargetDelete(this->target);
-            C3D_TexDelete(this->texture);
-
-            delete this->texture;
-        }
 
         this->setGraphicsMemorySize(0);
     }

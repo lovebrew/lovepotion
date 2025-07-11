@@ -1032,6 +1032,148 @@ int Wrap_Graphics::newImage(lua_State* L)
     return newTexture(L);
 }
 
+static Graphics::RenderTarget checkRenderTarget(lua_State* L, int index)
+{
+    lua_rawgeti(L, index, 1);
+    GraphicsBase::RenderTarget target(luax_checktexture(L, -1), 0);
+    lua_pop(L, 1);
+
+    auto type = target.texture->getTextureType();
+    if (type == TEXTURE_2D_ARRAY || type == TEXTURE_VOLUME)
+        target.slice = luax_checkintflag(L, index, "layer") - 1;
+    else if (type == TEXTURE_CUBE)
+        target.slice = luax_checkintflag(L, index, "face") - 1;
+
+    target.mipmap = luax_intflag(L, index, "mipmap", 1) - 1;
+
+    return target;
+}
+
+static void pushRenderTarget(lua_State* L, const GraphicsBase::RenderTarget& target)
+{
+    lua_createtable(L, 1, 2);
+
+    luax_pushtype(L, target.texture);
+    lua_rawseti(L, -2, 1);
+
+    auto type = target.texture->getTextureType();
+
+    if (type == TEXTURE_2D_ARRAY || type == TEXTURE_VOLUME)
+    {
+        lua_pushnumber(L, target.slice + 1);
+        lua_setfield(L, -2, "layer");
+    }
+    else if (type == TEXTURE_CUBE)
+    {
+        lua_pushnumber(L, target.slice + 1);
+        lua_setfield(L, -2, "face");
+    }
+
+    lua_pushnumber(L, target.mipmap + 1);
+    lua_setfield(L, -2, "mipmap");
+}
+
+int Wrap_Graphics::getCanvas(lua_State* L)
+{
+    GraphicsBase::RenderTargets targets = instance()->getRenderTargets();
+    int count                           = (int)targets.colors.size();
+
+    if (count == 0)
+    {
+        lua_pushnil(L);
+        return 1;
+    }
+
+    bool useTableVariant = targets.depthStencil.texture != nullptr;
+    if (!useTableVariant)
+    {
+        for (const auto& target : targets.colors)
+        {
+            if (target.mipmap != 0 || target.texture->getTextureType() != TEXTURE_2D)
+            {
+                useTableVariant = true;
+                break;
+            }
+        }
+    }
+
+    if (useTableVariant)
+    {
+        lua_createtable(L, count, 0);
+
+        for (int index = 0; index < count; index++)
+        {
+            pushRenderTarget(L, targets.colors[index]);
+            lua_rawseti(L, -2, index + 1);
+        }
+
+        if (targets.depthStencil.texture != nullptr)
+        {
+            pushRenderTarget(L, targets.depthStencil);
+            lua_setfield(L, -2, "depthstencil");
+        }
+
+        return 1;
+    }
+
+    for (const auto& target : targets.colors)
+        luax_pushtype(L, target.texture);
+
+    return count;
+}
+
+int Wrap_Graphics::setCanvas(lua_State* L)
+{
+    if (lua_isnoneornil(L, 1))
+    {
+        instance()->setRenderTarget();
+        return 0;
+    }
+
+    bool isTable = lua_istable(L, 1);
+    GraphicsBase::RenderTargets targets {};
+
+    if (isTable)
+    {
+    }
+    else
+    {
+        const auto argc = lua_gettop(L);
+        for (int index = 1; index <= argc; index++)
+        {
+            GraphicsBase::RenderTarget target(luax_checktexture(L, index), 0);
+            auto type = target.texture->getTextureType();
+
+            if (index == 1 && type != TEXTURE_2D)
+            {
+                target.slice  = luaL_checkinteger(L, index + 1) - 1;
+                target.mipmap = luaL_optinteger(L, index + 2, 1) - 1;
+                targets.colors.push_back(target);
+                break;
+            }
+            else if (type == TEXTURE_2D && lua_isnumber(L, index + 1))
+            {
+                target.mipmap = luaL_optinteger(L, index + 1, 1) - 1;
+                index++;
+            }
+
+            if (index > 1 && type != TEXTURE_2D)
+                return luaL_error(L, "This variant of setCanvas only supports 2D texture types.");
+
+            targets.colors.push_back(target);
+        }
+    }
+
+    luax_catchexcept(L, [&]() {
+        if (targets.getFirstTarget().texture != nullptr)
+            instance()->setRenderTargets(targets);
+        else
+            instance()->setRenderTarget();
+    });
+
+    return 0;
+}
+
 int Wrap_Graphics::newCanvas(lua_State* L)
 {
     luax_checkgraphicscreated(L);
@@ -1998,11 +2140,13 @@ static constexpr luaL_Reg functions[] =
     { "points",                 Wrap_Graphics::points                },
     { "line",                   Wrap_Graphics::line                  },
 
+    { "setCanvas",              Wrap_Graphics::setCanvas             },
+    { "getCanvas",              Wrap_Graphics::getCanvas             },
+
     { "newCanvas",              Wrap_Graphics::newCanvas             },
     { "newTexture",             Wrap_Graphics::newTexture            },
     { "newQuad",                Wrap_Graphics::newQuad               },
     { "newImage",               Wrap_Graphics::newImage              },
-    // { "newArrayTexture",        Wrap_Graphics::newArrayTexture       },
 
     { "newTextBatch",           Wrap_Graphics::newTextBatch          },
     { "newSpriteBatch",         Wrap_Graphics::newSpriteBatch        },

@@ -466,7 +466,6 @@ int Wrap_Texture::replacePixels(lua_State* L)
     return 0;
 }
 
-// TODO: Implement this
 int Wrap_Texture::renderTo(lua_State* L)
 {
     GraphicsBase::RenderTarget target(luax_checktexture(L, 1));
@@ -480,28 +479,42 @@ int Wrap_Texture::renderTo(lua_State* L)
     }
 
     luaL_checktype(L, start, LUA_TFUNCTION);
-    auto graphics = Module::getInstance<Graphics>(Module::M_GRAPHICS);
+    auto graphics = Module::getInstance<GraphicsBase>(Module::M_GRAPHICS);
 
     if (graphics)
     {
-        GraphicsBase::RenderTargets old = graphics->getRenderTargets();
-        for (auto color : old.colors)
+        auto oldTargets = graphics->getRenderTargets();
+
+        for (auto color : oldTargets.colors)
             color.texture->retain();
 
-        if (old.depthStencil.texture != nullptr)
-            old.depthStencil.texture->retain();
+        if (oldTargets.depthStencil.texture != nullptr)
+            oldTargets.depthStencil.texture->retain();
 
         // clang-format off
         luax_catchexcept(L,
-        [&]() { graphics->setRenderTarget(target, 0); },
-        [&](bool error) {
-            if (error)
-            {
-                for (auto color : old.colors)
-                    color.texture->release();
+            [&]() { graphics->setRenderTarget(target, 0); },
+            [&](bool error) {
+                if (error)
+                {
+                    for (auto color : oldTargets.colors)
+                        color.texture->release();
+                }
             }
-        });
+        );
         // clang-format on
+
+        int status = lua_pcall(L, args - start, 0, 0);
+        graphics->setRenderTargets(oldTargets);
+
+        for (auto color : oldTargets.colors)
+            color.texture->release();
+
+        if (oldTargets.depthStencil.texture != nullptr)
+            oldTargets.depthStencil.texture->release();
+
+        if (status != 0)
+            return lua_error(L);
     }
 
     return 0;

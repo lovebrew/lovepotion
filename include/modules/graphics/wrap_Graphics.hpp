@@ -127,6 +127,10 @@ namespace Wrap_Graphics
 
     int newCanvas(lua_State* L);
 
+    int setCanvas(lua_State* L);
+
+    int getCanvas(lua_State* L);
+
     int setFont(lua_State* L);
 
     int getFont(lua_State* L);

@@ -274,7 +274,7 @@ namespace love
                        this->mipmap != other.mipmap;
             }
 
-            bool operator!=(const RenderTarget& other)
+            bool operator!=(const RenderTarget& other) const
             {
                 return this->texture.get() != other.texture || this->slice != other.slice ||
                        this->mipmap != other.mipmap;
@@ -289,6 +289,11 @@ namespace love
 
             RenderTargetsStrongRef() : depthStencil(nullptr), temporaryFlags(0)
             {}
+
+            const RenderTargetStrongRef& getFirstTarget() const
+            {
+                return this->colors.empty() ? this->depthStencil : this->colors[0];
+            }
         };
 
         struct RenderTargets
@@ -371,12 +376,6 @@ namespace love
         void restoreState(const DisplayState& state);
 
         void restoreStateChecked(const DisplayState& state);
-
-        bool isRenderTargetActive() const;
-
-        bool isRenderTargetActive(TextureBase* texture) const;
-
-        bool isRenderTargetActive(TextureBase* texture, int slice) const;
 
         void setActive(bool active)
         {
@@ -690,9 +689,15 @@ namespace love
 
         void setRenderTarget(RenderTarget target, uint32_t flags);
 
+        void setRenderTargets(const RenderTargets& targets);
+
         void setRenderTargets(const RenderTargetsStrongRef& targets);
 
-        void setRenderTargets(const RenderTargets& targets);
+        bool isRenderTargetActive() const;
+
+        bool isRenderTargetActive(TextureBase* texture) const;
+
+        bool isRenderTargetActive(TextureBase* texture, int slice) const;
 
         void setRenderTarget();
 
