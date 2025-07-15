@@ -1,6 +1,6 @@
 #include <3ds.h>
 
-#include <utf8/utf8.h>
+#include <utf8.h>
 #include <utilities/result.hpp>
 
 #include <modules/system_ext.hpp>
