@@ -1,5 +1,6 @@
 #include <3ds.h>
 
+#include <utf8/utf8.h>
 #include <utilities/result.hpp>
 
 #include <modules/system_ext.hpp>
@@ -131,13 +132,11 @@ std::string_view System<Console::CTR>::GetUsername()
     if (!this->info.username.empty())
         return this->info.username;
 
-    char username[0x1C] { 0 };
+    MiiScreenName name {};
+    R_UNLESS(FRD_GetMyScreenName(&name), std::string {});
 
-    R_UNLESS(FRD_GetMyScreenName(username, 0x1C), std::string {});
-
-    this->info.username = username;
-
-    return username;
+    this->info.username = utf8::utf16to8(reinterpret_cast<const char16_t*>(name));
+    return this->info.username;
 }
 
 static inline std::string MAKE_FRIEND_CODE(uint64_t friendCode)
