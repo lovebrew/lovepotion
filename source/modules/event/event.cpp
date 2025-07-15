@@ -78,6 +78,16 @@ Message* love::Event::ConvertWindowEvent(const LOVE_Event& event, std::vector<Va
             result = new Message("focus", args);
             break;
         }
+        case SUBTYPE_RESIZE:
+        {
+            double width  = event.size.width;
+            double height = event.size.height;
+            args.emplace_back(width);
+            args.emplace_back(height);
+
+            result = new Message("resize", args);
+            break;
+        }
         default:
             break;
     }
@@ -241,7 +251,8 @@ void love::Event::InternalClear()
 {
     LOVE_Event event;
     while (::HID::Instance().Poll(&event))
-    {}
+    {
+    }
 
     this->Clear();
 }

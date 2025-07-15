@@ -1,7 +1,7 @@
 name: Feature Request
 description: Suggest an idea or enhancement for LÖVE Potion
 title: "[Feature Request]: "
-labels: [enhancement]
+label: "Feature"
 body:
   - type: input
     id: description

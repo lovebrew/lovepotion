@@ -1,11 +1,13 @@
 #include <modules/graphics_ext.hpp>
 #include <modules/joystickmodule_ext.hpp>
+#include <modules/window_ext.hpp>
 
 #include <utilities/driver/hid_ext.hpp>
 
 using namespace love;
 
 #define Module() Module::GetInstance<JoystickModule<Console::HAC>>(Module::M_JOYSTICK)
+#define WINDOW() Module::GetInstance<Window<Console::HAC>>(Module::M_WINDOW)
 
 HID<Console::HAC>::HID() :
     touchState {},
@@ -76,10 +78,11 @@ void HID<Console::HAC>::CheckFocus()
             }
             case AppletMessage_OperationModeChanged:
             {
-                std::pair<uint32_t, uint32_t> size;
-                // ::deko3d::Instance().OnOperationMode(size);
+                int width, height = 0;
+                Window<Console::HAC>::WindowSettings settings {};
+                WINDOW()->GetWindow(width, height, settings);
 
-                this->SendResize(size.first, size.second);
+                this->SendResize(width, height);
 
                 break;
             }
