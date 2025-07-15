@@ -158,7 +158,7 @@ namespace love
                 }
 
                 if (this->depthStencil != other.depthStencil ||
-                    this->temporaryRTFlags != other.temporaryRTFlags)
+                    this->temporaryFlags != other.temporaryFlags)
                 {
                     return false;
                 }
