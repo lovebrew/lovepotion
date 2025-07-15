@@ -56,7 +56,7 @@ extern "C"
         tryInit(std::bind_front(acInit), love::ABORT_AC);
 
         /* friend code */
-        tryInit(std::bind_front(frdInit), love::ABORT_FRD);
+        tryInit(std::bind_front(frdInit, false), love::ABORT_FRD);
 
         /* theora video conversion */
         tryInit(std::bind_front(y2rInit), love::ABORT_Y2R);
