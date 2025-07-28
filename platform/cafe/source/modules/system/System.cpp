@@ -5,7 +5,7 @@
 
 namespace love
 {
-    System::System() : SystemBase()
+    System::System()
     {
         this->mcpHandle = MCP_Open();
         this->ucHandle  = UCOpen();
@@ -33,8 +33,10 @@ namespace love
 
     System::PowerState System::getPowerInfo(int& seconds, int& percent) const
     {
-        percent = 100;
-        return PowerState::POWER_UNKNOWN;
+        percent = -1;
+        seconds = -1;
+
+        return PowerState::POWER_NO_BATTERY;
     }
 
     std::vector<std::string> System::getPreferredLocales() const
@@ -50,7 +52,7 @@ namespace love
 
         std::strncpy(config.name, "cafe.language", sizeof(config.name));
 
-        if (!Result(UCReadSysConfig(this->ucHandle, 1, &config)))
+        if (!ResultCode(UCReadSysConfig(this->ucHandle, 1, &config)))
             return locales;
 
         int32_t language = (*(uint32_t*)config.data);
@@ -63,75 +65,38 @@ namespace love
         return locales;
     }
 
-    System::NetworkState System::getNetworkInfo(uint8_t& signal) const
+    System::NetworkState System::getNetworkInfo(int32_t& signal) const
     {
-        int32_t status = 0;
-        auto state     = NetworkState::NETWORK_UNKNOWN;
+        BOOL status = 0;
+        signal      = -1;
 
-        if (!Result(ACIsApplicationConnected(&status)))
-            return state;
+        if (!ResultCode(ACIsApplicationConnected(&status)))
+            return NetworkState::NETWORK_UNKNOWN;
 
-        signal = (status > 0) ? 100 : 0;
-        state = (status > 0) ? NetworkState::NETWORK_CONNECTED : NetworkState::NETWORK_DISCONNECTED;
+        if (!status)
+            return NetworkState::NETWORK_DISCONNECTED;
 
-        return state;
+        signal = 100;
+        return NetworkState::NETWORK_CONNECTED;
     }
 
-    System::FriendInfo System::getFriendInfo() const
+    bool System::getFriendInfo(FriendInfo& info) const
     {
         char username[nn::act::AccountIdSize] { 0 };
 
         if (!nn::act::IsNetworkAccount())
-            return FriendInfo();
+            return false;
 
-        if (!Result(nn::act::GetAccountId(username)))
-            return FriendInfo();
+        if (!ResultCode(nn::act::GetAccountId(username)))
+            return false;
 
-        return FriendInfo(username);
+        info.username = username;
+
+        return true;
     }
 
-    static std::string getVersion(int32_t handle)
+    bool System::getInfo(ProductInfo& info) const
     {
-        MCPSystemVersion version {};
-        if (!Result(MCP_GetSystemVersion(handle, &version)))
-            return "Unknown";
-
-        return std::format("{}.{}.{}-{}", version.major, version.minor, version.patch,
-                           version.region);
-    }
-
-    static std::string getModel()
-    {
-        BSPHardwareVersion version = BSP_HARDWARE_VERSION_UNKNOWN;
-
-        if (!Result(bspGetHardwareVersion(&version)))
-            return "Unknown";
-
-        std::string_view result {};
-        System::getConstant(version, result);
-
-        return std::string(result);
-    }
-
-    static std::string getRegion(int32_t handle)
-    {
-        MCPSysProdSettings settings {};
-
-        if (!Result(MCP_GetSysProdSettings(handle, &settings)))
-            return "Unknown";
-
-        std::string_view result {};
-        System::getConstant(settings.product_area, result);
-
-        return std::string(result);
-    }
-
-    System::ProductInfo System::getProductInfo() const
-    {
-        std::string model   = getModel();
-        std::string version = getVersion(this->mcpHandle);
-        std::string region  = getRegion(this->mcpHandle);
-
-        return { model, version, region };
+        return true;
     }
 } // namespace love

@@ -71,8 +71,6 @@ namespace love
         static int8_t getFormat(int channels, int bitDepth);
 
       private:
-        static constexpr int32_t DSP_FIRM_MISSING_ERROR_CODE = 0xD880A7FA;
-
         LightEvent event;
     };
 } // namespace love

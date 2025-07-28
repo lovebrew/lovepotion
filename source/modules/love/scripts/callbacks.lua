@@ -251,12 +251,14 @@ function love.errhand(msg)
             love.mouse.setCursor()
         end
     end
+
     if love.joystick then
         -- Stop all joystick vibrations.
         for i, v in ipairs(love.joystick.getJoysticks()) do
             v:setVibration()
         end
     end
+
     if love.audio then love.audio.stop() end
 
     love.graphics.reset()
@@ -305,9 +307,11 @@ function love.errhand(msg)
             love.graphics.setActiveScreen(display_name)
             love.graphics.origin()
 
-            love.graphics.clear(89 / 255, 157 / 255, 220 / 255)
+            love.graphics.clear(0.35, 0.62, 0.86)
 
-            love.graphics.printf(p, pos, pos, love.graphics.getWidth() - pos)
+            if display_name ~= "bottom" then
+                love.graphics.printf(p, pos, pos, love.graphics.getWidth() - pos)
+            end
             love.graphics.copyCurrentScanBuffer()
         end
         love.graphics.present()
@@ -320,6 +324,8 @@ function love.errhand(msg)
             if e == "quit" then
                 return 1
             elseif e == "touchpressed" then
+                return 1
+            elseif e == "gamepadpressed" and b == "start" then
                 return 1
             end
         end

@@ -1,64 +1,62 @@
 #pragma once
 
+#if defined(__3DS__)
+    #include <3ds/result.h>
+#elif defined(__SWITCH__)
+    #include <switch/result.h>
+#elif defined(__WIIU__)
+    /* https://github.com/devkitPro/wut/blob/master/include/nn/result.h */
+    #define R_SUCCEEDED(result) ((result) >= 0)
+#else
+    #error "Invalid platform"
+#endif
+
 #include <concepts>
-#include <stdint.h>
+#include <cstdint>
 
-namespace love
+template<typename NNResult>
+concept NNResultConcept = requires(NNResult result) {
+    { result.value } -> std::convertible_to<int32_t>;
+};
+
+class ResultCode
 {
-    // clang-format off
-    template<typename T>
-    concept NNResult = requires(T t)
+  public:
+    static constexpr int32_t DSP_FIRM_MISSING = 0xD880A7FA;
+
+    ResultCode() : code(0)
+    {}
+
+    explicit constexpr ResultCode(int32_t result) : code(result)
+    {}
+
+    explicit constexpr ResultCode(uint32_t result) : code(result)
+    {}
+
+    template<NNResultConcept NNResult>
+    explicit constexpr ResultCode(NNResult result) : code(result.value)
+    {}
+
+    constexpr bool operator==(int32_t other) const
     {
-        { t.value } -> std::convertible_to<int32_t>;
-    };
-    // clang-format on
+        return this->code == other;
+    }
 
-    class Result
+    constexpr operator bool() const
     {
-      public:
-        Result(int32_t value) : value(value)
-        {}
+        return R_SUCCEEDED(this->code);
+    }
 
-        template<NNResult T>
-        Result(T t) : value(t.value)
-        {}
+    constexpr operator int32_t() const
+    {
+        return this->code;
+    }
 
-        int32_t get() const
-        {
-            return this->value;
-        }
+    constexpr int32_t value() const
+    {
+        return this->code;
+    }
 
-        operator int32_t() const
-        {
-            return this->value;
-        }
-
-        bool success() const
-        {
-            return this->value >= 0;
-        }
-
-        bool failed() const
-        {
-            return this->value < 0;
-        }
-
-        operator bool() const
-        {
-            return this->success();
-        }
-
-        bool operator==(Result& other) const
-        {
-            return this->value == other.value;
-        }
-
-        bool operator==(int32_t value) const
-        {
-            return this->value == value;
-        }
-
-      private:
-        int32_t value;
-    };
-} // namespace love
+  private:
+    int32_t code;
+};

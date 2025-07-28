@@ -69,7 +69,7 @@ namespace love
         this->capabilities.limits[LIMIT_THREADGROUPS_X]             = 0;
         this->capabilities.limits[LIMIT_THREADGROUPS_Y]             = 0;
         this->capabilities.limits[LIMIT_THREADGROUPS_Z]             = 0;
-        this->capabilities.limits[LIMIT_RENDER_TARGETS]             = 1; //< max simultaneous render targets
+        this->capabilities.limits[LIMIT_RENDER_TARGETS]             = DK_MAX_RENDER_TARGETS; //< max simultaneous render targets
         this->capabilities.limits[LIMIT_TEXTURE_MSAA]               = 0;
         this->capabilities.limits[LIMIT_ANISOTROPY]                 = 0;
         static_assert(LIMIT_MAX_ENUM == 13, "Graphics::initCapabilities must be updated when adding a new system limit!");
@@ -298,12 +298,12 @@ namespace love
 
     FontBase* Graphics::newDefaultFont(int size, const Rasterizer::Settings& settings)
     {
-        auto* module = Module::getInstance<FontModuleBase>(Module::M_FONT);
+        auto* fontModule = Module::getInstance<FontModuleBase>(Module::M_FONT);
 
-        if (module == nullptr)
+        if (!fontModule)
             throw love::Exception("Font module has not been loaded.");
 
-        StrongRef<Rasterizer> r(module->newTrueTypeRasterizer(size, settings), Acquire::NO_RETAIN);
+        StrongRef<Rasterizer> r(fontModule->newTrueTypeRasterizer(size, settings), Acquire::NO_RETAIN);
         return this->newFont(r.get());
     }
 
@@ -375,8 +375,8 @@ namespace love
         if (!this->isCreated())
             return;
 
-        this->flushBatchedDraws();
-        Volatile::unloadAll();
+        // this->flushBatchedDraws();
+        // Volatile::unloadAll();
         this->created = false;
     }
 

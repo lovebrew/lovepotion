@@ -31,9 +31,9 @@ namespace love
 
         CFNT_s* font = nullptr;
 
-        if (auto result = Result(romfsMountFromTitle(title, MEDIATYPE_NAND, "font")); result.failed())
+        if (auto result = Result(romfsMountFromTitle(title, MEDIATYPE_NAND, "font")); !result)
         {
-            throw love::Exception("Failed to mount 'font:/' from NAND: {:X}", result.get());
+            throw love::Exception("Failed to mount 'font:/' from NAND: {:X}", result);
             return nullptr;
         }
 

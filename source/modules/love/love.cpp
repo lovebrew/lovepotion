@@ -172,22 +172,6 @@ static int love_hasOSSpeedup(lua_State* L)
 }
 #endif
 
-static constexpr const char* ERROR_PANIC = "PANIC: unprotected error in call to Lua API (%s)";
-
-/*
- * If an error happens outside any protected environment, Lua calls a panic function and then calls
- * exit(EXIT_FAILURE), thus exiting the host application. We want to inform the user of the error.
- * However, this will only be informative via the console.
- */
-static int love_atpanic(lua_State* L)
-{
-    char message[0x80] {};
-    std::snprintf(message, sizeof(message), ERROR_PANIC, lua_tostring(L, -1));
-    std::printf("%s\n", message);
-
-    return 0;
-}
-
 static void luax_addcompatibilityalias(lua_State* L, const char* module, const char* name, const char* alias)
 {
     lua_getglobal(L, module);
@@ -208,6 +192,8 @@ static void luax_addcompatibilityalias(lua_State* L, const char* module, const c
 
     lua_pop(L, 1);
 }
+
+#define E_PANIC "PANIC: unprotected error in call to Lua API ({:s})"
 
 int love_initialize(lua_State* L)
 {
@@ -283,7 +269,11 @@ int love_initialize(lua_State* L)
     love::luax_preload(L, luaopen_luautf8, "utf8");
     love::luax_preload(L, luaopen_https, "https");
 
-    // lua_atpanic(L, love_atpanic);
+    lua_atpanic(L, [](lua_State* L) {
+        const auto message = std::format(E_PANIC, lua_tostring(L, -1));
+        love::platform::errorHandler(message);
+        return 0;
+    });
 
     return 1;
 }

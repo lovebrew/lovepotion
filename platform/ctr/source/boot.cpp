@@ -12,70 +12,102 @@
 
 namespace love
 {
-    // clang-format off
-    static constexpr std::array<const Service, 7> services =
-    {{
-        /* I don't know why socExit is a Result return, we don't care about the exit value */
-        { "soc:u",   BIND(socInit, socBuffer.get(), SOC_BUFFER_SIZE), []() { socExit(); }    },
-        { "mcu:Hwc", BIND(mcuHwcInit),                                &mcuHwcExit            },
-        { "ptm:u",   BIND(ptmuInit),                                  &ptmuExit              },
-        { "ac:u",    BIND(acInit),                                    &acExit                },
-        { "cfg:u",   BIND(cfguInit),                                  &cfguExit              },
-        { "frd:u",   BIND(frdInit, false),                            &frdExit               },
-        { "ir:rst",  BIND(irrstInit),                                 &irrstExit             }
-    }};
-    // clang-format on
-
-    template<typename... Args>
-    static int displayError(const char* format, int32_t result, Args&&... args)
+    namespace platform
     {
-        std::string message = std::vformat(format, std::make_format_args(args...));
+        static constexpr int SOC_BUFFER_SIZE  = 0x100000;
+        static constexpr int SOC_BUFFER_ALIGN = 0x1000;
+        static uint32_t* SOC_BUFFER           = nullptr;
 
-        errorConf config {};
-        errorInit(&config, ERROR_TEXT_WORD_WRAP, CFG_LANGUAGE_EN);
-        errorCode(&config, result);
-        errorText(&config, message.c_str());
-        errorDisp(&config);
-
-        return -1;
-    }
-
-    std::string getApplicationPath(const std::string& argv0)
-    {
-        if (argv0 == "embedded boot.lua")
-            return "sdmc:/lovepotion.3dsx";
-
-        return argv0;
-    }
-
-    int preInit()
-    {
-        socBuffer.reset((uint32_t*)memalign(SOC_BUFFER_ALIGN, SOC_BUFFER_SIZE));
-
-        if (socBuffer.get() == nullptr)
-            return displayError("Failed to allocate soc:u buffer.", -1, "");
-
-        for (auto& service : services)
+        static Result socuInit()
         {
-            if (auto result = service.init(); !result)
-                return displayError("Failed to initialize {:s}.", result, service.name);
+            if (!(SOC_BUFFER = (uint32_t*)memalign(SOC_BUFFER_ALIGN, SOC_BUFFER_SIZE)))
+                return MAKERESULT(RL_PERMANENT, RS_OUTOFRESOURCE, RM_APPLICATION, RD_NO_DATA);
+
+            return socInit(SOC_BUFFER, SOC_BUFFER_SIZE);
         }
 
-        romfsInit();
+        static void socuExit()
+        {
+            socExit();
 
-        return 0;
-    }
+            if (SOC_BUFFER != nullptr)
+                std::free(SOC_BUFFER);
 
-    bool mainLoop(lua_State* L, int argc, int* nres)
-    {
-        return ((love::luax_resume(L, argc, nres) == LUA_YIELD) && aptMainLoop());
-    }
+            SOC_BUFFER = nullptr;
+        }
 
-    void onExit()
-    {
-        romfsExit();
+        // clang-format off
+        static constexpr std::array<const Service, 8> services =
+        {{
+            { "ac:u",    BIND(acInit),                                     &acExit               },
+            { "soc:u",   BIND(socuInit),                                   &socuExit             },
+            { "mcu:Hwc", BIND(mcuHwcInit),                                 &mcuHwcExit           },
+            { "ptm:u",   BIND(ptmuInit),                                   &ptmuExit             },
+            { "cfg:u",   BIND(cfguInit),                                   &cfguExit             },
+            { "frd:a",   BIND(frdInit, false),                             &frdExit              },
+            { "ir:rst",  BIND(irrstInit),                                  &irrstExit            },
+            { "romfs",   BIND(romfsInit),                                  []() { romfsExit(); } }
+        }};
+        // clang-format on
 
-        for (auto it = services.rbegin(); it != services.rend(); ++it)
-            it->exit();
-    }
+        void errorHandler(const std::string& message)
+        {
+            gfxInitDefault();
+            consoleInit(GFX_TOP, nullptr);
+
+            std::printf("Error:\n\n%s\n", message.c_str());
+            std::printf("Press START to quit.\n");
+
+            while (aptMainLoop())
+            {
+                hidScanInput();
+                const auto pressed = hidKeysDown();
+
+                if (pressed & KEY_START)
+                    break;
+
+                gspWaitForVBlank();
+                gfxSwapBuffers();
+            }
+
+            gfxExit();
+        }
+
+        std::string getApplicationPath(const std::string& argv0)
+        {
+            if (argv0 == "embedded boot.lua")
+                return "sdmc:/lovepotion.3dsx";
+
+            return argv0;
+        }
+
+        int initialize()
+        {
+            std::string buffer;
+            for (auto it = services.begin(); it != services.end(); ++it)
+            {
+                if (auto result = it->init(); !result)
+                    buffer.append(std::format(E_FAILED_TO_INIT, it->name, result.value()));
+            }
+
+            if (!buffer.empty())
+            {
+                errorHandler(buffer);
+                return EXIT_FAILURE;
+            }
+
+            return 0;
+        }
+
+        bool run(lua_State* L, int argc, int* nres)
+        {
+            return ((love::luax_resume(L, argc, nres) == LUA_YIELD) && aptMainLoop());
+        }
+
+        void shutdown()
+        {
+            for (auto it = services.rbegin(); it != services.rend(); ++it)
+                it->exit();
+        }
+    } // namespace platform
 } // namespace love

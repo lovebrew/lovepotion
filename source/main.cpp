@@ -47,7 +47,7 @@ static DoneAction runLove(char** argv, int argc, int& result, love::Variant& res
         std::vector<const char*> args(argv, argv + argc);
 
         /* if the game directory exists, add the arg */
-        std::filesystem::path filepath = love::getApplicationPath(argv[0]);
+        std::filesystem::path filepath = love::platform::getApplicationPath(argv[0]);
         if (std::filesystem::exists(filepath.parent_path().append("game")))
             args.push_back("game");
 
@@ -88,7 +88,7 @@ static DoneAction runLove(char** argv, int argc, int& result, love::Variant& res
     int position = lua_gettop(L);
     int results  = 0;
 
-    while (love::mainLoop(L, 0, &results))
+    while (love::platform::run(L, 0, &results))
     {
 #if LUA_VERSION_NUM >= 504
         lua_pop(L, results)
@@ -120,9 +120,9 @@ static DoneAction runLove(char** argv, int argc, int& result, love::Variant& res
 
 int main(int argc, char** argv)
 {
-    if (love::preInit() != 0)
+    if (love::platform::initialize() != 0)
     {
-        love::onExit();
+        love::platform::shutdown();
         return 0;
     }
 
@@ -135,7 +135,7 @@ int main(int argc, char** argv)
         action = runLove(argv, argc, result, restartValue);
     } while (action != DONE_QUIT);
 
-    love::onExit();
+    love::platform::shutdown();
 
     return result;
 }

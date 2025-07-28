@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.13)
-project(lovepotion LANGUAGES C CXX)
+project(lovepotion
+    LANGUAGES C CXX
+    VERSION 3.1.0
+)
 
 add_executable(${PROJECT_NAME})
 dkp_target_generate_symbol_list(${PROJECT_NAME})
@@ -18,7 +21,6 @@ endif()
 include(FetchContent)
 
 set(LOVE_VERSION "12.0")
-set(APP_VERSION  "3.1.0")
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
     __APP_VERSION__=\"${APP_VERSION}\" __LOVE_VERSION__=\"${LOVE_VERSION}\"
@@ -49,7 +51,7 @@ target_compile_options(${PROJECT_NAME} PRIVATE
     $<$<COMPILE_LANGUAGE:CXX>:-fexceptions -fno-rtti>
 )
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+# set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if(NINTENDO_3DS)
     add_subdirectory(platform/ctr)
@@ -67,7 +69,7 @@ if(NINTENDO_3DS)
 
     ctr_generate_smdh(${PROJECT_NAME}.smdh
         NAME        "${APP_TITLE}"
-        DESCRIPTION "LÖVE for 3DS • ${APP_VERSION}"
+        DESCRIPTION "LÖVE for 3DS • ${PROJECT_VERSION}"
         AUTHOR      "${APP_AUTHOR}"
         ICON        ${APP_ICON}
     )
@@ -106,7 +108,7 @@ if (NINTENDO_SWITCH)
     nx_generate_nacp(${PROJECT_NAME}.nacp
         NAME    "${APP_TITLE}"
         AUTHOR  ${APP_AUTHOR}
-        VERSION ${APP_VERSION}
+        VERSION ${PROJECT_VERSION}
     )
 
     nx_create_nro(${PROJECT_NAME}
@@ -187,15 +189,6 @@ if (NINTENDO_WIIU)
     execute_process(COMMAND patch -d ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket -N -i ${PROJECT_SOURCE_DIR}/platform/cafe/libraries/luasocket.patch)
 endif()
 
-# add_custom_target(test
-#     DEPENDS           "${CMAKE_CURRENT_BINARY_DIR}/${OUTPUT_FILENAME}"
-#     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/tests"
-#     COMMAND           ${CMAKE_COMMAND} -E tar -cvf "game.zip" --format=zip .
-#     COMMAND           ${CMAKE_COMMAND} -E cat "${CMAKE_CURRENT_BINARY_DIR}/${OUTPUT_FILENAME}" "game.zip" > "${CMAKE_CURRENT_SOURCE_DIR}/${OUTPUT_FILENAME}"
-#     COMMAND           ${CMAKE_COMMAND} -E rm "game.zip"
-# )
-
-# find PkgConfig for liblz4, libmpg123
 find_package(PkgConfig REQUIRED)
 
 pkg_check_modules(liblz4 REQUIRED IMPORTED_TARGET liblz4)
@@ -269,40 +262,12 @@ FetchContent_Declare(lua-https
 
 FetchContent_GetProperties(lua-https)
 if(NOT lua-https_POPULATED)
-    FetchContent_Populate(lua-https)
+    set(LIBRARY_LOADER linktime)
+    set(USE_CURL_BACKEND ON)
+    FetchContent_MakeAvailable(lua-https)
 endif()
 
-add_library(lua-https STATIC
-    ${lua-https_SOURCE_DIR}/src/common/config.h
-    ${lua-https_SOURCE_DIR}/src/common/LibraryLoader.h
-    ${lua-https_SOURCE_DIR}/src/common/Connection.h
-    ${lua-https_SOURCE_DIR}/src/common/ConnectionClient.h
-    ${lua-https_SOURCE_DIR}/src/common/HTTPRequest.cpp
-    ${lua-https_SOURCE_DIR}/src/common/HTTPRequest.h
-    ${lua-https_SOURCE_DIR}/src/common/HTTPS.cpp
-    ${lua-https_SOURCE_DIR}/src/common/HTTPS.h
-    ${lua-https_SOURCE_DIR}/src/common/HTTPSClient.cpp
-    ${lua-https_SOURCE_DIR}/src/common/HTTPSClient.h
-    ${lua-https_SOURCE_DIR}/src/common/PlaintextConnection.cpp
-    ${lua-https_SOURCE_DIR}/src/common/PlaintextConnection.h
-    ${lua-https_SOURCE_DIR}/src/generic/LinktimeLibraryLoader.cpp
-    ${lua-https_SOURCE_DIR}/src/generic/CurlClient.cpp
-    ${lua-https_SOURCE_DIR}/src/generic/CurlClient.h
-    ${lua-https_SOURCE_DIR}/src/generic/OpenSSLConnection.cpp
-    ${lua-https_SOURCE_DIR}/src/generic/OpenSSLConnection.h
-    ${lua-https_SOURCE_DIR}/src/lua/main.cpp
-)
-
-set(LIBRARY_LOADER "linktime")
-target_compile_definitions(lua-https PRIVATE
-    HTTPS_LIBRARY_LOADER_LINKTIME
-    HTTPS_BACKEND_CURL
-)
-
-# link curl
 pkg_check_modules(libcurl REQUIRED IMPORTED_TARGET libcurl)
-target_link_libraries(lua-https PRIVATE PkgConfig::lua51 PkgConfig::libcurl)
-
 
 add_library(love_physfs
     libraries/physfs/physfs.c
@@ -373,13 +338,12 @@ endif()
 
 # link everything else
 target_link_libraries(${PROJECT_NAME} PRIVATE
-    ${APP_LIBS} z luabit lua53 ogg modplug lua-https luasocket
+    ${APP_LIBS} z luabit lua53 ogg modplug https PkgConfig::libcurl luasocket
 )
-
-
 
 include_directories(
     include
+    platform
     libraries/dr
     libraries/lua53
     libraries/noise1234
@@ -392,127 +356,127 @@ include_directories(
 
 # find source -type f -name \*.cpp | clip
 target_sources(${PROJECT_NAME} PRIVATE
-source/main.cpp
-source/common/b64.cpp
-source/common/Data.cpp
-source/common/float.cpp
-source/common/luax.cpp
-source/common/Matrix.cpp
-source/common/Message.cpp
-source/common/Module.cpp
-source/common/Object.cpp
-source/common/pixelformat.cpp
-source/common/Reference.cpp
-source/common/screen.cpp
-source/common/Stream.cpp
-source/common/types.cpp
-source/common/Variant.cpp
-source/utility/guid.cpp
-source/modules/audio/Audio.cpp
-source/modules/audio/Pool.cpp
-source/modules/audio/Source.cpp
-source/modules/audio/wrap_Audio.cpp
-source/modules/audio/wrap_Source.cpp
-source/modules/data/ByteData.cpp
-source/modules/data/CompressedData.cpp
-source/modules/data/DataModule.cpp
-source/modules/data/DataStream.cpp
-source/modules/data/DataView.cpp
-source/modules/data/wrap_ByteData.cpp
-source/modules/data/wrap_CompressedData.cpp
-source/modules/data/wrap_Data.cpp
-source/modules/data/wrap_DataModule.cpp
-source/modules/data/wrap_DataView.cpp
-source/modules/event/Event.cpp
-source/modules/event/wrap_Event.cpp
-source/modules/filesystem/FileData.cpp
-source/modules/filesystem/File.cpp
-source/modules/filesystem/Filesystem.cpp
-source/modules/filesystem/NativeFile.cpp
-source/modules/filesystem/physfs/PhysfsIO.cpp
-source/modules/filesystem/wrap_File.cpp
-source/modules/filesystem/wrap_FileData.cpp
-source/modules/filesystem/wrap_Filesystem.cpp
-source/modules/filesystem/wrap_NativeFile.cpp
-source/modules/font/Font.cpp
-source/modules/font/GlyphData.cpp
-source/modules/font/Rasterizer.cpp
-source/modules/font/TextShaper.cpp
-source/modules/font/GenericShaper.cpp
-source/modules/font/wrap_Font.cpp
-source/modules/font/wrap_Rasterizer.cpp
-source/modules/font/wrap_GlyphData.cpp
-source/modules/graphics/ShaderStage.cpp
-source/modules/graphics/DrawCommand.cpp
-source/modules/graphics/Graphics.cpp
-source/modules/graphics/FontBase.cpp
-source/modules/graphics/Polyline.cpp
-source/modules/graphics/TextBatch.cpp
-source/modules/graphics/renderstate.cpp
-source/modules/graphics/samplerstate.cpp
-source/modules/graphics/Shader.cpp
-source/modules/graphics/SpriteBatch.cpp
-source/modules/graphics/wrap_SpriteBatch.cpp
-source/modules/graphics/Quad.cpp
-source/modules/graphics/Volatile.cpp
-source/modules/graphics/vertex.cpp
-source/modules/graphics/wrap_Graphics.cpp
-source/modules/graphics/wrap_Texture.cpp
-source/modules/graphics/wrap_TextBatch.cpp
-source/modules/graphics/wrap_Font.cpp
-source/modules/graphics/wrap_Quad.cpp
-source/modules/graphics/Texture.cpp
-source/modules/image/CompressedImageData.cpp
-source/modules/image/CompressedSlice.cpp
-source/modules/image/FormatHandler.cpp
-source/modules/image/Image.cpp
-source/modules/image/ImageData.cpp
-source/modules/image/ImageDataBase.cpp
-source/modules/image/wrap_CompressedImageData.cpp
-source/modules/image/wrap_Image.cpp
-source/modules/image/wrap_ImageData.cpp
-source/modules/joystick/JoystickModule.cpp
-source/modules/joystick/wrap_Joystick.cpp
-source/modules/joystick/wrap_JoystickModule.cpp
-source/modules/keyboard/wrap_Keyboard.cpp
-source/modules/love/love.cpp
-source/modules/math/BezierCurve.cpp
-source/modules/math/MathModule.cpp
-source/modules/math/RandomGenerator.cpp
-source/modules/math/Transform.cpp
-source/modules/math/wrap_BezierCurve.cpp
-source/modules/math/wrap_MathModule.cpp
-source/modules/math/wrap_RandomGenerator.cpp
-source/modules/math/wrap_Transform.cpp
-source/modules/sensor/Sensor.cpp
-source/modules/sensor/wrap_Sensor.cpp
-source/modules/sound/Decoder.cpp
-source/modules/sound/Sound.cpp
-source/modules/sound/SoundData.cpp
-source/modules/sound/wrap_Decoder.cpp
-source/modules/sound/wrap_Sound.cpp
-source/modules/sound/wrap_SoundData.cpp
-source/modules/system/wrap_System.cpp
-source/modules/thread/Channel.cpp
-source/modules/thread/LuaThread.cpp
-source/modules/thread/Thread.cpp
-source/modules/thread/Threadable.cpp
-source/modules/thread/ThreadModule.cpp
-source/modules/thread/wrap_Channel.cpp
-source/modules/thread/wrap_LuaThread.cpp
-source/modules/thread/wrap_Thread.cpp
-source/modules/timer/wrap_Timer.cpp
-source/modules/touch/Touch.cpp
-source/modules/touch/wrap_Touch.cpp
-source/modules/window/wrap_Window.cpp
-source/modules/window/Window.cpp
-source/modules/data/misc/Compressor.cpp
-source/modules/data/misc/HashFunction.cpp
-source/modules/filesystem/physfs/File.cpp
-source/modules/filesystem/physfs/Filesystem.cpp
-source/modules/sound/lullaby/FLACDecoder.cpp
-source/modules/sound/lullaby/ModPlugDecoder.cpp
-source/modules/sound/lullaby/MP3Decoder.cpp
-source/modules/sound/lullaby/VorbisDecoder.cpp
-source/modules/sound/lullaby/WaveDecoder.cpp
+    source/main.cpp
+    source/common/b64.cpp
+    source/common/Data.cpp
+    source/common/float.cpp
+    source/common/luax.cpp
+    source/common/Matrix.cpp
+    source/common/Message.cpp
+    source/common/Module.cpp
+    source/common/Object.cpp
+    source/common/pixelformat.cpp
+    source/common/Reference.cpp
+    source/common/screen.cpp
+    source/common/Stream.cpp
+    source/common/types.cpp
+    source/common/Variant.cpp
+    source/utility/guid.cpp
+    source/modules/audio/Audio.cpp
+    source/modules/audio/Pool.cpp
+    source/modules/audio/Source.cpp
+    source/modules/audio/wrap_Audio.cpp
+    source/modules/audio/wrap_Source.cpp
+    source/modules/data/ByteData.cpp
+    source/modules/data/CompressedData.cpp
+    source/modules/data/DataModule.cpp
+    source/modules/data/DataStream.cpp
+    source/modules/data/DataView.cpp
+    source/modules/data/wrap_ByteData.cpp
+    source/modules/data/wrap_CompressedData.cpp
+    source/modules/data/wrap_Data.cpp
+    source/modules/data/wrap_DataModule.cpp
+    source/modules/data/wrap_DataView.cpp
+    source/modules/event/Event.cpp
+    source/modules/event/wrap_Event.cpp
+    source/modules/filesystem/FileData.cpp
+    source/modules/filesystem/File.cpp
+    source/modules/filesystem/Filesystem.cpp
+    source/modules/filesystem/NativeFile.cpp
+    source/modules/filesystem/physfs/PhysfsIO.cpp
+    source/modules/filesystem/wrap_File.cpp
+    source/modules/filesystem/wrap_FileData.cpp
+    source/modules/filesystem/wrap_Filesystem.cpp
+    source/modules/filesystem/wrap_NativeFile.cpp
+    source/modules/font/Font.cpp
+    source/modules/font/GlyphData.cpp
+    source/modules/font/Rasterizer.cpp
+    source/modules/font/TextShaper.cpp
+    source/modules/font/GenericShaper.cpp
+    source/modules/font/wrap_Font.cpp
+    source/modules/font/wrap_Rasterizer.cpp
+    source/modules/font/wrap_GlyphData.cpp
+    source/modules/graphics/ShaderStage.cpp
+    source/modules/graphics/DrawCommand.cpp
+    source/modules/graphics/Graphics.cpp
+    source/modules/graphics/FontBase.cpp
+    source/modules/graphics/Polyline.cpp
+    source/modules/graphics/TextBatch.cpp
+    source/modules/graphics/renderstate.cpp
+    source/modules/graphics/samplerstate.cpp
+    source/modules/graphics/Shader.cpp
+    source/modules/graphics/SpriteBatch.cpp
+    source/modules/graphics/wrap_SpriteBatch.cpp
+    source/modules/graphics/Quad.cpp
+    source/modules/graphics/Volatile.cpp
+    source/modules/graphics/vertex.cpp
+    source/modules/graphics/wrap_Graphics.cpp
+    source/modules/graphics/wrap_Texture.cpp
+    source/modules/graphics/wrap_TextBatch.cpp
+    source/modules/graphics/wrap_Font.cpp
+    source/modules/graphics/wrap_Quad.cpp
+    source/modules/graphics/Texture.cpp
+    source/modules/image/CompressedImageData.cpp
+    source/modules/image/CompressedSlice.cpp
+    source/modules/image/FormatHandler.cpp
+    source/modules/image/Image.cpp
+    source/modules/image/ImageData.cpp
+    source/modules/image/ImageDataBase.cpp
+    source/modules/image/wrap_CompressedImageData.cpp
+    source/modules/image/wrap_Image.cpp
+    source/modules/image/wrap_ImageData.cpp
+    source/modules/joystick/JoystickModule.cpp
+    source/modules/joystick/wrap_Joystick.cpp
+    source/modules/joystick/wrap_JoystickModule.cpp
+    source/modules/keyboard/wrap_Keyboard.cpp
+    source/modules/love/love.cpp
+    source/modules/math/BezierCurve.cpp
+    source/modules/math/MathModule.cpp
+    source/modules/math/RandomGenerator.cpp
+    source/modules/math/Transform.cpp
+    source/modules/math/wrap_BezierCurve.cpp
+    source/modules/math/wrap_MathModule.cpp
+    source/modules/math/wrap_RandomGenerator.cpp
+    source/modules/math/wrap_Transform.cpp
+    source/modules/sensor/Sensor.cpp
+    source/modules/sensor/wrap_Sensor.cpp
+    source/modules/sound/Decoder.cpp
+    source/modules/sound/Sound.cpp
+    source/modules/sound/SoundData.cpp
+    source/modules/sound/wrap_Decoder.cpp
+    source/modules/sound/wrap_Sound.cpp
+    source/modules/sound/wrap_SoundData.cpp
+    source/modules/system/wrap_System.cpp
+    source/modules/thread/Channel.cpp
+    source/modules/thread/LuaThread.cpp
+    source/modules/thread/Thread.cpp
+    source/modules/thread/Threadable.cpp
+    source/modules/thread/ThreadModule.cpp
+    source/modules/thread/wrap_Channel.cpp
+    source/modules/thread/wrap_LuaThread.cpp
+    source/modules/thread/wrap_Thread.cpp
+    source/modules/timer/wrap_Timer.cpp
+    source/modules/touch/Touch.cpp
+    source/modules/touch/wrap_Touch.cpp
+    source/modules/window/wrap_Window.cpp
+    source/modules/window/Window.cpp
+    source/modules/data/misc/Compressor.cpp
+    source/modules/data/misc/HashFunction.cpp
+    source/modules/filesystem/physfs/File.cpp
+    source/modules/filesystem/physfs/Filesystem.cpp
+    source/modules/sound/lullaby/FLACDecoder.cpp
+    source/modules/sound/lullaby/ModPlugDecoder.cpp
+    source/modules/sound/lullaby/MP3Decoder.cpp
+    source/modules/sound/lullaby/VorbisDecoder.cpp
+    source/modules/sound/lullaby/WaveDecoder.cpp
 )

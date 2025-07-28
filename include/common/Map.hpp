@@ -26,7 +26,7 @@ class MapT
     using Entry = std::pair<K, V>;
 
   private:
-    std::array<Entry, N> items;
+    const std::array<Entry, N> items;
 
     template<typename Search, typename Projection>
     constexpr auto find(const Search& search, Projection projection) const
@@ -35,9 +35,6 @@ class MapT
     }
 
   public:
-    using KeyType   = std::conditional_t<std::is_same_v<K, std::string_view>, std::string, K>;
-    using ValueType = V;
-
     MapT() = delete;
 
     MapT(MapT&&) = delete;
@@ -48,14 +45,16 @@ class MapT
      * @param items The items to initialize the map with
      * @brief Construct a map with the given items
      */
-    constexpr MapT(const std::array<Entry, N>& items) : items(items)
+    constexpr MapT(const std::array<Entry, N>& items) : items(std::move(items))
     {}
 
     constexpr MapT(const std::array<std::pair<const char*, V>, N>& items)
     {
+        // clang-format off
         std::ranges::transform(items, this->items.begin(), [](const auto& item) {
-            return std::pair(std::string_view(item.first), item.second);
+            return Entry { item.first, item.second };
         });
+        // clang-format on
     }
 
     constexpr size_t size() const
@@ -109,7 +108,7 @@ class MapT
      */
     constexpr std::string expected(std::string_view type, std::string_view value) const
     {
-        auto concat = [](std::string&& a, const Entry& b) -> std::string& {
+        constexpr auto concat = [](std::string&& a, const Entry& b) -> std::string& {
             return a.empty() ? a.append(b.first) : a.append(", ").append(b.first);
         };
 

@@ -4,6 +4,13 @@ using namespace love;
 
 #define instance() Module::getInstance<System>(Module::M_SYSTEM)
 
+int Wrap_System::getOS(lua_State* L)
+{
+    luax_pushstring(L, System::getOS());
+
+    return 1;
+}
+
 int Wrap_System::getProcessorCount(lua_State* L)
 {
     lua_pushinteger(L, instance()->getProcessorCount());
@@ -23,8 +30,16 @@ int Wrap_System::getPowerInfo(lua_State* L)
         state = "unknown";
 
     luax_pushstring(L, state);
-    lua_pushinteger(L, percent);
-    lua_pushnil(L);
+
+    if (percent >= 0)
+        lua_pushinteger(L, percent);
+    else
+        lua_pushnil(L);
+
+    if (seconds >= 0)
+        lua_pushinteger(L, seconds);
+    else
+        lua_pushnil(L);
 
     return 3;
 }
@@ -75,17 +90,9 @@ int Wrap_System::getPreferredLocales(lua_State* L)
     return 1;
 }
 
-int Wrap_System::getOS(lua_State* L)
-{
-    luax_pushstring(L, instance()->getOS());
-
-    return 1;
-}
-
 int Wrap_System::getNetworkInfo(lua_State* L)
 {
-    uint8_t signal = 0;
-
+    int32_t signal    = 0;
     auto networkState = instance()->getNetworkInfo(signal);
 
     std::string_view state {};
@@ -93,30 +100,74 @@ int Wrap_System::getNetworkInfo(lua_State* L)
         state = "unknown";
 
     luax_pushstring(L, state);
-    lua_pushinteger(L, signal);
+
+    if (signal >= 0)
+        lua_pushinteger(L, signal);
+    else
+        lua_pushnil(L);
 
     return 2;
 }
 
-int Wrap_System::getProductInfo(lua_State* L)
+int Wrap_System::getInfo(lua_State* L)
 {
-    auto info = instance()->getProductInfo();
+    System::ProductInfo info {};
 
-    luax_pushstring(L, info.model);
-    luax_pushstring(L, info.version);
-    luax_pushstring(L, info.region);
+    if (instance()->getInfo(info))
+    {
+        if (lua_istable(L, 1))
+            lua_pushvalue(L, 1);
+        else
+            lua_createtable(L, 0, 3);
 
-    return 3;
+        luax_pushstring(L, info.version);
+        lua_setfield(L, -2, "version");
+
+        std::string_view model {};
+        if (!System::getConstant((SystemModel)info.model, model))
+            model = "Unknown";
+
+        luax_pushstring(L, model);
+        lua_setfield(L, -2, "model");
+
+        std::string_view region {};
+        if (!System::getConstant((SystemRegion)info.region, region))
+            region = "Unknown";
+
+        luax_pushstring(L, region);
+        lua_setfield(L, -2, "region");
+    }
+    else
+        lua_pushnil(L);
+
+    return 1;
 }
 
 int Wrap_System::getFriendInfo(lua_State* L)
 {
-    auto info = instance()->getFriendInfo();
+    System::FriendInfo info {};
 
-    luax_pushstring(L, info.username);
-    luax_pushstring(L, info.friendCode);
+    if (instance()->getFriendInfo(info))
+    {
+        if (lua_istable(L, 1))
+            lua_pushvalue(L, 1);
+        else
+            lua_createtable(L, 0, 2);
 
-    return 2;
+        luax_pushstring(L, info.username);
+        lua_setfield(L, -2, "username");
+
+        if (!info.friendcode.empty())
+            luax_pushstring(L, info.friendcode);
+        else
+            lua_pushnil(L);
+
+        lua_setfield(L, -2, "friendcode");
+    }
+    else
+        lua_pushnil(L);
+
+    return 1;
 }
 
 // clang-format off
@@ -131,7 +182,7 @@ static constexpr luaL_Reg functions[] =
     { "hasBackgroundMusic",  Wrap_System::hasBackgroundMusic  },
     { "getPreferredLocales", Wrap_System::getPreferredLocales },
     { "getNetworkInfo",      Wrap_System::getNetworkInfo      },
-    { "getProductInfo",      Wrap_System::getProductInfo      },
+    { "getInfo",             Wrap_System::getInfo             },
     { "getFriendInfo",       Wrap_System::getFriendInfo       },
     { "getOS",               Wrap_System::getOS               }
 };

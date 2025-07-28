@@ -29,6 +29,10 @@ extern "C"
         USCLanguage_RU = 10,
         USCLanguage_TW = 11
     };
+
+    using SystemLanguage = USCLanguage;
+    using SystemRegion   = MCPRegion;
+    using SystemModel    = BSPHardwareVersion;
 }
 
 namespace love
@@ -40,23 +44,23 @@ namespace love
 
         virtual ~System();
 
-        int getProcessorCount() const;
+        int getProcessorCount() const override;
 
-        PowerState getPowerInfo(int& seconds, int& percent) const;
+        PowerState getPowerInfo(int& seconds, int& percent) const override;
 
-        std::vector<std::string> getPreferredLocales() const;
+        NetworkState getNetworkInfo(int32_t& signal) const override;
 
-        NetworkState getNetworkInfo(uint8_t& signal) const;
+        bool getFriendInfo(FriendInfo& info) const override;
 
-        FriendInfo getFriendInfo() const;
+        bool getInfo(ProductInfo& info) const override;
 
-        ProductInfo getProductInfo() const;
+        std::vector<std::string> getPreferredLocales() const override;
 
         using SystemBase::getConstant;
 
         // clang-format off
         STRINGMAP_DECLARE(SystemModels, BSPHardwareVersion,
-            { "lattea11ev",   BSP_HARDWARE_VERSION_LATTE_A11_EV   } ,
+            { "basic",   BSP_HARDWARE_VERSION_LATTE_A11_EV   } ,
             { "lattea11cat",  BSP_HARDWARE_VERSION_LATTE_A11_CAT  } ,
             { "lattea12ev",   BSP_HARDWARE_VERSION_LATTE_A12_EV   } ,
             { "lattea12cat",  BSP_HARDWARE_VERSION_LATTE_A12_CAT  } ,

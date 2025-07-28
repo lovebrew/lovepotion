@@ -8,7 +8,7 @@ namespace love
         auto luaCallback = (KeyboardBase::KeyboardValidationInfo*)udata;
         auto result      = luaCallback->callback(luaCallback, text, msg);
 
-        SwkbdCallbackResult out;
+        SwkbdCallbackResult out = SWKBD_CALLBACK_OK;
         if (!Keyboard::getConstant(result, out))
             throw love::Exception("Invalid swkbd result: {:d}", (int)out);
 

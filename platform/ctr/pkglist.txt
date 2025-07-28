@@ -2,10 +2,8 @@
 3ds-curl
 3ds-flac
 3ds-libconfig
-3ds-libjpeg-turbo
 3ds-libmodplug
 3ds-libogg
-3ds-libpng
 3ds-libtheora
 3ds-libvorbisidec
 3ds-liblua51

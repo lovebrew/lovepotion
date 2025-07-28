@@ -6,20 +6,24 @@
 
 namespace love
 {
+    using SystemLanguage = CFG_Language;
+    using SystemRegion   = CFG_Region;
+    using SystemModel    = CFG_SystemModel;
+
     class System : public SystemBase
     {
       public:
-        int getProcessorCount() const;
+        int getProcessorCount() const override;
 
-        PowerState getPowerInfo(int& seconds, int& percent) const;
+        PowerState getPowerInfo(int& seconds, int& percent) const override;
 
-        NetworkState getNetworkInfo(uint8_t& signal) const;
+        NetworkState getNetworkInfo(int32_t& signal) const override;
 
-        FriendInfo getFriendInfo() const;
+        bool getFriendInfo(FriendInfo& info) const override;
 
-        ProductInfo getProductInfo() const;
+        bool getInfo(ProductInfo& info) const override;
 
-        std::vector<std::string> getPreferredLocales() const;
+        std::vector<std::string> getPreferredLocales() const override;
 
         int getPlayCoins() const;
 

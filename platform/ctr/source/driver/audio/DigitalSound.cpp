@@ -17,13 +17,13 @@ namespace love
 
     void DigitalSound::initialize()
     {
-        const auto result = Result(ndspInit());
+        const auto result = ResultCode(ndspInit());
 
-        if (result == DSP_FIRM_MISSING_ERROR_CODE)
+        if (result == ResultCode::DSP_FIRM_MISSING)
             throw love::Exception(E_AUDIO_NOT_INITIALIZED " (dspfirm.cdc not found)");
 
-        if (result.failed())
-            throw love::Exception(E_AUDIO_NOT_INITIALIZED ": {:x}", result.get());
+        if (!result)
+            throw love::Exception(E_AUDIO_NOT_INITIALIZED ": {:x}", result.value());
 
         LightEvent_Init(&this->event, RESET_ONESHOT);
         ndspSetCallback(audioCallback, &this->event);

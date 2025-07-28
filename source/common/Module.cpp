@@ -29,8 +29,8 @@ namespace
     }
 } // namespace
 
-#define W_MODULE_OVERRIDE   "Warning: overwriting module instance {:s} with new instance {:s}\n"
-#define W_MODULE_REGISTERED "Module '{:s}' already registered!"
+#define W_MODULE_OVERRIDE   "Warning: overwriting module instance %s with new instance %s\n"
+#define W_MODULE_REGISTERED "Module '%s' already registered!"
 
 namespace love
 {

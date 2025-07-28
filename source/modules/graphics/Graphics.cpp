@@ -90,7 +90,7 @@ namespace love
     bool GraphicsBase::isActive() const
     {
         auto* window = Module::getInstance<WindowBase>(M_WINDOW);
-        return this->active && this->created && window != nullptr && window->isOpen();
+        return this->active && this->isCreated() && window != nullptr && window->isOpen();
     }
 
     void GraphicsBase::restoreState(const DisplayState& state)

@@ -136,7 +136,7 @@ int Wrap_Channel::performAtomic(lua_State* L)
         ** (aka std::unique_lock lock (self->getMutex());
         ** this is also known as a skill issue
         */
-        std::unique_lock { self->getMutex() };
+        std::unique_lock lock { self->getMutex() };
 
         argc  = lua_gettop(L) - 2;
         error = lua_pcall(L, argc, LUA_MULTRET, 0);
