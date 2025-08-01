@@ -35,3 +35,4 @@ test
 
 *.zip
 debug.py
+.vscode/c_cpp_properties.json
