@@ -26,7 +26,9 @@ constexpr BidirectionalMap axes = {
     Joystick<>::GAMEPAD_AXIS_LEFTX,  KEY_CPAD_LEFT   | KEY_CPAD_RIGHT,
     Joystick<>::GAMEPAD_AXIS_LEFTY,  KEY_CPAD_UP     | KEY_CPAD_DOWN,
     Joystick<>::GAMEPAD_AXIS_RIGHTX, KEY_CSTICK_LEFT | KEY_CSTICK_RIGHT,
-    Joystick<>::GAMEPAD_AXIS_RIGHTY, KEY_CSTICK_UP   | KEY_CSTICK_DOWN
+    Joystick<>::GAMEPAD_AXIS_RIGHTY, KEY_CSTICK_UP   | KEY_CSTICK_DOWN,
+    Joystick<>::GAMEPAD_AXIS_TRIGGERLEFT, KEY_ZL,
+    Joystick<>::GAMEPAD_AXIS_TRIGGERRIGHT, KEY_ZR
 };
 // clang-format on
 
