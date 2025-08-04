@@ -531,7 +531,7 @@ namespace love
 
                 Variant::SharedTable* table = new Variant::SharedTable();
 
-                size_t len = luax_objlen(L, -1);
+                size_t len = luax_objlen(L, index);
                 if (len > 0)
                     table->pairs.reserve(len);
 

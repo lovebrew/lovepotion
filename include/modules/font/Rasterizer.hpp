@@ -114,8 +114,8 @@ namespace love
         // clang-format on
 
       protected:
-        FontMetrics metrics;
-        float dpiScale;
+        FontMetrics metrics = {};
+        float dpiScale      = 1.0f;
 
         StrongRef<Data> data;
         int size;
