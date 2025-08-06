@@ -33,7 +33,6 @@ namespace love
 
         ~TempTransform()
         {
-            printf("[TempTransform::~TempTransform] Popping tempTransform\n");
             this->graphics->PopTransform();
         }
 
