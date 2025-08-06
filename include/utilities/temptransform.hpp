@@ -1,5 +1,4 @@
 #pragma once
-
 #include <modules/graphics_ext.hpp>
 
 namespace love
@@ -15,7 +14,6 @@ namespace love
         TempTransform(Graphics<Console::Which>& graphics, const Matrix4& transform) :
             TempTransform(graphics)
         {
-            this->graphics->PushTransform();
             this->graphics->InternalScale(transform);
         }
 
