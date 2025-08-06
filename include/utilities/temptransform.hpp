@@ -1,5 +1,4 @@
 #pragma once
-#include <stdio.h>
 #include <modules/graphics_ext.hpp>
 
 namespace love
