@@ -931,7 +931,6 @@ namespace love
     }
 
     GraphicsBase::RendererInfo GraphicsBase::getRendererInfo() const
-
     {
         RendererInfo info {};
         info.name    = __RENDERER_NAME__;

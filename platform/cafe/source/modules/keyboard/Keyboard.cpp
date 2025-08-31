@@ -6,12 +6,7 @@ using namespace nn::swkbd;
 
 namespace love
 {
-    Keyboard::Keyboard() :
-        KeyboardBase(),
-        createArgs {},
-        appearArgs {},
-        client(nullptr),
-        inited(false)
+    Keyboard::Keyboard() : KeyboardBase(), createArgs {}, appearArgs {}, client(nullptr), inited(false)
     {}
 
     Keyboard::~Keyboard()
@@ -33,8 +28,8 @@ namespace love
         if (!this->client)
             throw love::Exception("Failed to allocate FSClient for nn::swkbd!");
 
-        if (auto result = Result(FSAddClient(this->client, FS_ERROR_FLAG_ALL)); !result)
-            throw love::Exception("FSAddClient: %x", result.get());
+        if (auto result = ResultCode(FSAddClient(this->client, FS_ERROR_FLAG_ALL)); !result)
+            throw love::Exception("FSAddClient: %x", result.value());
 
         this->createArgs.regionType = nn::swkbd::RegionType::USA;
         this->createArgs.workMemory = MEMAllocFromDefaultHeap(nn::swkbd::GetWorkMemorySize(0));

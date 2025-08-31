@@ -30,7 +30,6 @@
 
 namespace love
 {
-
     uint32_t Console::mainCoreId = 0;
     bool Console::mainCoreIdSet  = false;
 

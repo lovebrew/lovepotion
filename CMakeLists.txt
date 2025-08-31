@@ -1,15 +1,34 @@
 cmake_minimum_required(VERSION 3.13)
+
 project(lovepotion
     LANGUAGES C CXX
     VERSION 3.1.0
+    DESCRIPTION "LÖVE For Nintendo Homebrew"
 )
 
 add_executable(${PROJECT_NAME})
 dkp_target_generate_symbol_list(${PROJECT_NAME})
 
-target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_23)
+include(FetchContent)
+find_package(Git QUIET REQUIRED)
+find_package(Patch REQUIRED)
+find_package(PkgConfig REQUIRED)
 
-find_package(Git QUIET)
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_23)
+target_compile_options(${PROJECT_NAME} PRIVATE
+    -Wall -Wno-psabi -Wextra
+    $<$<CONFIG:Debug>:-Og>
+    $<$<CONFIG:Release>:-O2>
+    $<$<COMPILE_LANGUAGE:CXX>:-fexceptions -fno-rtti>
+)
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    __APP_VERSION__="${PROJECT_VERSION}" __LOVE_VERSION__="12.0"
+    $<$<CONFIG:Debug>:__DEBUG__=1>
+)
+
+set(APP_TITLE "LÖVE Potion")
+string(APPEND ${APP_TITLE} $<$<CONFIG:Debug>:" (${COMMIT_HASH})">)
+
 if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
     execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
         WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
@@ -18,104 +37,26 @@ if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
 endif()
-include(FetchContent)
 
-set(LOVE_VERSION "12.0")
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-target_compile_definitions(${PROJECT_NAME} PRIVATE
-    __APP_VERSION__=\"${APP_VERSION}\" __LOVE_VERSION__=\"${LOVE_VERSION}\"
-)
-
-set(APP_TITLE  "LÖVE Potion")
-set(APP_AUTHOR "LÖVEBrew Team")
-
-file(COPY libraries/luasocket DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(APP_TITLE "LÖVE Potion (${COMMIT_HASH})")
-    target_compile_definitions(${PROJECT_NAME} PRIVATE __DEBUG__=1)
-else()
-    target_compile_definitions(${PROJECT_NAME} PRIVATE __DEBUG__=0)
-endif()
-
-set(COMPILE_OPTIMIZATION -O2)
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(COMPILE_OPTIMIZATION -Og)
-endif()
-
-message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
-message(STATUS "COMPILE_OPTIMIZATION: ${COMPILE_OPTIMIZATION}")
-
-target_compile_options(${PROJECT_NAME} PRIVATE
-    -Wall -Wno-psabi -Wextra ${COMPILE_OPTIMIZATION}
-    $<$<COMPILE_LANGUAGE:CXX>:-fexceptions -fno-rtti>
-)
-
-# set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(LUASOCKET_COPY_DIR ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY libraries/luasocket DESTINATION ${LUASOCKET_COPY_DIR})
 
 if(NINTENDO_3DS)
     add_subdirectory(platform/ctr)
 
-    target_compile_definitions(${PROJECT_NAME} PRIVATE
-        __CONSOLE__="3ds" __OS__="horizon"
-        __RENDERER_NAME__="citro3d" __RENDERER_VERSION__="1.7.0"
-        __RENDERER_VENDOR__="devkitPro" __RENDERER_DEVICE__="DMP PICA200"
-    )
-
-    set(APP_ICON platform/ctr/icon.png)
-    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-        set(APP_ICON platform/ctr/icon-dev.png)
-    endif()
-
-    ctr_generate_smdh(${PROJECT_NAME}.smdh
-        NAME        "${APP_TITLE}"
-        DESCRIPTION "LÖVE for 3DS • ${PROJECT_VERSION}"
-        AUTHOR      "${APP_AUTHOR}"
-        ICON        ${APP_ICON}
-    )
-
-    ctr_create_3dsx(${PROJECT_NAME}
-        SMDH  ${PROJECT_NAME}.smdh
-        ROMFS ${PROJECT_NAME}_ctr_romfs
-    )
-
-    set(APP_LIBS citro3d)
-
     target_sources(${PROJECT_NAME} PRIVATE
         source/modules/image/magpie/T3XHandler.cpp
     )
-
-    execute_process(COMMAND patch -d ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket -N -i ${PROJECT_SOURCE_DIR}/platform/ctr/libraries/luasocket.patch)
 endif()
 
-if (NINTENDO_SWITCH)
-    add_subdirectory(platform/hac)
-
-    target_compile_definitions(${PROJECT_NAME} PRIVATE
-        __CONSOLE__="switch" __OS__="horizon"
-        __RENDERER_NAME__="deko3d" __RENDERER_VERSION__="0.5.0"
-        __RENDERER_VENDOR__="devkitPro" __RENDERER_DEVICE__="NVIDIA Tegra X1"
-    )
-
-    set(APP_ICON platform/hac/icon.jpg)
-    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-        set(APP_ICON platform/hac/icon-dev.jpg)
-        target_link_libraries(${PROJECT_NAME} PRIVATE deko3dd)
+if (NINTENDO_SWITCH OR NINTENDO_WIIU)
+    if (NINTENDO_SWITCH)
+        add_subdirectory(platform/hac)
     else()
-        target_link_libraries(${PROJECT_NAME} PRIVATE deko3d)
+        add_subdirectory(platform/cafe)
     endif()
-
-    nx_generate_nacp(${PROJECT_NAME}.nacp
-        NAME    "${APP_TITLE}"
-        AUTHOR  ${APP_AUTHOR}
-        VERSION ${PROJECT_VERSION}
-    )
-
-    nx_create_nro(${PROJECT_NAME}
-        ICON  ${APP_ICON}
-        NACP  ${PROJECT_NAME}.nacp
-        ROMFS ${PROJECT_NAME}_hac_romfs
-    )
 
     target_sources(${PROJECT_NAME} PRIVATE
         source/modules/image/magpie/ASTCHandler.cpp
@@ -134,69 +75,10 @@ if (NINTENDO_SWITCH)
         libraries/ddsparse/ddsparse.h
         libraries/ddsparse/ddsinfo.h
     )
-
-    find_package(Freetype REQUIRED)
-    target_link_libraries(${PROJECT_NAME} PRIVATE Freetype::Freetype bz2 png turbojpeg ddsparse)
-
-    execute_process(COMMAND patch -d ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket -N -i ${PROJECT_SOURCE_DIR}/platform/hac/libraries/luasocket.patch)
 endif()
-
-if (NINTENDO_WIIU)
-    add_subdirectory(platform/cafe)
-
-    target_compile_definitions(${PROJECT_NAME} PRIVATE
-        __CONSOLE__="wiiu" __OS__="cafe" LOVE_BIG_ENDIAN
-        __RENDERER_NAME__="GX2" __RENDERER_VERSION__="1.0.0"
-        __RENDERER_VENDOR__="AMD" __RENDERER_DEVICE__="GPU7"
-    )
-
-    set(APP_ICON platform/cafe/icon.png)
-    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-        set(APP_ICON platform/cafe/icon-dev.png)
-    endif()
-
-    wut_create_rpx(${PROJECT_NAME})
-
-    wut_create_wuhb(${PROJECT_NAME}
-        NAME       "${APP_TITLE}"
-        CONTENT    ${PROJECT_NAME}_cafe_content
-        SHORTNAME  "${APP_TITLE}"
-        AUTHOR     ${APP_AUTHOR}
-        ICON       ${APP_ICON}
-    )
-
-    target_sources(${PROJECT_NAME} PRIVATE
-        source/modules/image/magpie/ASTCHandler.cpp
-        source/modules/image/magpie/ddsHandler.cpp
-        source/modules/image/magpie/JPGHandler.cpp
-        source/modules/image/magpie/KTXHandler.cpp
-        source/modules/image/magpie/PKMHandler.cpp
-        source/modules/image/magpie/PNGHandler.cpp
-        source/modules/font/freetype/Font.cpp
-        source/modules/font/freetype/TrueTypeRasterizer.cpp
-        source/modules/graphics/freetype/Font.cpp
-    )
-
-    add_library(ddsparse
-        libraries/ddsparse/ddsparse.cpp
-        libraries/ddsparse/ddsparse.h
-        libraries/ddsparse/ddsinfo.h
-    )
-
-    find_package(Freetype REQUIRED)
-    target_link_libraries(${PROJECT_NAME} PRIVATE Freetype::Freetype bz2 png turbojpeg ddsparse)
-
-    execute_process(COMMAND patch -d ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket -N -i ${PROJECT_SOURCE_DIR}/platform/cafe/libraries/luasocket.patch)
-endif()
-
-find_package(PkgConfig REQUIRED)
 
 pkg_check_modules(liblz4 REQUIRED IMPORTED_TARGET liblz4)
-target_link_libraries(${PROJECT_NAME} PRIVATE PkgConfig::liblz4)
-
-# lua5.1
 pkg_check_modules(lua51 REQUIRED IMPORTED_TARGET lua51)
-target_link_libraries(${PROJECT_NAME} PRIVATE PkgConfig::lua51)
 
 # lua51
 add_library(luabit
@@ -215,40 +97,40 @@ add_library(lua53
 target_link_libraries(lua53 PRIVATE PkgConfig::lua51)
 
 add_library(luasocket
-     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/luasocket.hpp
-     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/luasocket.cpp
-     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/auxiliar.c
-     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/auxiliar.h
-     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/buffer.c
-     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/buffer.h
-     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/compat.c
-     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/compat.h
-     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/except.c
-     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/except.h
-     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/inet.c
-     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/inet.h
-     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/io.c
-     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/io.h
-     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/ltn12.lua
-     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/luasocket.c
-     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/luasocket.h
-     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/mime.c
-     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/mime.h
-     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/options.c
-     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/options.h
-     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/pierror.h
-     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/select.c
-     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/select.h
-     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/smtp.lua
-     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/socket.h
-     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/tcp.c
-     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/tcp.h
-     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/timeout.c
-     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/timeout.h
-     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/udp.c
-     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/udp.h
-     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/usocket.c
-     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/usocket.h
+     ${LUASOCKET_COPY_DIR}/luasocket/luasocket.hpp
+     ${LUASOCKET_COPY_DIR}/luasocket/luasocket.cpp
+     ${LUASOCKET_COPY_DIR}/luasocket/libluasocket/auxiliar.c
+     ${LUASOCKET_COPY_DIR}/luasocket/libluasocket/auxiliar.h
+     ${LUASOCKET_COPY_DIR}/luasocket/libluasocket/buffer.c
+     ${LUASOCKET_COPY_DIR}/luasocket/libluasocket/buffer.h
+     ${LUASOCKET_COPY_DIR}/luasocket/libluasocket/compat.c
+     ${LUASOCKET_COPY_DIR}/luasocket/libluasocket/compat.h
+     ${LUASOCKET_COPY_DIR}/luasocket/libluasocket/except.c
+     ${LUASOCKET_COPY_DIR}/luasocket/libluasocket/except.h
+     ${LUASOCKET_COPY_DIR}/luasocket/libluasocket/inet.c
+     ${LUASOCKET_COPY_DIR}/luasocket/libluasocket/inet.h
+     ${LUASOCKET_COPY_DIR}/luasocket/libluasocket/io.c
+     ${LUASOCKET_COPY_DIR}/luasocket/libluasocket/io.h
+     ${LUASOCKET_COPY_DIR}/luasocket/libluasocket/ltn12.lua
+     ${LUASOCKET_COPY_DIR}/luasocket/libluasocket/luasocket.c
+     ${LUASOCKET_COPY_DIR}/luasocket/libluasocket/luasocket.h
+     ${LUASOCKET_COPY_DIR}/luasocket/libluasocket/mime.c
+     ${LUASOCKET_COPY_DIR}/luasocket/libluasocket/mime.h
+     ${LUASOCKET_COPY_DIR}/luasocket/libluasocket/options.c
+     ${LUASOCKET_COPY_DIR}/luasocket/libluasocket/options.h
+     ${LUASOCKET_COPY_DIR}/luasocket/libluasocket/pierror.h
+     ${LUASOCKET_COPY_DIR}/luasocket/libluasocket/select.c
+     ${LUASOCKET_COPY_DIR}/luasocket/libluasocket/select.h
+     ${LUASOCKET_COPY_DIR}/luasocket/libluasocket/smtp.lua
+     ${LUASOCKET_COPY_DIR}/luasocket/libluasocket/socket.h
+     ${LUASOCKET_COPY_DIR}/luasocket/libluasocket/tcp.c
+     ${LUASOCKET_COPY_DIR}/luasocket/libluasocket/tcp.h
+     ${LUASOCKET_COPY_DIR}/luasocket/libluasocket/timeout.c
+     ${LUASOCKET_COPY_DIR}/luasocket/libluasocket/timeout.h
+     ${LUASOCKET_COPY_DIR}/luasocket/libluasocket/udp.c
+     ${LUASOCKET_COPY_DIR}/luasocket/libluasocket/udp.h
+     ${LUASOCKET_COPY_DIR}/luasocket/libluasocket/usocket.c
+     ${LUASOCKET_COPY_DIR}/luasocket/libluasocket/usocket.h
 )
 target_link_libraries(luasocket PRIVATE PkgConfig::lua51)
 target_include_directories(luasocket PRIVATE
@@ -262,10 +144,9 @@ FetchContent_Declare(lua-https
 
 FetchContent_GetProperties(lua-https)
 if(NOT lua-https_POPULATED)
-    set(LIBRARY_LOADER linktime)
-    set(USE_CURL_BACKEND ON)
     FetchContent_MakeAvailable(lua-https)
 endif()
+set(USE_CURL_BACKEND ON)
 
 pkg_check_modules(libcurl REQUIRED IMPORTED_TARGET libcurl)
 
@@ -306,9 +187,7 @@ add_library(love_physfs
     libraries/physfs/physfs_platform_winrt.cpp
     libraries/physfs/physfs_unicode.c
 )
-target_link_libraries(${PROJECT_NAME} PRIVATE love_physfs)
 
-# libwuff
 add_library(wuff
     libraries/wuff/wuff.c
     libraries/wuff/wuff.h
@@ -319,29 +198,20 @@ add_library(wuff
     libraries/wuff/wuff_internal.h
     libraries/wuff/wuff_memory.c
 )
-target_link_libraries(${PROJECT_NAME} PRIVATE wuff)
 
-# noise1234
 add_library(noise1234
     libraries/noise1234/noise1234.cpp
     libraries/noise1234/noise1234.h
     libraries/noise1234/simplexnoise1234.cpp
     libraries/noise1234/simplexnoise1234.h
 )
-target_link_libraries(${PROJECT_NAME} PRIVATE noise1234)
 
-if (NINTENDO_WIIU)
-    target_link_libraries(${PROJECT_NAME} PRIVATE vorbisfile vorbis)
-else()
-    target_link_libraries(${PROJECT_NAME} PRIVATE vorbisidec)
-endif()
-
-# link everything else
 target_link_libraries(${PROJECT_NAME} PRIVATE
     ${APP_LIBS} z luabit lua53 ogg modplug https PkgConfig::libcurl luasocket
+    love_physfs wuff noise1234 PkgConfig::lua51 PkgConfig::liblz4
 )
 
-include_directories(
+target_include_directories(${PROJECT_NAME} PRIVATE
     include
     platform
     libraries/dr

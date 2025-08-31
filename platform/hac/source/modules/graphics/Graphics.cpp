@@ -375,8 +375,8 @@ namespace love
         if (!this->isCreated())
             return;
 
-        // this->flushBatchedDraws();
-        // Volatile::unloadAll();
+        this->flushBatchedDraws();
+        Volatile::unloadAll();
         this->created = false;
     }
 

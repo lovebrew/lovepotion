@@ -111,7 +111,10 @@ namespace love
             framebuffer.destroy();
 
         this->depthbuffer.destroy();
-        this->framebufferSlot = -1;
+
+        this->code.reset();
+        this->data.reset();
+        this->images.reset();
     }
 
     void deko3d::ensureInFrame()

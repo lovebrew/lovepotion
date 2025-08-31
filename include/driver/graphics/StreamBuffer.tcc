@@ -7,6 +7,8 @@
 
 #include <type_traits>
 
+#define MAX_FRAMES_IN_FLIGHT 2U
+
 namespace love
 {
     template<typename T>

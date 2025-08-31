@@ -60,7 +60,7 @@ namespace love
 
         // clang-format off
         STRINGMAP_DECLARE(SystemModels, BSPHardwareVersion,
-            { "basic",   BSP_HARDWARE_VERSION_LATTE_A11_EV   } ,
+            { "lattea11ev",   BSP_HARDWARE_VERSION_LATTE_A11_EV   } ,
             { "lattea11cat",  BSP_HARDWARE_VERSION_LATTE_A11_CAT  } ,
             { "lattea12ev",   BSP_HARDWARE_VERSION_LATTE_A12_EV   } ,
             { "lattea12cat",  BSP_HARDWARE_VERSION_LATTE_A12_CAT  } ,

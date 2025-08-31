@@ -24,11 +24,11 @@ namespace love
 
     void DigitalSound::initialize()
     {
-        if (auto result = Result(audrenInitialize(&config)); !result)
-            throw love::Exception("Failed to initialize audren: {:x}", result.get());
+        if (auto result = ResultCode(audrenInitialize(&config)); !result)
+            throw love::Exception("Failed to initialize audren: {:x}", result.value());
 
-        if (auto result = Result(audrvCreate(&this->driver, &config, 2)); !result)
-            throw love::Exception("Failed to create audio driver: {:x}", result.get());
+        if (auto result = ResultCode(audrvCreate(&this->driver, &config, 2)); !result)
+            throw love::Exception("Failed to create audio driver: {:x}", result.value());
 
         this->memory->initialize(&this->driver);
 
@@ -37,11 +37,11 @@ namespace love
         if (id == -1)
             throw love::Exception("Failed to add sink to driver!");
 
-        if (auto result = Result(audrvUpdate(&this->driver)); !result)
-            throw love::Exception("Failed to update audio driver: {:x}", result.get());
+        if (auto result = ResultCode(audrvUpdate(&this->driver)); !result)
+            throw love::Exception("Failed to update audio driver: {:x}", result.value());
 
-        if (auto result = Result(audrenStartAudioRenderer()); !result)
-            throw love::Exception("Failed to start audio renderer: {:x}", result.get());
+        if (auto result = ResultCode(audrenStartAudioRenderer()); !result)
+            throw love::Exception("Failed to start audio renderer: {:x}", result.value());
 
         this->initialized = true;
     }
