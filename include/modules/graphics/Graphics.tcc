@@ -21,10 +21,12 @@
 #include "modules/graphics/renderstate.hpp"
 #include "modules/graphics/samplerstate.hpp"
 
-#include "driver/graphics/DrawCommand.hpp"
+#include "modules/graphics/DrawCommand.hpp"
 
 #include <string>
 #include <vector>
+
+#define BUFFER_OFFSET(offset) ((offset) / sizeof(uint16_t))
 
 namespace love
 {

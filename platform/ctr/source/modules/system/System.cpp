@@ -1,6 +1,7 @@
 #include "common/Result.hpp"
 
 #include "modules/system/System.hpp"
+
 #include <utf8.h>
 
 namespace love
@@ -167,5 +168,10 @@ namespace love
         FSFILE_Close(playCoinsFile);
 
         return ((int)buffer[1] << 8) | buffer[0];
+    }
+
+    int System::getMemorySize() const
+    {
+        return osGetMemRegionSize(MEMREGION_ALL) / (1024 * 1024);
     }
 } // namespace love

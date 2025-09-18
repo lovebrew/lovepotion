@@ -39,25 +39,7 @@ namespace love
     }
 
     GraphicsBase::~GraphicsBase()
-    {
-        for (int index = 0; index < ShaderBase::STANDARD_MAX_ENUM; index++)
-        {
-            if (ShaderBase::standardShaders[index])
-            {
-                ShaderBase::standardShaders[index]->release();
-                ShaderBase::standardShaders[index] = nullptr;
-            }
-        }
-
-        this->states.clear();
-        this->defaultFont.set(nullptr);
-
-        if (this->batchedDrawState.vertexBuffer)
-            this->batchedDrawState.vertexBuffer->release();
-
-        if (this->batchedDrawState.indexBuffer)
-            this->batchedDrawState.indexBuffer->release();
-    }
+    {}
 
     void GraphicsBase::resetProjection()
     {
@@ -589,13 +571,13 @@ namespace love
             if (state.vertexBuffer->getSize() < bufferSizes[0])
             {
                 state.vertexBuffer->release();
-                state.vertexBuffer = newVertexBuffer(bufferSizes[0]);
+                state.vertexBuffer = createStreamBuffer(BUFFERUSAGE_VERTEX, bufferSizes[0]);
             }
 
             if (state.indexBuffer->getSize() < bufferSizes[1])
             {
                 state.indexBuffer->release();
-                state.indexBuffer = newIndexBuffer(bufferSizes[1]);
+                state.indexBuffer = createStreamBuffer(BUFFERUSAGE_INDEX, bufferSizes[1]);
             }
         }
 
@@ -604,10 +586,10 @@ namespace love
             if (state.indexBufferMap.data == nullptr)
                 state.indexBufferMap = state.indexBuffer->map(requestedIndexSize);
 
-            auto* indices = state.indexBufferMap.data;
+            auto* indices = (uint16_t*)state.indexBufferMap.data;
             fillIndices(command.indexMode, state.vertexCount, command.vertexCount, indices);
 
-            state.indexBufferMap.data += requestedIndexCount;
+            state.indexBufferMap.data += requestedIndexSize;
         }
 
         BatchedVertexData data {};
@@ -618,7 +600,7 @@ namespace love
                 state.vertexBufferMap = state.vertexBuffer->map(newDataSize);
 
             data.stream = state.vertexBufferMap.data;
-            state.vertexBufferMap.data += command.vertexCount;
+            state.vertexBufferMap.data += newDataSize;
         }
 
         if (state.vertexCount > 0)
@@ -648,13 +630,11 @@ namespace love
         if (state.format != CommonFormat::NONE)
         {
             attributes.setCommonFormat(state.format, (uint8_t)0);
-
-            usedSizes[0] = state.lastVertexCount;
+            usedSizes[0] = getFormatStride(state.format) * state.lastVertexCount;
 
             size_t offset = state.vertexBuffer->unmap(usedSizes[0]);
-            buffers.set(0, state.vertexBuffer, offset, state.vertexCount);
-
-            state.vertexBufferMap = MapInfo<Vertex>();
+            buffers.set(0, state.vertexBuffer, offset, state.lastVertexCount);
+            state.vertexBufferMap = StreamBufferBase::MapInfo();
         }
 
         state.flushing = true;
@@ -668,7 +648,7 @@ namespace love
 
         if (state.lastIndexCount > 0)
         {
-            usedSizes[1] = state.lastIndexCount;
+            usedSizes[1] = sizeof(uint16_t) * state.lastIndexCount;
 
             DrawIndexedCommand command(&attributes, &buffers, state.indexBuffer);
             command.primitiveType     = state.primitiveMode;
@@ -677,10 +657,9 @@ namespace love
             command.indexBufferOffset = state.indexBuffer->unmap(usedSizes[1]);
             command.texture           = state.texture;
             command.isFont            = state.isFont;
-
             this->draw(command);
 
-            state.indexBufferMap = MapInfo<uint16_t>();
+            state.indexBufferMap = StreamBufferBase::MapInfo();
         }
         else
         {
@@ -689,7 +668,6 @@ namespace love
             command.vertexStart   = 0;
             command.vertexCount   = state.lastVertexCount;
             command.texture       = state.texture;
-
             this->draw(command);
         }
 
@@ -746,7 +724,7 @@ namespace love
 
             const auto type = ShaderStageType(index);
 
-            if (validStages[index] && stages[index].get() == nullptr)
+            if (stages[index].get() == nullptr)
                 stages[index].set(this->newShaderStage(type, filepaths[index]), Acquire::NO_RETAIN);
         }
 
@@ -907,10 +885,12 @@ namespace love
         switch (format)
         {
             case PIXELFORMAT_NORMAL:
+            {
                 if (isGammaCorrect())
                     return PIXELFORMAT_RGBA8_sRGB;
                 else
                     return PIXELFORMAT_RGBA8_UNORM;
+            }
             case PIXELFORMAT_HDR:
                 return PIXELFORMAT_RGBA16_FLOAT;
             default:

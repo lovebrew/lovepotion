@@ -271,7 +271,7 @@ int Wrap_Window::getFullscreen(lua_State* L)
 
 int Wrap_Window::isOpen(lua_State* L)
 {
-    lua_pushboolean(L, instance()->isOpen());
+    luax_pushboolean(L, instance()->isOpen());
 
     return 1;
 }

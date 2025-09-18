@@ -34,7 +34,27 @@ namespace love
     }
 
     Graphics::~Graphics()
-    {}
+    {
+        for (int index = 0; index < ShaderBase::STANDARD_MAX_ENUM; index++)
+        {
+            if (ShaderBase::standardShaders[index])
+            {
+                ShaderBase::standardShaders[index]->release();
+                ShaderBase::standardShaders[index] = nullptr;
+            }
+        }
+
+        this->states.clear();
+        this->defaultFont.set(nullptr);
+
+        if (this->batchedDrawState.vertexBuffer)
+            this->batchedDrawState.vertexBuffer->release();
+
+        if (this->batchedDrawState.indexBuffer)
+            this->batchedDrawState.indexBuffer->release();
+
+        d3d.deInitialize();
+    }
 
     void Graphics::initCapabilities()
     {
@@ -168,9 +188,6 @@ namespace love
 
         if (this->isRenderTargetActive())
             throw love::Exception("present cannot be called while a render target is active.");
-
-        this->flushBatchedDraws();
-        this->advanceStreamBuffers();
 
         d3d.present();
 
@@ -321,16 +338,20 @@ namespace love
     bool Graphics::setMode(int width, int height, int pixelWidth, int pixelHeight, bool backBufferStencil,
                            bool backBufferDepth, int msaa)
     {
+        d3d.initialize();
+
         this->created = true;
         this->initCapabilities();
 
         try
         {
+            // clang-format off
             if (this->batchedDrawState.vertexBuffer == nullptr)
             {
-                this->batchedDrawState.indexBuffer  = newIndexBuffer(INIT_INDEX_BUFFER_SIZE);
-                this->batchedDrawState.vertexBuffer = newVertexBuffer(INIT_VERTEX_BUFFER_SIZE);
+                this->batchedDrawState.indexBuffer  = createStreamBuffer(BUFFERUSAGE_INDEX, INIT_INDEX_BUFFER_SIZE);
+                this->batchedDrawState.vertexBuffer = createStreamBuffer(BUFFERUSAGE_VERTEX, INIT_VERTEX_BUFFER_SIZE);
             }
+            // clang-format on
         }
         catch (love::Exception&)
         {
@@ -377,6 +398,7 @@ namespace love
 
         this->flushBatchedDraws();
         Volatile::unloadAll();
+
         this->created = false;
     }
 

@@ -55,6 +55,8 @@ namespace love
 
         virtual bool getInfo(ProductInfo& info) const = 0;
 
+        virtual int getMemorySize() const = 0;
+
         virtual std::vector<std::string> getPreferredLocales() const = 0;
 
         static const char* getOS()

@@ -6,15 +6,13 @@ namespace love
 {
     Window::Window() : WindowBase("love.window.deko3d")
     {
-        d3d.initialize();
-        // this->setDisplaySleepEnabled(false);
+        this->setDisplaySleepEnabled(false);
     }
 
     Window::~Window()
     {
         this->close(false);
         this->graphics.set(nullptr);
-        d3d.deInitialize();
     }
 
     void Window::setGraphics(GraphicsBase* graphics)

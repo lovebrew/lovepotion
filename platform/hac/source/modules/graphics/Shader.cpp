@@ -87,16 +87,10 @@ namespace love
         }
 
         if (this->hasStage(ShaderStageType::SHADERSTAGE_VERTEX))
-        {
-            this->program.vertex =
-                (dk::Shader*)this->stages[ShaderStageType::SHADERSTAGE_VERTEX]->getHandle();
-        }
+            this->program.vertex = (dk::Shader*)this->stages[SHADERSTAGE_VERTEX]->getHandle();
 
         if (this->hasStage(ShaderStageType::SHADERSTAGE_PIXEL))
-        {
-            this->program.fragment =
-                (dk::Shader*)this->stages[ShaderStageType::SHADERSTAGE_PIXEL]->getHandle();
-        }
+            this->program.fragment = (dk::Shader*)this->stages[SHADERSTAGE_PIXEL]->getHandle();
 
         return true;
     }

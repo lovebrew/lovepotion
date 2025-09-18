@@ -56,6 +56,8 @@ namespace love
 
         std::vector<std::string> getPreferredLocales() const override;
 
+        int getMemorySize() const override;
+
         using SystemBase::getConstant;
 
         // clang-format off
@@ -111,5 +113,7 @@ namespace love
         int32_t mcpHandle;
         UCHandle ucHandle;
         uint8_t account;
+
+        MCPSysProdSettings settings;
     };
 } // namespace love

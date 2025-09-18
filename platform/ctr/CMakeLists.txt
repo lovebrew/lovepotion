@@ -69,6 +69,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/graphics/Texture.cpp
     source/modules/graphics/Font.cpp
     source/modules/graphics/ShaderStage.cpp
+    source/modules/graphics/StreamBuffer.cpp
     source/modules/joystick/Joystick.cpp
     source/modules/joystick/JoystickModule.cpp
     source/modules/keyboard/Keyboard.cpp

@@ -34,7 +34,6 @@ namespace love
         Mtx_Identity(&this->context.projection);
 
         this->set3DMode(true);
-
         this->initialized = true;
     }
 
@@ -82,10 +81,15 @@ namespace love
 
     void citro3d::deInitialize()
     {
+        if (!this->initialized)
+            return;
+
         this->destroyFramebuffers();
 
         C3D_Fini();
         gfxExit();
+
+        this->initialized = false;
     }
 
     void citro3d::createFramebuffers()

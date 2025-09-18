@@ -2,7 +2,7 @@
 
 #include "common/Exception.hpp"
 
-#include "driver/graphics/StreamBuffer.hpp"
+#include "modules/graphics/StreamBuffer.tcc"
 
 #include "modules/graphics/Shader.tcc"
 #include "modules/graphics/Texture.tcc"
@@ -75,8 +75,8 @@ namespace love
 
     struct BatchedDrawState
     {
-        StreamBuffer<Vertex>* vertexBuffer  = nullptr;
-        StreamBuffer<uint16_t>* indexBuffer = nullptr;
+        StreamBufferBase* vertexBuffer = nullptr;
+        StreamBufferBase* indexBuffer  = nullptr;
 
         PrimitiveType primitiveMode = PRIMITIVE_TRIANGLES;
         CommonFormat format         = CommonFormat::NONE;
@@ -89,8 +89,8 @@ namespace love
         int lastVertexCount = 0;
         int lastIndexCount  = 0;
 
-        MapInfo<Vertex> vertexBufferMap  = MapInfo<Vertex>();
-        MapInfo<uint16_t> indexBufferMap = MapInfo<uint16_t>();
+        StreamBufferBase::MapInfo vertexBufferMap = StreamBufferBase::MapInfo();
+        StreamBufferBase::MapInfo indexBufferMap  = StreamBufferBase::MapInfo();
 
         bool flushing = false;
 
@@ -98,9 +98,8 @@ namespace love
         bool pushTransform = true;
     };
 
-    constexpr size_t INIT_VERTEX_BUFFER_SIZE = sizeof(Vertex) * 4096 * 1;
-    constexpr size_t INIT_INDEX_BUFFER_SIZE  = sizeof(uint16_t) * LOVE_UINT16_MAX * 1;
+    constexpr size_t INIT_VERTEX_BUFFER_SIZE = 1024 * 1024 * 1;
+    constexpr size_t INIT_INDEX_BUFFER_SIZE  = sizeof(uint16_t) * LOVE_UINT16_MAX;
 
-    StreamBuffer<Vertex>* newVertexBuffer(size_t size);
-    StreamBuffer<uint16_t>* newIndexBuffer(size_t size);
+    StreamBufferBase* createStreamBuffer(BufferUsage usage, size_t size);
 } // namespace love

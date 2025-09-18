@@ -1,11 +1,13 @@
 #include "modules/system/System.hpp"
 #include "common/Result.hpp"
 
+#include <coreinit/memory.h>
+
 #include <cstring>
 
 namespace love
 {
-    System::System()
+    System::System() : settings {}
     {
         this->mcpHandle = MCP_Open();
         this->ucHandle  = UCOpen();
@@ -93,6 +95,11 @@ namespace love
         info.username = username;
 
         return true;
+    }
+
+    int System::getMemorySize() const
+    {
+        return 0;
     }
 
     bool System::getInfo(ProductInfo& info) const

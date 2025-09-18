@@ -2,6 +2,7 @@
 #include "common/service.hpp"
 
 #include "boot.hpp"
+#include "modules/love/love.hpp"
 
 #include <array>
 #include <format>
@@ -98,6 +99,7 @@ namespace love
 
         void shutdown()
         {
+            g_debugSocket.restore();
             for (auto it = services.rbegin(); it != services.rend(); ++it)
                 it->exit();
         }

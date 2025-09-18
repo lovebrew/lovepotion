@@ -125,4 +125,12 @@ namespace love
 
         return locales;
     }
+
+    int System::getMemorySize() const
+    {
+        uint64_t size = 0;
+        svcGetInfo(&size, SystemInfoType_TotalPhysicalMemorySize, 0, PhysicalMemorySystemInfo_System);
+
+        return size / (1024 * 1024);
+    }
 } // namespace love

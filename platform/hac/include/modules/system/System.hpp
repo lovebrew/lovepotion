@@ -27,6 +27,8 @@ namespace love
 
         std::vector<std::string> getPreferredLocales() const override;
 
+        int getMemorySize() const override;
+
         // clang-format off
         STRINGMAP_DECLARE(SystemLanguages, SetLanguage,
             { "jp",      SetLanguage_JA     },

@@ -18,7 +18,7 @@
 
 using namespace love;
 
-#define instance() (Module::getInstance<Graphics>(Module::M_GRAPHICS))
+#define instance() (Module::getInstance<GraphicsBase>(Module::M_GRAPHICS))
 
 static int luax_checkgraphicscreated(lua_State* L)
 {
@@ -521,19 +521,21 @@ int Wrap_Graphics::isCreated(lua_State* L)
     if (!instance()->isCreated())
         return luaL_error(L, "love.graphics cannot function without a window!");
 
-    return 0;
+    luax_pushboolean(L, instance()->isCreated());
+
+    return 1;
 }
 
 int Wrap_Graphics::isActive(lua_State* L)
 {
-    lua_pushboolean(L, instance()->isActive());
+    luax_pushboolean(L, instance()->isActive());
 
     return 1;
 }
 
 int Wrap_Graphics::isGammaCorrect(lua_State* L)
 {
-    lua_pushboolean(L, love::isGammaCorrect());
+    luax_pushboolean(L, love::isGammaCorrect());
 
     return 1;
 }

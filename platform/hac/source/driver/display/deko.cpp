@@ -12,9 +12,7 @@ namespace love
     {}
 
     deko3d::~deko3d()
-    {
-        this->deInitialize();
-    }
+    {}
 
     CMemPool& deko3d::getMemoryPool(MemoryPool pool)
     {
@@ -73,8 +71,13 @@ namespace love
 
     void deko3d::deInitialize()
     {
+        if (!this->initialized)
+            return;
+
         this->destroyFramebuffers();
         this->uniform.destroy();
+
+        this->initialized = false;
     }
 
     void deko3d::createFramebuffers()
@@ -106,7 +109,6 @@ namespace love
         this->commandBuffer.clear();
         this->swapchain.destroy();
 
-        // this->context.boundFramebuffer = nullptr;
         for (auto& framebuffer : this->framebuffers)
             framebuffer.destroy();
 
@@ -176,7 +178,7 @@ namespace love
 
     void deko3d::bindFramebuffer(dk::Image* framebuffer)
     {
-        if (!this->swapchain)
+        if (!this->swapchain || !this->inFrame)
             return;
 
         if (this->framebufferSlot < 0)
@@ -203,15 +205,15 @@ namespace love
         }
     }
 
-    void deko3d::bindBuffer(BufferUsage usage, CMemPool::Handle& handle)
+    void deko3d::bindBuffer(BufferUsage usage, DkGpuAddr address, size_t size)
     {
-        if (!this->inFrame || !handle)
+        if (!this->inFrame)
             return;
 
         if (usage == BUFFERUSAGE_VERTEX)
-            this->commandBuffer.bindVtxBuffer(0, handle.getGpuAddr(), handle.getSize());
+            this->commandBuffer.bindVtxBuffer(0, address, size);
         else if (usage == BUFFERUSAGE_INDEX)
-            this->commandBuffer.bindIdxBuffer(DkIdxFormat_Uint16, handle.getGpuAddr());
+            this->commandBuffer.bindIdxBuffer(DkIdxFormat_Uint16, address);
     }
 
     void deko3d::setVertexAttributes(bool isTexture)
@@ -234,6 +236,9 @@ namespace love
 
     void deko3d::bindTextureToUnit(DkResHandle texture, int unit)
     {
+        if (!this->inFrame)
+            return;
+
         if (this->context.descriptorsDirty)
         {
             this->commandBuffer.barrier(DkBarrier_Primitives, DkInvalidateFlags_Descriptors);
@@ -246,11 +251,18 @@ namespace love
     void deko3d::drawIndexed(DkPrimitive primitive, uint32_t indexCount, uint32_t indexOffset,
                              uint32_t instanceCount)
     {
-        this->commandBuffer.drawIndexed(primitive, indexCount, instanceCount, indexOffset, 0, 0);
+        if (!this->inFrame)
+            return;
+
+        const int firstIndex = BUFFER_OFFSET(indexOffset);
+        this->commandBuffer.drawIndexed(primitive, indexCount, instanceCount, firstIndex, 0, 0);
     }
 
     void deko3d::draw(DkPrimitive primitive, uint32_t vertexCount, uint32_t firstVertex)
     {
+        if (!this->inFrame)
+            return;
+
         this->commandBuffer.draw(primitive, vertexCount, 1, firstVertex, 0);
     }
 
@@ -298,8 +310,11 @@ namespace love
 
         if (this->inFrame)
         {
+            GraphicsBase::flushBatchedDrawsGlobal();
             this->mainQueue.submitCommands(this->commands.end(this->commandBuffer));
             this->mainQueue.presentImage(this->swapchain, this->framebufferSlot);
+            GraphicsBase::advanceStreamBuffersGlobal();
+
             this->inFrame = false;
         }
 

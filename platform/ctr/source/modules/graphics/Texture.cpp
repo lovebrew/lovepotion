@@ -2,7 +2,7 @@
 #include "modules/graphics/Graphics.hpp"
 
 #include "driver/display/citro3d.hpp"
-#include "driver/graphics/DrawCommand.hpp"
+#include "modules/graphics/DrawCommand.hpp"
 
 #include <tex3ds.h>
 

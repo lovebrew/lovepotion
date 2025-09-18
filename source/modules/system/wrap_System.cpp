@@ -170,6 +170,13 @@ int Wrap_System::getFriendInfo(lua_State* L)
     return 1;
 }
 
+int Wrap_System::getMemorySize(lua_State* L)
+{
+    lua_pushinteger(L, instance()->getMemorySize());
+
+    return 1;
+}
+
 // clang-format off
 static constexpr luaL_Reg functions[] =
 {
@@ -184,7 +191,8 @@ static constexpr luaL_Reg functions[] =
     { "getNetworkInfo",      Wrap_System::getNetworkInfo      },
     { "getInfo",             Wrap_System::getInfo             },
     { "getFriendInfo",       Wrap_System::getFriendInfo       },
-    { "getOS",               Wrap_System::getOS               }
+    { "getOS",               Wrap_System::getOS               },
+    { "getMemorySize",       Wrap_System::getMemorySize       }
 };
 
 #if defined(__3DS__)

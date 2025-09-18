@@ -29,6 +29,8 @@ namespace love
 
         void setPlayCoins(int amount);
 
+        int getMemorySize() const override;
+
         // clang-format off
         STRINGMAP_DECLARE(SystemLanguages, CFG_Language,
             { "jp",    CFG_LANGUAGE_JP },

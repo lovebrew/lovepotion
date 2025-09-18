@@ -91,7 +91,23 @@ static Data* luax_checkfilename(lua_State* L, int index)
     if (!FontModule::getConstant(name, systemFontType))
         return luax_getfiledata(L, index);
 
-    return FontModule::loadSystemFontByType(systemFontType);
+#if defined(__3DS__)
+    SystemFont* font = nullptr;
+#else
+    ByteData* font = nullptr;
+#endif
+
+    try
+    {
+        font = FontModule::loadSystemFontByType(systemFontType);
+    }
+    catch (love::Exception& e)
+    {
+        luaL_error(L, "%s", e.what());
+        return nullptr;
+    }
+
+    return font;
 }
 
 int Wrap_FontModule::newTrueTypeRasterizer(lua_State* L)

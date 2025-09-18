@@ -229,6 +229,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/main.cpp
     source/common/b64.cpp
     source/common/Data.cpp
+    source/common/debug.cpp
     source/common/float.cpp
     source/common/luax.cpp
     source/common/Matrix.cpp
@@ -277,7 +278,6 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/font/wrap_Rasterizer.cpp
     source/modules/font/wrap_GlyphData.cpp
     source/modules/graphics/ShaderStage.cpp
-    source/modules/graphics/DrawCommand.cpp
     source/modules/graphics/Graphics.cpp
     source/modules/graphics/FontBase.cpp
     source/modules/graphics/Polyline.cpp
