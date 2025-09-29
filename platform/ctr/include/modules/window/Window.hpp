@@ -20,17 +20,17 @@ namespace love
             this->graphics.set(graphics);
         }
 
-        void close();
+        void close() override;
 
-        bool setWindow(int width = 800, int height = 600, WindowSettings* settings = nullptr);
+        bool setWindow(int width = 800, int height = 600, WindowSettings* settings = nullptr) override;
 
         void updateSettings(const WindowSettings& settings, bool updateGraphicsViewport) override;
 
         bool onSizeChanged(int width, int height);
 
-        void setDisplaySleepEnabled(bool enable);
+        void setDisplaySleepEnabled(bool enable) override;
 
-        bool isDisplaySleepEnabled() const;
+        bool isDisplaySleepEnabled() const override;
 
         using WindowBase::getConstant;
 

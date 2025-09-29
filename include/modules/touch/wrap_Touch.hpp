@@ -16,5 +16,9 @@ namespace Wrap_Touch
 
     int getPressure(lua_State* L);
 
+    int getDeviceType(lua_State* L);
+
+    int isMouse(lua_State* L);
+
     int open(lua_State* L);
 } // namespace Wrap_Touch

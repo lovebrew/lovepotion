@@ -31,8 +31,6 @@ namespace love
 
         using FontModuleBase::newTrueTypeRasterizer;
 
-        static ByteData* loadSystemFontByType(SystemFontType type);
-
         // clang-format off
 #if defined(__SWITCH__)
         STRINGMAP_DECLARE(SystemFonts, PlSharedFontType,

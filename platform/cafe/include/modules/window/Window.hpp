@@ -15,7 +15,7 @@ namespace love
 
         virtual ~Window();
 
-        void close();
+        void close() override;
 
         void setGraphics(GraphicsBase* graphics)
         {
@@ -28,9 +28,9 @@ namespace love
 
         bool onSizeChanged(int width, int height);
 
-        void setDisplaySleepEnabled(bool enable);
+        void setDisplaySleepEnabled(bool enable) override;
 
-        bool isDisplaySleepEnabled() const;
+        bool isDisplaySleepEnabled() const override;
 
         using WindowBase::getConstant;
 

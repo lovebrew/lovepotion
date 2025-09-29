@@ -103,7 +103,6 @@ int Wrap_Event::clear(lua_State* L)
 
 int Wrap_Event::quit(lua_State* L)
 {
-
     luax_catchexcept(L, [&] {
         std::vector<Variant> args {};
         const int length = std::max(lua_gettop(L), 1);
@@ -122,7 +121,6 @@ int Wrap_Event::quit(lua_State* L)
 
 int Wrap_Event::restart(lua_State* L)
 {
-
     luax_catchexcept(L, [&] {
         std::vector<Variant> args {};
         const int length = lua_gettop(L);

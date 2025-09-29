@@ -13,7 +13,6 @@ namespace love
 {
     GraphicsBase::GraphicsBase(const char* name) :
         Module(M_GRAPHICS, name),
-        defaultTextures(),
         created(false),
         active(true),
         deviceProjectionMatrix(),
@@ -804,14 +803,6 @@ namespace love
             instance->advanceStreamBuffers();
     }
 
-    TextureBase* GraphicsBase::getDefaultTexture(TextureBase* texture)
-    {
-        if (texture != nullptr)
-            return texture;
-
-        return getDefaultTexture(TEXTURE_2D, DATA_BASETYPE_FLOAT);
-    }
-
     void GraphicsBase::push(StackType type)
     {
         if (this->getStackDepth() == MAX_USER_STACK_DEPTH)
@@ -998,60 +989,6 @@ namespace love
         }
 
         return false;
-    }
-
-    TextureBase* GraphicsBase::getDefaultTexture(TextureType type, DataBaseType dataType)
-    {
-        TextureBase* texture = this->defaultTextures[type];
-
-        if (texture != nullptr)
-            return texture;
-
-        TextureBase::Settings settings {};
-        settings.type   = type;
-        settings.width  = 1;
-        settings.height = 1;
-
-        switch (dataType)
-        {
-            case DATA_BASETYPE_INT:
-                settings.format = PIXELFORMAT_RGBA8_INT;
-                break;
-            case DATA_BASETYPE_UINT:
-                settings.format = PIXELFORMAT_RGBA8_UINT;
-                break;
-            case DATA_BASETYPE_FLOAT:
-            default:
-                settings.format = PIXELFORMAT_RGBA8_UNORM;
-                break;
-        }
-
-        if constexpr (Console::is(Console::CTR))
-        {
-            settings.width  = 5;
-            settings.height = 5;
-        }
-
-        texture = this->newTexture(settings);
-
-        SamplerState state {};
-        state.minFilter = state.magFilter = SamplerState::FILTER_NEAREST;
-        state.wrapU = state.wrapV = state.wrapW = SamplerState::WRAP_CLAMP;
-
-        texture->setSamplerState(state);
-
-        uint8_t pixel[4] = { 255, 255, 255, 255 };
-        if (isPixelFormatInteger(settings.format))
-            pixel[0] = pixel[1] = pixel[2] = pixel[3] = 1;
-
-        // clang-format off
-        for (int slice = 0; slice < (type == TEXTURE_CUBE ? 6 : 1); slice++)
-            texture->replacePixels(pixel, sizeof(pixel), slice, 0, { 0, 0, settings.width, settings.height }, false);
-        // clang-format on
-
-        this->defaultTextures[type] = texture;
-
-        return texture;
     }
 
     void GraphicsBase::polyline(std::span<const Vector2> vertices)

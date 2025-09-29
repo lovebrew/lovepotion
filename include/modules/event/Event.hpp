@@ -5,8 +5,8 @@
 
 #include "events.hpp"
 
+#include <deque>
 #include <mutex>
-#include <queue>
 
 namespace love
 {
@@ -19,6 +19,8 @@ namespace love
 
         void push(Message* message);
 
+        void push(Message* message, bool pushFront);
+
         bool poll(Message*& message);
 
         void clear();
@@ -29,7 +31,7 @@ namespace love
 
       private:
         std::recursive_mutex mutex;
-        std::queue<Message*> messages;
+        std::deque<Message*> messages;
 
         LOVE_Event event;
     };

@@ -64,6 +64,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/audio/Source.cpp
     source/modules/font/BCFNTRasterizer.cpp
     source/modules/font/Font.cpp
+    source/modules/font/SystemFont.cpp
     source/modules/graphics/Graphics.cpp
     source/modules/graphics/Shader.cpp
     source/modules/graphics/Texture.cpp

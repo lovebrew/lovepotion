@@ -16,6 +16,11 @@ namespace love
         {
             dk::Shader* vertex;
             dk::Shader* fragment;
+
+            bool isValid() const
+            {
+                return vertex != nullptr && fragment != nullptr;
+            }
         };
 
         Shader(StrongRef<ShaderStageBase> stages[SHADERSTAGE_MAX_ENUM], const CompileOptions& options);

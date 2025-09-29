@@ -47,6 +47,9 @@ namespace love
 
     void Shader::attach()
     {
+        if (!this->program.isValid())
+            return;
+
         if (Shader::current != this)
         {
             Graphics::flushBatchedDrawsGlobal();
@@ -96,10 +99,7 @@ namespace love
     }
 
     void Shader::unloadVolatile()
-    {
-        this->program.vertex   = nullptr;
-        this->program.fragment = nullptr;
-    }
+    {}
 
     void Shader::updateBuiltinUniforms(GraphicsBase* graphics, glm::mat4& model)
     {}

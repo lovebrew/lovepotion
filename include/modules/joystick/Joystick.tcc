@@ -8,6 +8,7 @@
 #include "utility/guid.hpp"
 
 #include <unordered_map>
+#include <vector>
 
 namespace love
 {

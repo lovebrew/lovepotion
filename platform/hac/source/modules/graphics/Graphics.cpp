@@ -16,7 +16,7 @@ namespace love
         backBufferHasDepth(false),
         requestedBackbufferMSAA(0)
     {
-        auto* window = Module::getInstance<Window>(M_WINDOW);
+        auto* window = Module::getInstance<WindowBase>(M_WINDOW);
 
         if (window != nullptr)
         {

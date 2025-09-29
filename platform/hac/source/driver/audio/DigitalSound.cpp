@@ -17,7 +17,7 @@ namespace love
         .num_mix_buffers = 2,
     };
 
-    static constexpr uint8_t sinkChannels[2] = { 0, 1 };
+    static constexpr uint8_t SINK_CHANNELS[2] = { 0, 1 };
 
     DigitalSound::DigitalSound() : memory(new DigitalSoundMemory())
     {}
@@ -32,7 +32,7 @@ namespace love
 
         this->memory->initialize(&this->driver);
 
-        const auto id = audrvDeviceSinkAdd(&this->driver, AUDREN_DEFAULT_DEVICE_NAME, 2, sinkChannels);
+        const auto id = audrvDeviceSinkAdd(&this->driver, AUDREN_DEFAULT_DEVICE_NAME, 2, SINK_CHANNELS);
 
         if (id == -1)
             throw love::Exception("Failed to add sink to driver!");
@@ -59,7 +59,7 @@ namespace love
         this->initialized = false;
     }
 
-    void DigitalSound::updateImpl()
+    void DigitalSound::update()
     {
         {
             std::unique_lock lock(this->mutex);

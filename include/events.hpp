@@ -46,6 +46,8 @@ namespace love
         double dy;
 
         double pressure;
+        uint8_t deviceType;
+        bool mouse;
     };
 
     struct Resize

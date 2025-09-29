@@ -9,6 +9,8 @@
 
 namespace love
 {
+    class GraphicsBase;
+
     static inline bool highDPIAllowed = false;
 
     inline void setHighDPIAllowed(bool allow)
@@ -134,13 +136,23 @@ namespace love
             return this->open;
         }
 
+        virtual void setGraphics(GraphicsBase* graphics) = 0;
+
         virtual void updateSettings(const WindowSettings& newSettings, bool updateGraphicsViewport);
 
         void getWindow(int& width, int& height, WindowSettings& newSettings);
 
+        virtual bool setWindow(int width = 800, int height = 600, WindowSettings* settings = nullptr) = 0;
+
         bool setFullscreen(bool fullscreen, FullscreenType type);
 
         bool setFullscreen(bool fullscreen);
+
+        virtual void close() = 0;
+
+        virtual void setDisplaySleepEnabled(bool enable) = 0;
+
+        virtual bool isDisplaySleepEnabled() const = 0;
 
         int getDisplayCount() const
         {

@@ -692,9 +692,9 @@ namespace love
         return result;
     }
 
-    int luax_enumerror(lua_State* L, const char* enumName, const char* value)
+    int luax_enumerror(lua_State* L, const char* name, const char* value)
     {
-        return luaL_error(L, "Invalid %s: %s", enumName, value);
+        return luaL_error(L, "Invalid %s: %s", name, value);
     }
 
     int luax_ioerror(lua_State* L, const char* format, ...)
@@ -888,14 +888,9 @@ namespace love
 
         lua_newtable(L);
 
-        if (!module.functions.empty())
-            luax_register_type_inner(L, module.functions);
-
-        if (!module.platformFunctions.empty())
-            luax_register_type_inner(L, module.platformFunctions);
-
-        if (!module.types.empty())
-            luax_register_types(L, module.types);
+        luax_register_type_inner(L, module.functions);
+        luax_register_type_inner(L, module.platformFunctions);
+        luax_register_types(L, module.types);
 
         lua_pushvalue(L, -1);
         lua_setfield(L, -3, module.name);

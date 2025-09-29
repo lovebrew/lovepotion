@@ -37,7 +37,7 @@ namespace love
         ndspExit();
     }
 
-    void DigitalSound::updateImpl()
+    void DigitalSound::update()
     {
         LightEvent_Wait(&this->event);
     }

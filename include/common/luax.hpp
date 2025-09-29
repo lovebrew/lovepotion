@@ -24,6 +24,8 @@ extern "C"
 
 #include <cstdarg>
 
+#define E_INVALID_ENUM "Invalid %s '%*s', expected one of: %s."
+
 namespace love
 {
     class Module;
@@ -145,8 +147,6 @@ namespace love
     bool luax_istype(lua_State* L, int index, Type& type);
 
     Type* luax_type(lua_State* L, int index);
-
-    int luax_enumerror(lua_State* L, const char* enumName, const char* value);
 
     template<typename T>
     T* luax_totype(lua_State* L, int index, const Type& type)
@@ -273,6 +273,15 @@ namespace love
 
     int luax_ioerror(lua_State* L, const char* format, ...);
 
+    int luax_enumerror(lua_State* L, const char* name, const char* value);
+
+    template<typename T>
+    int luax_enumerror(lua_State* L, const char* name, const T& map, std::string_view value)
+    {
+        const auto names = map.getNames();
+        return luaL_error(L, E_INVALID_ENUM, type, value.length(), value.data(), names.c_str());
+    }
+
     int luax_register_searcher(lua_State* L, lua_CFunction function, int index);
 
     size_t luax_objlen(lua_State* L, int index);
@@ -341,13 +350,6 @@ namespace love
     }
 
     Proxy* luax_tryextractproxy(lua_State* L, int index);
-
-    template<typename T>
-    int luax_enumerror(lua_State* L, const char* name, const T& map, std::string_view value)
-    {
-        std::string expected = map.expected(name, value);
-        return luaL_error(L, "%s", expected.c_str());
-    }
 
     // #endregion
 

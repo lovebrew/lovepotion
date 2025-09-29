@@ -336,19 +336,15 @@ function love.init()
 
     -- Check the version
     c.version = tostring(c.version)
-    -- if not love.isVersionCompatible(c.version) then
-    --     local major, minor, revision = c.version:match("^(%d+)%.(%d+)%.(%d+)$")
-    --     if (not major or not minor or not revision) or (major ~= love._version_major and minor ~= love._version_minor) then
-    --         local msg = ("This game indicates it was made for version '%s' of LOVE.\n"..
-    --             "It may not be compatible with the running version (%s)."):format(c.version, love._version)
+    if not love.isVersionCompatible(c.version) then
+        local major, minor, revision = c.version:match("^(%d+)%.(%d+)%.(%d+)$")
+        if (not major or not minor or not revision) or (major ~= love._version_major and minor ~= love._version_minor) then
+            local msg = ("This game indicates it was made for version '%s' of LOVE.\n"..
+                "It may not be compatible with the running version (%s)."):format(c.version, love._version)
 
-    --         print(msg)
-
-    --         if love.window then
-    --             love.window.showMessageBox("Compatibility Warning", msg, "warning")
-    --         end
-    --     end
-    -- end
+            print(msg)
+        end
+    end
 
     if not confok and conferr then
         error(conferr)

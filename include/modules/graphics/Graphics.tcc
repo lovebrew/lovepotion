@@ -505,10 +505,6 @@ namespace love
 
         virtual void initCapabilities() = 0;
 
-        TextureBase* getDefaultTexture(TextureBase* texture);
-
-        TextureBase* getDefaultTexture(TextureType type, DataBaseType dataType);
-
         BlendMode getBlendMode(BlendAlpha& alphaMode) const
         {
             return computeBlendMode(this->states.back().blend, alphaMode);
@@ -777,9 +773,6 @@ namespace love
             { "transform",  STACK_TRANSFORM  }
         );
         // clang-format on
-
-      private:
-        TextureBase* defaultTextures[TEXTURE_MAX_ENUM];
 
       protected:
         int calculateEllipsePoints(float a, float b) const;

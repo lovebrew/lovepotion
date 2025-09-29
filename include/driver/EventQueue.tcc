@@ -115,7 +115,7 @@ namespace love
 
             event.type    = TYPE_TOUCH;
             event.subtype = type;
-            event.finger  = { id, x, y, dx, dy, pressure };
+            event.finger  = { id, x, y, dx, dy, pressure, 0, false };
         }
 
         void sendGamepadButtonEvent(SubEventType type, int which, int input)

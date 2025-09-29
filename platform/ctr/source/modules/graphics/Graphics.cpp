@@ -13,7 +13,7 @@ namespace love
 {
     Graphics::Graphics() : GraphicsBase("love.graphics.citro3d")
     {
-        auto* window = Module::getInstance<Window>(M_WINDOW);
+        auto* window = Module::getInstance<WindowBase>(M_WINDOW);
 
         if (window != nullptr)
         {

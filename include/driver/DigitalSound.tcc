@@ -32,10 +32,7 @@ namespace love
 
         virtual void deInitialize() = 0;
 
-        void update()
-        {
-            static_cast<T*>(this)->updateImpl();
-        }
+        virtual void update() = 0;
 
       protected:
         std::atomic<bool> initialized;

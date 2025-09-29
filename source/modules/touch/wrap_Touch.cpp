@@ -55,12 +55,42 @@ int Wrap_Touch::getPressure(lua_State* L)
     return 1;
 }
 
+int Wrap_Touch::getDeviceType(lua_State* L)
+{
+    int64_t id = luax_checktouchid(L, 1);
+
+    Finger finger {};
+    luax_catchexcept(L, [&] { finger = instance()->getTouch(id); });
+
+    std::string_view type {};
+    if (!Touch::getConstant((Touch::DeviceType)finger.deviceType, type))
+        return luaL_error(L, "Unknown device type: %d", finger.deviceType);
+
+    luax_pushstring(L, type);
+
+    return 1;
+}
+
+int Wrap_Touch::isMouse(lua_State* L)
+{
+    int64_t id = luax_checktouchid(L, 1);
+
+    Finger finger {};
+    luax_catchexcept(L, [&] { finger = instance()->getTouch(id); });
+
+    lua_pushboolean(L, finger.mouse);
+
+    return 1;
+}
+
 // clang-format off
 static constexpr luaL_Reg functions[] =
 {
-    { "getTouches",  Wrap_Touch::getTouches  },
-    { "getPosition", Wrap_Touch::getPosition },
-    { "getPressure", Wrap_Touch::getPressure }
+    { "getTouches",    Wrap_Touch::getTouches    },
+    { "getPosition",   Wrap_Touch::getPosition   },
+    { "getPressure",   Wrap_Touch::getPressure   },
+    { "getDeviceType", Wrap_Touch::getDeviceType },
+    { "isMouse",       Wrap_Touch::isMouse       }
 };
 // clang-format on
 
