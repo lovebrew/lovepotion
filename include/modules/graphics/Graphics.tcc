@@ -561,6 +561,27 @@ namespace love
             return this->capabilities;
         }
 
+        virtual bool is3D() const
+        {
+            return false;
+        }
+
+        virtual void set3D(bool enable)
+        {}
+
+        virtual bool isWide() const
+        {
+            return false;
+        }
+
+        virtual void setWide(bool enable)
+        {}
+
+        virtual float getDepth() const
+        {
+            return 0.0f;
+        }
+
         PixelFormat getSizedFormat(PixelFormat format);
 
         RendererInfo getRendererInfo() const;

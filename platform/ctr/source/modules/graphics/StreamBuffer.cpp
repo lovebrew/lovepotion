@@ -58,6 +58,11 @@ namespace love
             return (ptrdiff_t)this->data;
         }
 
+        size_t getSize() const override
+        {
+            return this->bufferSize;
+        }
+
       private:
         uint8_t* data;
         C3D_BufInfo buffer;

@@ -75,14 +75,14 @@ namespace love
         ShaderBase* newShaderInternal(StrongRef<ShaderStageBase> stages[SHADERSTAGE_MAX_ENUM],
                                       const ShaderBase::CompileOptions& options) override;
 
-        bool is3D() const;
+        bool is3D() const override;
 
-        void set3D(bool enable);
+        void set3D(bool enable) override;
 
-        bool isWide() const;
+        bool isWide() const override;
 
-        void setWide(bool enable);
+        void setWide(bool enable) override;
 
-        float getDepth() const;
+        float getDepth() const override;
     };
 } // namespace love

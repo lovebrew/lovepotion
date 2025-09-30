@@ -7,7 +7,10 @@
 #include "modules/joystick/JoystickModule.hpp"
 #include "modules/touch/Touch.hpp"
 
+#include "common/Variant.hpp"
+
 #include <mutex>
+#include <vector>
 
 namespace love
 {
@@ -107,7 +110,7 @@ namespace love
                 if (!Touch::getConstant((Touch::DeviceType)finger.deviceType, type))
                     type = "unknown";
 
-                args.emplace_back(type, type.length());
+                args.emplace_back(type.data(), type.length());
                 args.emplace_back(finger.mouse);
 
                 if (event.subtype == SUBTYPE_TOUCHPRESS)

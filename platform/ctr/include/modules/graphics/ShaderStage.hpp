@@ -5,6 +5,8 @@
 
 #include <3ds.h>
 
+#include <vector>
+
 namespace love
 {
     class ShaderStage final : public ShaderStageBase, public Volatile

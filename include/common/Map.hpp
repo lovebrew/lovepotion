@@ -51,6 +51,11 @@ class Map
         return result;
     }
 
+    constexpr size_t size() const
+    {
+        return Size;
+    }
+
   private:
     const std::array<Entry, Size> items;
 
@@ -70,13 +75,14 @@ requires(std::is_enum_v<Key> && std::is_enum_v<Value>)
 using EnumMap = Map<Key, Value, Size>;
 
 // clang-format off
-#define STRINGMAP_DECLARE(name, enum_t, ...)                                                                               \
-    static inline constexpr auto name = StringMap { std::to_array<std::pair<std::string_view, enum_t>>({ __VA_ARGS__ }) }; \
-    static inline constexpr bool getConstant(const char* key, enum_t& out)        { return name.getValue(key, out); }      \
-    static inline constexpr bool getConstant(enum_t value, std::string_view& out) { return name.getKey(value, out); }      \
+#define STRINGMAP_DECLARE(name, enum_t, ...)                                                                                                          \
+    static inline constexpr auto name = StringMap { std::to_array<std::pair<std::string_view, enum_t>>({ __VA_ARGS__ }) };                            \
+    static inline constexpr bool getConstant(const char* key, enum_t& out)        { return name.getValue(key, out); }                                 \
+    static inline constexpr bool getConstant(enum_t value, std::string_view& out) { return name.getKey(value, out); }                                 \
+    static inline constexpr const char* getConstant(enum_t value) { std::string_view out {}; return name.getKey(value, out) ? out.data() : nullptr; }
 
 #define ENUMMAP_DECLARE(name, enum_t_a, enum_t_b, ...)                                                             \
     static inline constexpr auto name = EnumMap { std::to_array<std::pair<enum_t_a, enum_t_b>>({ __VA_ARGS__ }) }; \
     static inline constexpr bool getConstant(enum_t_a in, enum_t_b& out) { return name.getValue(in, out); }        \
-    static inline constexpr bool getConstant(enum_t_a in, enum_t_a& out) { return name.getKey(in, out);   }
+    static inline constexpr bool getConstant(enum_t_b in, enum_t_a& out) { return name.getKey(in, out);   }
 // clang-format on

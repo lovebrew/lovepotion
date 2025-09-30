@@ -7,6 +7,8 @@
 #include "common/Map.hpp"
 #include "common/screen.hpp"
 
+#include <vector>
+
 namespace love
 {
     class GraphicsBase;

@@ -12,6 +12,8 @@
 #include "modules/graphics/Drawable.hpp"
 #include "modules/graphics/vertex.hpp"
 
+#include <vector>
+
 namespace love
 {
     class GraphicsBase;

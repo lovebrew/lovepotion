@@ -53,7 +53,7 @@ int Wrap_Source::setPitch(lua_State* L)
     if (pitch > std::numeric_limits<lua_Number>::max() || pitch <= 0.0f)
         return luaL_error(L, "Pitch has to be non-zero, positive, finite number.");
 
-    // self->setPitch(pitch);
+    self->setPitch(pitch);
 
     return 0;
 }

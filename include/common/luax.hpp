@@ -175,6 +175,15 @@ namespace love
 
     int luax_typeerror(lua_State* L, int argc, const char* name);
 
+    int luax_enumerror(lua_State* L, const char* name, const char* value);
+
+    template<typename T>
+    int luax_enumerror(lua_State* L, const char* name, const T& map, std::string_view value)
+    {
+        const auto names = map.getNames();
+        return luaL_error(L, E_INVALID_ENUM, name, value.length(), value.data(), names.c_str());
+    }
+
     template<typename T>
     void luax_checktablefields(lua_State* L, int idx, const char* enumName,
                                bool (*getConstant)(const char*, T&))
@@ -272,15 +281,6 @@ namespace love
     }
 
     int luax_ioerror(lua_State* L, const char* format, ...);
-
-    int luax_enumerror(lua_State* L, const char* name, const char* value);
-
-    template<typename T>
-    int luax_enumerror(lua_State* L, const char* name, const T& map, std::string_view value)
-    {
-        const auto names = map.getNames();
-        return luaL_error(L, E_INVALID_ENUM, type, value.length(), value.data(), names.c_str());
-    }
 
     int luax_register_searcher(lua_State* L, lua_CFunction function, int index);
 

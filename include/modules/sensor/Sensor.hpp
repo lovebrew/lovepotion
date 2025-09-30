@@ -3,6 +3,8 @@
 #include "common/Map.hpp"
 #include "common/Module.hpp"
 
+#include <vector>
+
 namespace love
 {
     class Sensor : public Module

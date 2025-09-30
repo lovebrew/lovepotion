@@ -726,10 +726,27 @@ namespace love
         auto getFunction = src->getPixelGetFunction();
         auto setFunction = this->pixelSetFunction;
 
-        if (srcFormat == destFormat &&
-            (sw == destWidth && destWidth == srcWidth && sh == destHeight && destHeight == srcHeight))
+        const auto sameDimensions =
+            (sw == destWidth && destWidth == srcWidth && sh == destHeight && destHeight == srcHeight);
+
+        if (srcFormat == destFormat && sameDimensions)
         {
             memcpy(dest, source, srcPixelSize * sw * sh);
+        }
+        else if constexpr (Console::is(Console::CTR))
+        {
+            for (int y_ = 0; y_ < std::min(sh, destHeight - dy); y_++)
+            {
+                for (int x_ = 0; x_ < std::min(sw, destWidth - dx); x_++)
+                {
+                    Color color {};
+                    const auto* srcPixel = Color::fromTile(source, NextPo2(srcWidth), sx + x_, sy + y_);
+                    getFunction((const Pixel*)srcPixel, color);
+
+                    auto* dstPixel = Color::fromTile(dest, NextPo2(destWidth), dx + x_, dy + y_);
+                    setFunction(color, (Pixel*)dstPixel);
+                }
+            }
         }
         else if (sw > 0)
         {
