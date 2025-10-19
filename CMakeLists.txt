@@ -113,6 +113,8 @@ if(NOT lua-https_POPULATED)
     FetchContent_MakeAvailable(lua-https)
 endif()
 set(USE_CURL_BACKEND ON)
+set (LIBRARY_LOADER_DEFAULT "linktime")
+set (LIBRARY_LOADER "linktime")
 
 pkg_check_modules(libcurl REQUIRED IMPORTED_TARGET libcurl)
 

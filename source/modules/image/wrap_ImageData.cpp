@@ -1,3 +1,5 @@
+#include "common/Console.hpp"
+
 #include "modules/image/wrap_ImageData.hpp"
 
 #include "modules/data/wrap_Data.hpp"
@@ -161,43 +163,73 @@ int Wrap_ImageData::mapPixel(lua_State* L)
     uint8_t* data    = (uint8_t*)self->getData();
     size_t pixelSize = self->getPixelSize();
 
-    for (int y = sy; y < sy + height; y++)
+    if (Console::is(Console::CTR))
     {
-        for (int x = sx; x < sx + width; x++)
+        for (int y = sy; y < height; y++)
         {
-            auto* pixel = (ImageData::Pixel*)(data + (y * imageWidth + x) * pixelSize);
+            for (int x = sx; x < width; x++)
+            {
+                Color color {};
+                lua_pushvalue(L, 2); // ImageData
 
-            Color color {};
-            pixelGetFunction(pixel, color);
+                lua_pushinteger(L, x);
+                lua_pushinteger(L, y);
+                luax_catchexcept(L, [&]() { self->getPixel(x, y, color); });
 
-            lua_pushvalue(L, 2); // ImageData
+                lua_pushnumber(L, color.r);
+                lua_pushnumber(L, color.g);
+                lua_pushnumber(L, color.b);
+                lua_pushnumber(L, color.a);
 
-            lua_pushinteger(L, x);
-            lua_pushinteger(L, y);
-
-            lua_pushnumber(L, color.r);
-            lua_pushnumber(L, color.g);
-            lua_pushnumber(L, color.b);
-            lua_pushnumber(L, color.a);
-
-            lua_call(L, 6, 4);
-
-            color.r = (float)luaL_checknumber(L, -4);
-
-            if (components > 1)
+                lua_call(L, 6, 4);
+                color.r = (float)luaL_checknumber(L, -4);
                 color.g = (float)luaL_checknumber(L, -3);
-
-            if (components > 2)
                 color.b = (float)luaL_checknumber(L, -2);
-
-            if (components > 3)
                 color.a = (float)luaL_optnumber(L, -1, 1.0);
 
-            pixelSetFunction(color, pixel);
-            lua_pop(L, 4);
+                luax_catchexcept(L, [&]() { self->setPixel(x, y, color); });
+            }
         }
     }
+    else
+    {
+        for (int y = sy; y < sy + height; y++)
+        {
+            for (int x = sx; x < sx + width; x++)
+            {
+                auto* pixel = (ImageData::Pixel*)(data + (y * imageWidth + x) * pixelSize);
 
+                Color color {};
+                pixelGetFunction(pixel, color);
+
+                lua_pushvalue(L, 2); // ImageData
+
+                lua_pushinteger(L, x);
+                lua_pushinteger(L, y);
+
+                lua_pushnumber(L, color.r);
+                lua_pushnumber(L, color.g);
+                lua_pushnumber(L, color.b);
+                lua_pushnumber(L, color.a);
+
+                lua_call(L, 6, 4);
+
+                color.r = (float)luaL_checknumber(L, -4);
+
+                if (components > 1)
+                    color.g = (float)luaL_checknumber(L, -3);
+
+                if (components > 2)
+                    color.b = (float)luaL_checknumber(L, -2);
+
+                if (components > 3)
+                    color.a = (float)luaL_optnumber(L, -1, 1.0);
+
+                pixelSetFunction(color, pixel);
+                lua_pop(L, 4);
+            }
+        }
+    }
     return 0;
 }
 
