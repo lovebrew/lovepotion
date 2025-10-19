@@ -89,10 +89,10 @@ int Wrap_ImageData::getPixel(lua_State* L)
     Color color {};
     luax_catchexcept(L, [&]() { self->getPixel(x, y, color); });
 
-    lua_pushinteger(L, color.r);
-    lua_pushinteger(L, color.g);
-    lua_pushinteger(L, color.b);
-    lua_pushinteger(L, color.a);
+    lua_pushnumber(L, color.r);
+    lua_pushnumber(L, color.g);
+    lua_pushnumber(L, color.b);
+    lua_pushnumber(L, color.a);
 
     return 4;
 }
@@ -172,13 +172,13 @@ int Wrap_ImageData::mapPixel(lua_State* L)
 
             lua_pushvalue(L, 2); // ImageData
 
-            lua_pushnumber(L, x);
-            lua_pushnumber(L, y);
+            lua_pushinteger(L, x);
+            lua_pushinteger(L, y);
 
-            lua_pushinteger(L, color.r);
-            lua_pushinteger(L, color.g);
-            lua_pushinteger(L, color.b);
-            lua_pushinteger(L, color.a);
+            lua_pushnumber(L, color.r);
+            lua_pushnumber(L, color.g);
+            lua_pushnumber(L, color.b);
+            lua_pushnumber(L, color.a);
 
             lua_call(L, 6, 4);
 
