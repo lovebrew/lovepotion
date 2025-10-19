@@ -6,26 +6,37 @@
 
 namespace love
 {
-    class StreamBuffer final : public StreamBufferBase
+    class StreamBuffer final : public StreamBufferBase, public Volatile
     {
       public:
         StreamBuffer(BufferUsage usage, size_t size) : StreamBufferBase(usage, size), data(nullptr), buffer {}
+        {
+            this->loadVolatile();
+        }
+
+        ~StreamBuffer()
+        {
+            this->unloadVolatile();
+        }
+
+        bool loadVolatile()
         {
             this->data = (uint8_t*)linearAlloc(this->bufferSize);
 
             if (this->data == nullptr)
                 throw love::Exception(E_OUT_OF_MEMORY);
 
-            if (usage != BUFFERUSAGE_VERTEX)
-                return;
+            if (this->mode != BUFFERUSAGE_VERTEX)
+                return true;
 
             BufInfo_Init(&this->buffer);
             BufInfo_Add(&this->buffer, this->data, sizeof(Vertex), 3, 0x210);
 
             C3D_SetBufInfo(&this->buffer);
+            return true;
         }
 
-        ~StreamBuffer()
+        void unloadVolatile()
         {
             linearFree(this->data);
         }

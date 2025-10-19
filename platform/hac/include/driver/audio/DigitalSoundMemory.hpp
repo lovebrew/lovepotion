@@ -39,7 +39,7 @@ namespace love
         DigitalSoundMemory(DigitalSoundMemory&&) noexcept;
         DigitalSoundMemory& operator=(DigitalSoundMemory&&) noexcept;
 
-        void initialize(AudioDriver* driver);
+        bool initialize(AudioDriver* driver);
 
         void* allocate(size_t size);
 
@@ -57,7 +57,7 @@ namespace love
 
       private:
         void* base                   = nullptr;
-        static constexpr size_t size = 0x1000000;
+        static constexpr size_t size = 16 * 1024 * 1024;
         CIntrusiveTree<AddressNode, &AddressNode::node> addressMap;
         std::mutex mutex;
 

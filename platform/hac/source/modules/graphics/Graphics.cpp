@@ -288,9 +288,8 @@ namespace love
     void Graphics::setRenderTargetsInternal(const RenderTargets& targets, int pixelWidth, int pixelHeight,
                                             bool hasSRGBTexture)
     {
-        const auto& state = this->states.back();
-
-        bool isWindow = targets.getFirstTarget().texture == nullptr;
+        const auto& state   = this->states.back();
+        const bool isWindow = targets.getFirstTarget().texture == nullptr;
 
         if (isWindow)
             d3d.bindFramebuffer();
@@ -417,7 +416,7 @@ namespace love
         const auto offset        = command.indexBufferOffset;
         const auto instanceCount = command.instanceCount;
 
-        d3d.drawIndexed(primitive, indexCount, offset, instanceCount);
+        d3d.drawIndexed(primitive, indexCount, BUFFER_OFFSET(offset), instanceCount);
         ++drawCalls;
     }
 

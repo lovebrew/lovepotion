@@ -61,7 +61,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/driver/display/Framebuffer.cpp
     source/driver/display/citro3d.cpp
     source/driver/EventQueue.cpp
-    source/modules/audio/Source.cpp
+    source/modules/audio/RecordingDevice.cpp
     source/modules/font/BCFNTRasterizer.cpp
     source/modules/font/Font.cpp
     source/modules/font/SystemFont.cpp

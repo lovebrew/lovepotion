@@ -5,6 +5,7 @@
 #include "modules/filesystem/wrap_Filesystem.hpp"
 
 #include "modules/graphics/wrap_Font.hpp"
+#include "modules/graphics/wrap_ParticleSystem.hpp"
 #include "modules/graphics/wrap_Quad.hpp"
 #include "modules/graphics/wrap_SpriteBatch.hpp"
 #include "modules/graphics/wrap_TextBatch.hpp"
@@ -980,6 +981,24 @@ int Wrap_Graphics::newTexture(lua_State* L)
     return pushNewTexture(L, slicesRef, settings);
 }
 
+int Wrap_Graphics::newParticleSystem(lua_State* L)
+{
+    luax_checkgraphicscreated(L);
+
+    auto* texture          = luax_checktexture(L, 1);
+    lua_Number size        = luaL_optnumber(L, 2, 1000);
+    ParticleSystem* system = nullptr;
+
+    if (size < 1.0 || size > ParticleSystem::MAX_PARTICLES)
+        return luaL_error(L, "Invalid ParticleSystem size.");
+
+    luax_catchexcept(L, [&]() { system = instance()->newParticleSystem(texture, size); });
+
+    luax_pushtype(L, system);
+    system->release();
+    return 1;
+}
+
 int Wrap_Graphics::newQuad(lua_State* L)
 {
     luax_checkgraphicscreated(L);
@@ -1479,7 +1498,7 @@ int Wrap_Graphics::printf(lua_State* L)
     FontBase* font = nullptr;
     int start      = 2;
 
-    if (luax_istype(L, 2, FontBase::type))
+    if (luax_istype(L, start, FontBase::type))
     {
         font = luax_checkfont(L, start);
         start++;
@@ -1968,6 +1987,87 @@ int Wrap_Graphics::getPixelDimensions(lua_State* L)
     return 2;
 }
 
+int Wrap_Graphics::setStencilMode(lua_State* L)
+{
+    if (lua_gettop(L) <= 1 && lua_isnoneornil(L, 1))
+    {
+        luax_catchexcept(L, [&]() { instance()->setStencilMode(); });
+        return 0;
+    }
+
+    StencilMode mode       = STENCIL_MODE_OFF;
+    const char* modeString = luaL_checkstring(L, 1);
+
+    if (!getConstant(modeString, mode))
+        return luax_enumerror(L, "stencil mode", StencilModes, modeString);
+
+    int value = luaL_optinteger(L, 2, 1);
+    luax_catchexcept(L, [&]() { instance()->setStencilMode(mode, value); });
+
+    return 0;
+}
+
+int Wrap_Graphics::getStencilMode(lua_State* L)
+{
+    int value = 0;
+    auto mode = instance()->getStencilMode(value);
+
+    std::string_view modeString {};
+    if (!getConstant(mode, modeString))
+        return luaL_error(L, "Unknown stencil mode.");
+
+    luax_pushstring(L, modeString);
+    lua_pushinteger(L, value);
+
+    return 2;
+}
+
+int Wrap_Graphics::setStencilState(lua_State* L)
+{
+    if (lua_gettop(L) <= 1 && lua_isnoneornil(L, 1))
+    {
+        luax_catchexcept(L, [&]() { instance()->setStencilState(); });
+        return 0;
+    }
+
+    StencilState state {};
+    const char* action = luaL_checkstring(L, 1);
+    if (!getConstant(action, state.action))
+        return luax_enumerror(L, "stencil draw action", StencilActions, action);
+
+    const char* compare = luaL_checkstring(L, 2);
+    if (!getConstant(compare, state.compare))
+        return luax_enumerror(L, "compare mode", CompareModes, compare);
+
+    state.value     = luaL_optinteger(L, 3, 0);
+    state.readMask  = (uint32_t)luaL_optnumber(L, 4, LOVE_UINT32_MAX);
+    state.writeMask = (uint32_t)luaL_optnumber(L, 5, LOVE_UINT32_MAX);
+
+    luax_catchexcept(L, [&]() { instance()->setStencilState(state); });
+    return 0;
+}
+
+int Wrap_Graphics::getStencilState(lua_State* L)
+{
+    const StencilState& state = instance()->getStencilState();
+
+    std::string_view action {};
+    if (!getConstant(state.action, action))
+        return luaL_error(L, "Unknown stencil draw action");
+
+    std::string_view compare {};
+    if (!getConstant(state.compare, compare))
+        return luaL_error(L, "Unknown compare mode.");
+
+    luax_pushstring(L, action);
+    luax_pushstring(L, compare);
+    lua_pushinteger(L, state.value);
+    lua_pushinteger(L, state.readMask);
+    lua_pushinteger(L, state.writeMask);
+
+    return 5;
+}
+
 // Homebrew Stuff™
 
 int Wrap_Graphics::getScreens(lua_State* L)
@@ -2015,37 +2115,37 @@ int Wrap_Graphics::copyCurrentScanBuffer(lua_State* L)
 
 // clang-format off
 #if defined(__3DS__)
-int Wrap_Graphics::is3D(lua_State* L)
+int Wrap_Graphics::isStereoscopic(lua_State* L)
 {
-    lua_pushboolean(L, instance()->is3D());
+    lua_pushboolean(L, instance()->isStereoscopic());
 
     return 1;
 }
 
-int Wrap_Graphics::set3D(lua_State* L)
+int Wrap_Graphics::setStereoscopic(lua_State* L)
 {
     bool enable = luax_toboolean(L, 1);
-    instance()->set3D(enable);
+    luax_catchexcept(L, [&]() { instance()->setStereoscopic(enable); });
 
     return 0;
 }
 
-int Wrap_Graphics::isWide(lua_State* L)
+int Wrap_Graphics::isWideMode(lua_State* L)
 {
-    lua_pushboolean(L, instance()->isWide());
+    lua_pushboolean(L, instance()->isWideMode());
 
     return 1;
 }
 
-int Wrap_Graphics::setWide(lua_State* L)
+int Wrap_Graphics::setWideMode(lua_State* L)
 {
     bool enable = luax_toboolean(L, 1);
-    instance()->setWide(enable);
+    luax_catchexcept(L, [&]() { instance()->setWideMode(enable); });
 
     return 0;
 }
 
-int Wrap_Graphics::getDepth(lua_State* L)
+int Wrap_Graphics::getStereoscopicDepth(lua_State* L)
 {
     lua_pushnumber(L, instance()->getDepth());
 
@@ -2054,11 +2154,11 @@ int Wrap_Graphics::getDepth(lua_State* L)
 
 static constexpr std::array<luaL_Reg, 5> platformFunctions =
 {{
-    { "is3D",     Wrap_Graphics::is3D     },
-    { "set3D",    Wrap_Graphics::set3D    },
-    { "isWide",   Wrap_Graphics::isWide   },
-    { "setWide",  Wrap_Graphics::setWide  },
-    { "getDepth", Wrap_Graphics::getDepth }
+    { "isStereoscopic",       Wrap_Graphics::isStereoscopic       },
+    { "setStereoscopic",      Wrap_Graphics::setStereoscopic      },
+    { "isWideMode",           Wrap_Graphics::isWideMode           },
+    { "setWideMode",          Wrap_Graphics::setWideMode          },
+    { "getStereoscopicDepth", Wrap_Graphics::getStereoscopicDepth }
 }};
 #elif defined(__WIIU__)
 int Wrap_Graphics::copyCurrentScanBuffer(lua_State* L)
@@ -2121,6 +2221,10 @@ static constexpr luaL_Reg functions[] =
     { "transformPoint",         Wrap_Graphics::transformPoint        },
     { "inverseTransformPoint",  Wrap_Graphics::inverseTransformPoint },
     { "getStats",               Wrap_Graphics::getStats              },
+    { "getStencilMode",         Wrap_Graphics::getStencilMode        },
+    { "setStencilMode",         Wrap_Graphics::setStencilMode        },
+    { "getStencilState",        Wrap_Graphics::getStencilState       },
+    { "setStencilState",        Wrap_Graphics::setStencilState       },
 
     { "getWidth",               Wrap_Graphics::getWidth              },
     { "getHeight",              Wrap_Graphics::getHeight             },
@@ -2149,6 +2253,7 @@ static constexpr luaL_Reg functions[] =
     { "newTexture",             Wrap_Graphics::newTexture            },
     { "newQuad",                Wrap_Graphics::newQuad               },
     { "newImage",               Wrap_Graphics::newImage              },
+    { "newParticleSystem",      Wrap_Graphics::newParticleSystem     },
 
     { "newTextBatch",           Wrap_Graphics::newTextBatch          },
     { "newSpriteBatch",         Wrap_Graphics::newSpriteBatch        },
@@ -2177,7 +2282,8 @@ static constexpr lua_CFunction types[] =
     love::open_quad,
     love::open_font,
     love::open_textbatch,
-    love::open_spritebatch
+    love::open_spritebatch,
+    love::open_particlesystem
 };
 // clang-format on
 

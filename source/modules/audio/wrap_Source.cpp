@@ -4,8 +4,8 @@ using namespace love;
 
 int Wrap_Source::clone(lua_State* L)
 {
-    auto* self    = luax_checksource(L, 1);
-    Source* clone = nullptr;
+    auto* self        = luax_checksource(L, 1);
+    SourceBase* clone = nullptr;
 
     luax_catchexcept(L, [&] { clone = self->clone(); });
 
@@ -94,11 +94,11 @@ int Wrap_Source::seek(lua_State* L)
     if (offset < 0)
         return luaL_argerror(L, 2, "can't seek to a negative position.");
 
-    auto type        = Source::UNIT_SECONDS;
+    auto type        = SourceBase::UNIT_SECONDS;
     const char* name = lua_isnoneornil(L, 3) ? nullptr : lua_tostring(L, 3);
 
-    if (name && !Source::getConstant(name, type))
-        return luax_enumerror(L, "time unit", Source::SourceUnits, name);
+    if (name && !SourceBase::getConstant(name, type))
+        return luax_enumerror(L, "time unit", SourceBase::SourceUnits, name);
 
     self->seek(offset, type);
 
@@ -109,11 +109,11 @@ int Wrap_Source::tell(lua_State* L)
 {
     auto* self = luax_checksource(L, 1);
 
-    auto type        = Source::UNIT_SECONDS;
+    auto type        = SourceBase::UNIT_SECONDS;
     const char* name = lua_isnoneornil(L, 2) ? nullptr : lua_tostring(L, 2);
 
-    if (name && !Source::getConstant(name, type))
-        return luax_enumerror(L, "time unit", Source::SourceUnits, name);
+    if (name && !SourceBase::getConstant(name, type))
+        return luax_enumerror(L, "time unit", SourceBase::SourceUnits, name);
 
     lua_pushnumber(L, self->tell(type));
 
@@ -124,11 +124,11 @@ int Wrap_Source::getDuration(lua_State* L)
 {
     auto* self = luax_checksource(L, 1);
 
-    auto type        = Source::UNIT_SECONDS;
+    auto type        = SourceBase::UNIT_SECONDS;
     const char* name = lua_isnoneornil(L, 2) ? nullptr : lua_tostring(L, 2);
 
-    if (name && !Source::getConstant(name, type))
-        return luax_enumerror(L, "time unit", Source::SourceUnits, name);
+    if (name && !SourceBase::getConstant(name, type))
+        return luax_enumerror(L, "time unit", SourceBase::SourceUnits, name);
 
     lua_pushnumber(L, self->getDuration(type));
 
@@ -214,7 +214,7 @@ int Wrap_Source::getType(lua_State* L)
     auto type = self->getType();
     std::string_view value {};
 
-    if (!Source::getConstant(type, value))
+    if (!SourceBase::getConstant(type, value))
         return luaL_error(L, "Unknown Source type.");
 
     luax_pushstring(L, value);
@@ -249,13 +249,13 @@ static constexpr luaL_Reg functions[] =
 
 namespace love
 {
-    Source* luax_checksource(lua_State* L, int index)
+    SourceBase* luax_checksource(lua_State* L, int index)
     {
-        return luax_checktype<Source>(L, index);
+        return luax_checktype<SourceBase>(L, index);
     }
 
     int open_source(lua_State* L)
     {
-        return luax_register_type(L, &Source::type, functions);
+        return luax_register_type(L, &SourceBase::type, functions);
     }
 } // namespace love

@@ -16,27 +16,10 @@ namespace love
 
     System::PowerState System::getPowerInfo(int& seconds, int& percent) const
     {
-        uint8_t batteryState = 0;
-        uint8_t level        = 0;
-
         seconds = -1;
         percent = -1;
 
-        if (!ResultCode(MCUHWC_GetBatteryLevel(&level)))
-            return PowerState::POWER_UNKNOWN;
-
-        percent = (level / 0xFF) * 100;
-        if (!ResultCode(PTMU_GetBatteryChargeState(&batteryState)))
-            return PowerState::POWER_UNKNOWN;
-
-        auto state = (batteryState) ? PowerState::POWER_CHARGING : PowerState::POWER_BATTERY;
-
-        if (percent == 100 && !batteryState)
-            state = PowerState::POWER_CHARGED;
-
-        seconds = 0;
-
-        return state;
+        return POWER_UNKNOWN;
     }
 
     System::NetworkState System::getNetworkInfo(int32_t& signal) const

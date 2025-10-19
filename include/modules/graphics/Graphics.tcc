@@ -474,6 +474,8 @@ namespace love
 
         virtual FontBase* newDefaultFont(int size, const Rasterizer::Settings& settings) = 0;
 
+        ParticleSystem* newParticleSystem(TextureBase* texture, int size) const;
+
         // Mesh* newMesh(int vertexCount, PrimitiveType mode);
 
         TextBatch* newTextBatch(FontBase* font, const std::vector<ColoredString>& text = {});
@@ -561,20 +563,20 @@ namespace love
             return this->capabilities;
         }
 
-        virtual bool is3D() const
+        virtual bool isStereoscopic() const
         {
             return false;
         }
 
-        virtual void set3D(bool enable)
+        virtual void setStereoscopic(bool enable)
         {}
 
-        virtual bool isWide() const
+        virtual bool isWideMode() const
         {
             return false;
         }
 
-        virtual void setWide(bool enable)
+        virtual void setWideMode(bool enable)
         {}
 
         virtual float getDepth() const
@@ -754,6 +756,24 @@ namespace love
         void draw(Drawable* drawable, const Matrix4& matrix);
 
         void draw(TextureBase* texture, Quad* quad, const Matrix4& matrix);
+
+        void setStencilMode(StencilMode mode, int value);
+
+        void setStencilMode();
+
+        StencilMode getStencilMode(int& value) const;
+
+        void setStencilState();
+
+        virtual void setStencilState(const StencilState& state) = 0;
+
+        const StencilState& getStencilState() const;
+
+        virtual void setDepthMode(CompareMode compare, bool write) = 0;
+
+        void setDepthMode();
+
+        void getDepthMode(CompareMode& compare, bool& write) const;
 
         template<typename T>
         T* getScratchBuffer(size_t count)

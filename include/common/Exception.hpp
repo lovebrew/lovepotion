@@ -27,15 +27,4 @@ namespace love
       private:
         std::string message;
     };
-
-#if __DEBUG__
-    #include <cstdio>
-
-    #define LOG(format, ...)                                                    \
-        do                                                                      \
-        {                                                                       \
-            static const char* data = "[C++] %s %s:%d: " format "\n";           \
-            std::printf(data, __FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__); \
-        } while (0);
-#endif
 } // namespace love

@@ -50,6 +50,10 @@ namespace Wrap_Joystick
 
     int isGamepadDown(lua_State* L);
 
+    int getPowerInfo(lua_State* L);
+
+    int getConnectionState(lua_State* L);
+
     int getGamepadMapping(lua_State* L);
 
     int getGamepadMappingString(lua_State* L);

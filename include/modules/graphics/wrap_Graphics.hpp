@@ -121,6 +121,8 @@ namespace Wrap_Graphics
 
     int newImage(lua_State* L);
 
+    int newParticleSystem(lua_State* L);
+
     int newTextureView(lua_State* L);
 
     int newArrayTexture(lua_State* L);
@@ -167,21 +169,29 @@ namespace Wrap_Graphics
 
     int setDefaultFilter(lua_State* L);
 
+    int setStencilMode(lua_State* L);
+
+    int getStencilMode(lua_State* L);
+
+    int setStencilState(lua_State* L);
+
+    int getStencilState(lua_State* L);
+
     int getScreens(lua_State* L);
 
     int getActiveScreen(lua_State* L);
 
     int setActiveScreen(lua_State* L);
 
-    int is3D(lua_State* L);
+    int isStereoscopic(lua_State* L);
 
-    int set3D(lua_State* L);
+    int setStereoscopic(lua_State* L);
 
-    int isWide(lua_State* L);
+    int isWideMode(lua_State* L);
 
-    int setWide(lua_State* L);
+    int setWideMode(lua_State* L);
 
-    int getDepth(lua_State* L);
+    int getStereoscopicDepth(lua_State* L);
 
     int copyCurrentScanBuffer(lua_State* L);
 

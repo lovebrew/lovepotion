@@ -165,7 +165,7 @@ end
 ---@return number? depth The stereoscopic 3D value (0.0 - 1.0)
 local function get_stereoscopic_depth(screen)
     if love._console ~= "3ds" then return end
-    local depth = love.graphics.getDepth()
+    local depth = love.graphics.getStereoscopicDepth()
     return screen ~= "bottom" and (screen == "left" and depth or -depth) or 0
 end
 

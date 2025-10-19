@@ -55,8 +55,6 @@ namespace love
 
         void clearDepthStencil(int stencil, uint8_t mask, double depth);
 
-        dk::Image& getInternalBackbuffer();
-
         void bindFramebuffer(dk::Image* target = nullptr);
 
         void present();

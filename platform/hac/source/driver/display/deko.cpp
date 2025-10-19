@@ -182,10 +182,25 @@ namespace love
             return;
 
         if (this->framebufferSlot < 0)
+        {
             this->framebufferSlot = this->mainQueue.acquireImage(this->swapchain);
 
+            if (this->framebufferSlot < 0)
+                return;
+        }
+
+        this->commandBuffer.barrier(DkBarrier_Fragments, 0);
+
         if (!framebuffer)
+        {
+            if (this->framebufferSlot >= this->framebuffers.size())
+            {
+                this->framebufferSlot = -1;
+                return;
+            }
+
             framebuffer = &this->framebuffers[this->framebufferSlot].getImage();
+        }
 
         bool bindingModified = false;
 
@@ -200,8 +215,7 @@ namespace love
             dk::ImageView depth { this->depthbuffer.getImage() };
             dk::ImageView target { *framebuffer };
 
-            this->commandBuffer.barrier(DkBarrier_Fragments, 0);
-            this->commandBuffer.bindRenderTargets(&target);
+            this->commandBuffer.bindRenderTargets(&target, &depth);
         }
     }
 
@@ -254,8 +268,7 @@ namespace love
         if (!this->inFrame)
             return;
 
-        const int firstIndex = BUFFER_OFFSET(indexOffset);
-        this->commandBuffer.drawIndexed(primitive, indexCount, instanceCount, firstIndex, 0, 0);
+        this->commandBuffer.drawIndexed(primitive, indexCount, instanceCount, indexOffset, 0, 0);
     }
 
     void deko3d::draw(DkPrimitive primitive, uint32_t vertexCount, uint32_t firstVertex)

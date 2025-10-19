@@ -43,40 +43,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(LUASOCKET_COPY_DIR ${CMAKE_CURRENT_BINARY_DIR})
 file(COPY libraries/luasocket DESTINATION ${LUASOCKET_COPY_DIR})
 
-if(NINTENDO_3DS)
-    add_subdirectory(platform/ctr)
-
-    target_sources(${PROJECT_NAME} PRIVATE
-        source/modules/image/magpie/T3XHandler.cpp
-    )
-endif()
-
-if (NINTENDO_SWITCH OR NINTENDO_WIIU)
-    if (NINTENDO_SWITCH)
-        add_subdirectory(platform/hac)
-    else()
-        add_subdirectory(platform/cafe)
-    endif()
-
-    target_sources(${PROJECT_NAME} PRIVATE
-        source/modules/image/magpie/ASTCHandler.cpp
-        source/modules/image/magpie/ddsHandler.cpp
-        source/modules/image/magpie/JPGHandler.cpp
-        source/modules/image/magpie/KTXHandler.cpp
-        source/modules/image/magpie/PKMHandler.cpp
-        source/modules/image/magpie/PNGHandler.cpp
-        source/modules/font/freetype/Font.cpp
-        source/modules/font/freetype/TrueTypeRasterizer.cpp
-        source/modules/graphics/freetype/Font.cpp
-    )
-
-    add_library(ddsparse
-        libraries/ddsparse/ddsparse.cpp
-        libraries/ddsparse/ddsparse.h
-        libraries/ddsparse/ddsinfo.h
-    )
-endif()
-
 pkg_check_modules(liblz4 REQUIRED IMPORTED_TARGET liblz4)
 pkg_check_modules(lua51 REQUIRED IMPORTED_TARGET lua51)
 
@@ -206,11 +172,6 @@ add_library(noise1234
     libraries/noise1234/simplexnoise1234.h
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE
-    ${APP_LIBS} z luabit lua53 ogg modplug https PkgConfig::libcurl luasocket
-    love_physfs wuff noise1234 PkgConfig::lua51 PkgConfig::liblz4
-)
-
 target_include_directories(${PROJECT_NAME} PRIVATE
     include
     platform
@@ -244,9 +205,16 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/common/Variant.cpp
     source/utility/guid.cpp
     source/modules/audio/Audio.cpp
-    source/modules/audio/Pool.cpp
+    source/modules/audio/null/Audio.cpp
+    source/modules/audio/null/Source.cpp
+    source/modules/audio/null/RecordingDevice.cpp
+    source/modules/audio/dsp/Pool.cpp
+    source/modules/audio/dsp/Audio.cpp
+    source/modules/audio/dsp/Source.cpp
+    source/modules/audio/RecordingDevice.cpp
     source/modules/audio/Source.cpp
     source/modules/audio/wrap_Audio.cpp
+    source/modules/audio/wrap_RecordingDevice.cpp
     source/modules/audio/wrap_Source.cpp
     source/modules/data/ByteData.cpp
     source/modules/data/CompressedData.cpp
@@ -280,6 +248,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/graphics/ShaderStage.cpp
     source/modules/graphics/Graphics.cpp
     source/modules/graphics/FontBase.cpp
+    source/modules/graphics/ParticleSystem.cpp
     source/modules/graphics/Polyline.cpp
     source/modules/graphics/TextBatch.cpp
     source/modules/graphics/renderstate.cpp
@@ -291,6 +260,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/graphics/Volatile.cpp
     source/modules/graphics/vertex.cpp
     source/modules/graphics/wrap_Graphics.cpp
+    source/modules/graphics/wrap_ParticleSystem.cpp
     source/modules/graphics/wrap_Texture.cpp
     source/modules/graphics/wrap_TextBatch.cpp
     source/modules/graphics/wrap_Font.cpp
@@ -349,4 +319,43 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/sound/lullaby/MP3Decoder.cpp
     source/modules/sound/lullaby/VorbisDecoder.cpp
     source/modules/sound/lullaby/WaveDecoder.cpp
+)
+
+if(NINTENDO_3DS)
+    add_subdirectory(platform/ctr)
+
+    target_sources(${PROJECT_NAME} PRIVATE
+        source/modules/image/magpie/T3XHandler.cpp
+    )
+endif()
+
+if (NINTENDO_SWITCH OR NINTENDO_WIIU)
+    if (NINTENDO_SWITCH)
+        add_subdirectory(platform/hac)
+    else()
+        add_subdirectory(platform/cafe)
+    endif()
+
+    target_sources(${PROJECT_NAME} PRIVATE
+        source/modules/image/magpie/ASTCHandler.cpp
+        source/modules/image/magpie/ddsHandler.cpp
+        source/modules/image/magpie/JPGHandler.cpp
+        source/modules/image/magpie/KTXHandler.cpp
+        source/modules/image/magpie/PKMHandler.cpp
+        source/modules/image/magpie/PNGHandler.cpp
+        source/modules/font/freetype/Font.cpp
+        source/modules/font/freetype/TrueTypeRasterizer.cpp
+        source/modules/graphics/freetype/Font.cpp
+    )
+
+    add_library(ddsparse
+        libraries/ddsparse/ddsparse.cpp
+        libraries/ddsparse/ddsparse.h
+        libraries/ddsparse/ddsinfo.h
+    )
+endif()
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    ${APP_LIBS} z luabit lua53 ogg modplug https PkgConfig::libcurl luasocket
+    love_physfs wuff noise1234 PkgConfig::lua51 PkgConfig::liblz4
 )

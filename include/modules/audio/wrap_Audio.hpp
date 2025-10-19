@@ -7,6 +7,8 @@ namespace Wrap_Audio
 {
     int newSource(lua_State* L);
 
+    int newQueueableSource(lua_State* L);
+
     int play(lua_State* L);
 
     int pause(lua_State* L);
@@ -16,6 +18,10 @@ namespace Wrap_Audio
     int setVolume(lua_State* L);
 
     int getVolume(lua_State* L);
+
+    int getRecordingDevices(lua_State* L);
+
+    int setMixWithSystem(lua_State* L);
 
     int open(lua_State* L);
 } // namespace Wrap_Audio

@@ -129,6 +129,12 @@ namespace love
         if (color.hasValue || stencil.hasValue || depth.hasValue)
             this->flushBatchedDraws();
 
+        if (stencil.hasValue)
+            c3d.clearStencil(stencil.value);
+
+        if (depth.hasValue)
+            c3d.clearDepth(depth.value);
+
         if (color.hasValue)
         {
             gammaCorrectColor(color.value);
@@ -247,6 +253,26 @@ namespace love
 
         c3d.setColorMask(mask);
         this->states.back().colorMask = mask;
+    }
+
+    void Graphics::setStencilState(const StencilState& state)
+    {
+        Graphics::flushBatchedDraws();
+        c3d.setStencilState(state);
+
+        this->states.back().stencil = state;
+    }
+
+    void Graphics::setDepthMode(CompareMode compare, bool write)
+    {
+        auto& state = this->states.back();
+        if (state.depthTest != compare || state.depthWrite != write)
+            Graphics::flushBatchedDraws();
+
+        state.depthTest  = compare;
+        state.depthWrite = write;
+
+        c3d.setDepthWrites(compare, write);
     }
 
     void Graphics::setBlendState(const BlendState& state)
@@ -511,22 +537,22 @@ namespace love
         ++this->drawCalls;
     }
 
-    bool Graphics::is3D() const
+    bool Graphics::isStereoscopic() const
     {
         return gfxIs3D();
     }
 
-    void Graphics::set3D(bool enable)
+    void Graphics::setStereoscopic(bool enable)
     {
         c3d.set3DMode(enable);
     }
 
-    bool Graphics::isWide() const
+    bool Graphics::isWideMode() const
     {
         return gfxIsWide();
     }
 
-    void Graphics::setWide(bool enable)
+    void Graphics::setWideMode(bool enable)
     {
         c3d.setWideMode(enable);
     }

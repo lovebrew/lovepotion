@@ -37,7 +37,13 @@ namespace love
 
         void clear(const Color& color);
 
-        void clearDepthStencil(int depth, uint8_t mask, double stencil);
+        void clearDepth(double value);
+
+        void clearStencil(int value);
+
+        void setStencilState(const StencilState& state);
+
+        void setDepthWrites(CompareMode compare, bool write);
 
         C3D_RenderTarget* getFramebuffer();
 
@@ -89,6 +95,11 @@ namespace love
             return gfxIs3D();
         }
 
+        void deferCallToEndOfFrame(std::function<void()>&& function)
+        {
+            this->deferred.emplace_back(std::move(function));
+        }
+
         void ensureInFrame();
 
         void copyCurrentScanBuffer()
@@ -136,6 +147,28 @@ namespace love
             { BLENDFACTOR_ONE_MINUS_DST_ALPHA,  GPU_ONE_MINUS_DST_ALPHA  },
             { BLENDFACTOR_SRC_ALPHA_SATURATED,  GPU_SRC_ALPHA_SATURATE   }
         );
+
+        ENUMMAP_DECLARE(StencilOps, StencilAction, GPU_STENCILOP,
+            { STENCIL_KEEP,           GPU_STENCIL_KEEP      },
+            { STENCIL_ZERO,           GPU_STENCIL_ZERO      },
+            { STENCIL_REPLACE,        GPU_STENCIL_REPLACE   },
+            { STENCIL_INCREMENT,      GPU_STENCIL_INCR      },
+            { STENCIL_DECREMENT,      GPU_STENCIL_DECR      },
+            { STENCIL_INCREMENT_WRAP, GPU_STENCIL_INCR_WRAP },
+            { STENCIL_DECREMENT_WRAP, GPU_STENCIL_DECR_WRAP },
+            { STENCIL_INVERT,         GPU_STENCIL_INVERT    }
+        );
+
+        ENUMMAP_DECLARE(CompareModes, CompareMode, GPU_TESTFUNC,
+            { COMPARE_LESS,     GPU_LESS     },
+            { COMPARE_LEQUAL,   GPU_LEQUAL   },
+            { COMPARE_EQUAL,    GPU_EQUAL    },
+            { COMPARE_GEQUAL,   GPU_GEQUAL   },
+            { COMPARE_GREATER,  GPU_GREATER  },
+            { COMPARE_NOTEQUAL, GPU_NOTEQUAL },
+            { COMPARE_ALWAYS,   GPU_ALWAYS   },
+            { COMPARE_NEVER,    GPU_NEVER    }
+        );
         // clang-format on
 
       private:
@@ -167,13 +200,14 @@ namespace love
         {
             this->destroyFramebuffers();
             function();
-            // love::currentScreen = love::Screen(0);
             this->createFramebuffers();
         }
 
         std::vector<Framebuffer> targets;
 
         void updateTexEnvMode(TexEnvMode mode);
+
+        std::vector<std::function<void()>> deferred;
     };
 
     extern citro3d c3d;

@@ -323,10 +323,7 @@ function love.init()
         "physics",
     } do
         if c.modules[v] then
-            local success, msg = pcall(require, "love." .. v)
-            if v == "audio" and not success then
-                error(msg)
-            end
+            require("love." .. v)
         end
     end
 

@@ -12,6 +12,9 @@ namespace love
 
     void Framebuffer::create(const ScreenInfo& info, dk::Device& device, CMemPool& images, bool depth)
     {
+        if (this->memory)
+            this->destroy();
+
         const auto flags  = depth ? BASE_FLAGS : MAIN_FLAGS;
         const auto format = depth ? DkImageFormat_Z24S8 : DkImageFormat_RGBA8_Unorm;
 

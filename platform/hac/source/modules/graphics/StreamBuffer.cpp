@@ -33,27 +33,38 @@ namespace love
 
         size_t getSize() const override
         {
-            return this->handle.getSize() / SLICE_COUNT;
+            return this->sliceSize * SLICE_COUNT;
         }
 
         MapInfo map(size_t /* minSize */) override
         {
             MapInfo info {};
 
-            const auto offset = (this->frameIndex * this->sliceSize) + this->frameGPUReadOffset;
+            if (!this->handle)
+                return info;
 
-            info.data = &((uint8_t*)this->handle.getCpuAddr())[offset];
-            info.size = this->getSize() - this->frameGPUReadOffset;
+            const size_t offset = (this->frameIndex * this->sliceSize) + this->frameGPUReadOffset;
+
+            if (offset >= this->handle.getSize())
+                return info;
+
+            auto* cpuAddr = (uint8_t*)this->handle.getCpuAddr();
+
+            info.data = cpuAddr + offset;
+            info.size = this->sliceSize - this->frameGPUReadOffset;
 
             return info;
         }
 
         size_t unmap(size_t /* usedSize */) override
         {
-            const auto offset = (this->frameIndex * this->sliceSize);
-            d3d.bindBuffer(this->mode, this->handle.getGpuAddr() + offset, this->getSize());
+            if (!this->handle)
+                return 0;
 
-            return (this->frameIndex * this->sliceSize) + this->frameGPUReadOffset;
+            const auto offset = (this->frameIndex * this->sliceSize);
+            d3d.bindBuffer(this->mode, this->handle.getGpuAddr() + offset, this->sliceSize);
+
+            return this->frameGPUReadOffset;
         }
 
         size_t getGPUReadOffset() const override

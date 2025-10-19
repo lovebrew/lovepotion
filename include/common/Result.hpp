@@ -42,7 +42,7 @@ class ResultCode
         return this->code == other;
     }
 
-    constexpr operator bool() const
+    explicit constexpr operator bool() const
     {
         return R_SUCCEEDED(this->code);
     }

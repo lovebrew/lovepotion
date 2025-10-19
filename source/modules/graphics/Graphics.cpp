@@ -1,5 +1,6 @@
 #include "modules/graphics/Graphics.tcc"
 
+#include "modules/graphics/ParticleSystem.hpp"
 #include "modules/graphics/Polyline.hpp"
 #include "modules/graphics/SpriteBatch.hpp"
 #include "modules/window/Window.tcc"
@@ -99,8 +100,8 @@ namespace love
         this->setShader(state.shader.get());
         this->setRenderTargets(state.renderTargets);
 
-        // this->setStencilState(state.stencil);
-        // this->setDepthMode(state.depthTest, state.depthWrite);
+        this->setStencilState(state.stencil);
+        this->setDepthMode(state.depthTest, state.depthWrite);
 
         this->setColorMask(state.colorMask);
 
@@ -176,11 +177,11 @@ namespace love
         if (targetsChanged)
             this->setRenderTargets(state.renderTargets);
 
-        // if (this->stencil != state.stencil)
-        //     this->setStencilState(state.stencil);
+        if (!(state.stencil == current.stencil))
+            this->setStencilState(state.stencil);
 
-        // if (this->depthTest != state.depthTest || this->depthWrite != state.depthWrite)
-        //     this->setDepthMode(state.depthTest, state.depthWrite);
+        if (state.depthTest != current.depthTest || state.depthWrite != current.depthWrite)
+            this->setDepthMode(state.depthTest, state.depthWrite);
 
         if (state.colorMask != current.colorMask)
             this->setColorMask(state.colorMask);
@@ -942,6 +943,55 @@ namespace love
         return state.scissor;
     }
 
+    void GraphicsBase::setStencilMode(StencilMode mode, int value)
+    {
+        this->setStencilState(computeStencilState(mode, value));
+
+        if (mode == STENCIL_MODE_DRAW)
+            this->setColorMask({ false, false, false, false });
+        else
+            this->setColorMask({ true, true, true, true });
+    }
+
+    void GraphicsBase::setStencilMode()
+    {
+        this->setStencilState(computeStencilState(STENCIL_MODE_OFF, 0));
+        this->setColorMask({ true, true, true, true });
+    }
+
+    StencilMode GraphicsBase::getStencilMode(int& value) const
+    {
+        const auto& state = this->states.back();
+        StencilMode mode  = computeStencilMode(state.stencil);
+        value             = state.stencil.value;
+
+        return mode;
+    }
+
+    void GraphicsBase::setStencilState()
+    {
+        StencilState state {};
+        this->setStencilState(state);
+    }
+
+    const StencilState& GraphicsBase::getStencilState() const
+    {
+        const auto& state = this->states.back();
+        return state.stencil;
+    }
+
+    void GraphicsBase::setDepthMode()
+    {
+        this->setDepthMode(COMPARE_ALWAYS, false);
+    }
+
+    void GraphicsBase::getDepthMode(CompareMode& compare, bool& write) const
+    {
+        const auto& state = this->states.back();
+        compare           = state.depthTest;
+        write             = state.depthWrite;
+    }
+
     bool GraphicsBase::isRenderTargetActive() const
     {
         const auto& targets = this->states.back().renderTargets;
@@ -1302,6 +1352,11 @@ namespace love
             for (int index = 0; index < command.vertexCount; index++)
                 stream[index].color = colors[index];
         }
+    }
+
+    ParticleSystem* GraphicsBase::newParticleSystem(TextureBase* texture, int size) const
+    {
+        return new ParticleSystem(texture, size);
     }
 
     void GraphicsBase::draw(Drawable* drawable, const Matrix4& matrix)

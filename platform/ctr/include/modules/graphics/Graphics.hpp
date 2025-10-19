@@ -29,6 +29,10 @@ namespace love
 
         void setColorMask(ColorChannelMask mask) override;
 
+        void setStencilState(const StencilState& state) override;
+
+        void setDepthMode(CompareMode compare, bool write) override;
+
         void setPointSize(float size) override
         {
             if (size != this->states.back().pointSize)
@@ -75,13 +79,13 @@ namespace love
         ShaderBase* newShaderInternal(StrongRef<ShaderStageBase> stages[SHADERSTAGE_MAX_ENUM],
                                       const ShaderBase::CompileOptions& options) override;
 
-        bool is3D() const override;
+        bool isStereoscopic() const override;
 
-        void set3D(bool enable) override;
+        void setStereoscopic(bool enable) override;
 
-        bool isWide() const override;
+        bool isWideMode() const override;
 
-        void setWide(bool enable) override;
+        void setWideMode(bool enable) override;
 
         float getDepth() const override;
     };

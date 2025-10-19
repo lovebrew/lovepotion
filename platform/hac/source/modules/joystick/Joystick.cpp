@@ -174,6 +174,28 @@ namespace love
         return false;
     }
 
+    Joystick::PowerState Joystick::getPowerInfo(int& percent) const
+    {
+        HidPowerInfo info {};
+        hidGetNpadPowerInfoSingle(HidNpadIdType(this->id), &info);
+
+        if (info.battery_level == 4 && !info.is_charging)
+            return POWER_CHARGED;
+
+        auto state = (info.is_charging) ? POWER_CHARGING : POWER_ON_BATTERY;
+        percent    = ((info.battery_level / 4.0f) * 100);
+
+        return state;
+    }
+
+    Joystick::ConnectionState Joystick::getConnectionState() const
+    {
+        if (padIsHandheld(&this->state))
+            return CONNECTION_WIRED;
+
+        return CONNECTION_WIRELESS;
+    }
+
     void Joystick::setPlayerIndex(int)
     {}
 

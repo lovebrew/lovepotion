@@ -1,190 +1,223 @@
 #include "common/Exception.hpp"
 #include "common/Result.hpp"
 
-#include "driver/audio/DigitalSound.hpp"
+#include "driver/DigitalSound.tcc"
+#include "modules/audio/dsp/Audio.hpp"
 
 #include <cstring>
 
-static void audioCallback(void* data)
-{
-    LightEvent_Signal((LightEvent*)data);
-}
-
 namespace love
 {
-    DigitalSound::~DigitalSound()
-    {}
-
-    void DigitalSound::initialize()
+    namespace audio
     {
-        const auto result = ResultCode(ndspInit());
-
-        if (result == ResultCode::DSP_FIRM_MISSING)
-            throw love::Exception(E_AUDIO_NOT_INITIALIZED " (dspfirm.cdc not found)");
-
-        if (!result)
-            throw love::Exception(E_AUDIO_NOT_INITIALIZED ": {:x}", result.value());
-
-        LightEvent_Init(&this->event, RESET_ONESHOT);
-        ndspSetCallback(audioCallback, &this->event);
-
-        for (size_t index = 0; index < 24; index++)
-            this->channelSetVolume(index, 1.0f);
-    }
-
-    void DigitalSound::deInitialize()
-    {
-        ndspExit();
-    }
-
-    void DigitalSound::update()
-    {
-        LightEvent_Wait(&this->event);
-    }
-
-    void DigitalSound::setMasterVolume(float volume)
-    {
-        ndspSetMasterVol(volume);
-    }
-
-    float DigitalSound::getMasterVolume() const
-    {
-        return ndspGetMasterVol();
-    }
-
-    AudioBuffer DigitalSound::createBuffer(int size, int)
-    {
-        AudioBuffer buffer {};
-
-        if (size != 0)
+        class InvalidFormatException : public love::Exception
         {
-            buffer.data_pcm16 = (int16_t*)linearAlloc(size);
+          public:
+            InvalidFormatException(int channels, int bitdepth) :
+                Exception("%d-channel Sources with %d bits per sample are not supported.", channels, bitdepth)
+            {}
+        };
 
-            if (buffer.data_pcm16 == nullptr)
+        LightEvent s_Event;
+        volatile bool s_Init = false;
+
+        // #region Device
+
+        static void audioCallback(void*)
+        {
+            if (!s_Init)
+                return;
+
+            LightEvent_Signal(&s_Event);
+        }
+
+        bool Device::open()
+        {
+            if (!ResultCode(ndspInit()))
+                return false;
+
+            LightEvent_Init(&s_Event, RESET_ONESHOT);
+            ndspSetCallback(audioCallback, nullptr);
+
+            for (size_t index = 0; index < Channel::MAX_CHANNELS; index++)
+                ndspChnReset(index);
+
+            s_Init = true;
+            return s_Init;
+        }
+
+        void Device::update()
+        {
+            LightEvent_Wait(&s_Event);
+        }
+
+        void Device::close()
+        {
+            if (!s_Init)
+                return;
+
+            s_Init = false;
+
+            ndspSetCallback(nullptr, nullptr);
+            ndspExit();
+        }
+
+        void Device::setMasterVolume(float volume)
+        {
+            ndspSetMasterVol(volume);
+        }
+
+        float Device::getMasterVolume()
+        {
+            return ndspGetMasterVol();
+        }
+        // #endregion
+
+        // #region Buffer
+
+        Buffer::Buffer(const size_t size, int) : buffer {}
+        {
+            if (size == 0)
+                throw love::Exception("Audio buffer size cannot be zero.");
+
+            this->buffer.data_pcm16 = (int16_t*)linearAlloc(size);
+
+            if (!this->buffer.data_pcm16)
                 throw love::Exception(E_OUT_OF_MEMORY);
         }
-        else
-            throw love::Exception("Size cannot be zero.");
 
-        return buffer;
-    }
+        void Buffer::destroy()
+        {
+            linearFree(this->buffer.data_pcm16);
+        }
 
-    void DigitalSound::freeBuffer(const AudioBuffer& buffer)
-    {
-        linearFree(buffer.data_pcm16);
-    }
+        bool Buffer::isFinished() const
+        {
+            return this->buffer.status == NDSP_WBUF_DONE;
+        }
 
-    bool DigitalSound::isBufferDone(const AudioBuffer& buffer) const
-    {
-        return buffer.status == NDSP_WBUF_DONE;
-    }
+        void Buffer::prepare(const void* data, const size_t size, int samples, bool own)
+        {
+            if (data == nullptr || size == 0)
+                return;
 
-    void DigitalSound::prepare(AudioBuffer& buffer, const void* data, size_t size, int samples)
-    {
-        if (data == nullptr)
-            return;
+            this->buffer.nsamples = samples;
 
-        buffer.nsamples = samples;
-        std::memcpy(buffer.data_pcm16, data, size);
+            if (own)
+            {
+                if (!this->buffer.data_pcm16)
+                    return;
 
-        DSP_FlushDataCache(buffer.data_pcm16, size);
-    }
+                std::memcpy(this->buffer.data_pcm16, data, size);
+            }
+            else
+                this->buffer.data_pcm16 = (int16_t*)data;
 
-    size_t DigitalSound::getSampleCount(const AudioBuffer& buffer) const
-    {
-        return buffer.nsamples;
-    }
+            DSP_FlushDataCache(this->buffer.data_pcm16, size);
+        }
 
-    void DigitalSound::setLooping(AudioBuffer& buffer, bool looping)
-    {
-        buffer.looping = looping;
-    }
+        size_t Buffer::getSampleCount() const
+        {
+            return this->buffer.nsamples;
+        }
 
-    // #region Channels
+        void Buffer::setLooping(bool looping)
+        {
+            this->buffer.looping = looping;
+        }
 
-    bool DigitalSound::channelReset(size_t id, int channels, int bitDepth, int sampleRate)
-    {
-        ndspChnReset(id);
+        bool Buffer::isLooping() const
+        {
+            return this->buffer.looping;
+        }
 
-        int8_t format = 0;
-        if ((format = DigitalSound::getFormat(channels, bitDepth)) < 0)
-            return false;
+        void Buffer::setStatus(uint8_t status)
+        {
+            this->buffer.status = status;
+        }
 
-        ndspInterpType interpType;
+        // #endregion
 
-        if (!DigitalSound::getConstant((InterpretedFormat)channels, interpType))
-            return false;
+        // #region Channel
 
-        ndspChnSetFormat(id, format);
-        ndspChnSetRate(id, sampleRate);
-        ndspChnSetInterp(id, interpType);
+        static NdspFormat getChannelFormat(AudioBase::AudioFormat format)
+        {
+            switch (format)
+            {
+                default:
+                case AudioBase::FORMAT_MONO8:
+                    return NDSP_FORMAT_MONO_PCM8;
+                case AudioBase::FORMAT_MONO16:
+                    return NDSP_FORMAT_MONO_PCM16;
+                case AudioBase::FORMAT_STEREO8:
+                    return NDSP_FORMAT_STEREO_PCM8;
+                case AudioBase::FORMAT_STEREO16:
+                    return NDSP_FORMAT_STEREO_PCM16;
+            }
+        }
 
-        this->channelSetVolume(id, this->channelGetVolume(id));
+        bool Channel::reset(size_t id, int channels, int bitdepth, int samplerate, float volume)
+        {
+            const auto format = dsp::Audio::getFormat(bitdepth, channels);
 
-        return true;
-    }
+            if (format == AudioBase::FORMAT_NONE)
+                throw InvalidFormatException(channels, bitdepth);
 
-    void DigitalSound::channelSetVolume(size_t id, float volume)
-    {
-        std::array<float, 12> mix { volume, volume };
+            NdspFormat fmt = getChannelFormat(format);
 
-        ndspChnSetMix(id, mix.data());
-    }
+            ndspChnReset(id);
+            ndspChnSetFormat(id, fmt);
+            ndspChnSetRate(id, samplerate);
+            ndspChnSetInterp(id, NDSP_INTERP_POLYPHASE);
+            Channel::setVolume(id, volume);
 
-    float DigitalSound::channelGetVolume(size_t id) const
-    {
-        std::array<float, 12> mix;
-        ndspChnGetMix(id, mix.data());
+            return true;
+        }
 
-        return mix.at(0);
-    }
+        void Channel::setVolume(size_t id, float volume)
+        {
+            std::array<float, 12> mix { volume, volume };
+            ndspChnSetMix(id, mix.data());
+        }
 
-    size_t DigitalSound::channelGetSampleOffset(size_t id) const
-    {
-        return ndspChnGetSamplePos(id);
-    }
+        float Channel::getVolume(size_t id)
+        {
+            std::array<float, 12> mix {};
+            ndspChnGetMix(id, mix.data());
 
-    bool DigitalSound::channelAddBuffer(size_t id, AudioBuffer* buffer)
-    {
-        ndspChnWaveBufAdd(id, buffer);
+            return mix.at(0);
+        }
 
-        return true;
-    }
+        size_t Channel::getSampleOffset(size_t id)
+        {
+            return ndspChnGetSamplePos(id);
+        }
 
-    void DigitalSound::channelPause(size_t id, bool paused)
-    {
-        ndspChnSetPaused(id, paused);
-    }
+        bool Channel::addBuffer(size_t id, Buffer& buffer)
+        {
+            ndspChnWaveBufAdd(id, buffer.getHandle());
+            return true;
+        }
 
-    bool DigitalSound::isChannelPaused(size_t id) const
-    {
-        return ndspChnIsPaused(id);
-    }
+        void Channel::pause(size_t id, bool paused)
+        {
+            ndspChnSetPaused(id, paused);
+        }
 
-    bool DigitalSound::isChannelPlaying(size_t id) const
-    {
-        return ndspChnIsPlaying(id);
-    }
+        bool Channel::isPaused(size_t id)
+        {
+            return ndspChnIsPaused(id);
+        }
 
-    void DigitalSound::channelStop(size_t id)
-    {
-        ndspChnWaveBufClear(id);
-    }
+        bool Channel::isPlaying(size_t id)
+        {
+            return ndspChnIsPlaying(id);
+        }
 
-    // #endregion
-
-    int8_t DigitalSound::getFormat(int channels, int bitDepth)
-    {
-        if (bitDepth != 8 && bitDepth != 16)
-            return -1;
-
-        if (channels < 1 || channels > 2)
-            return -2;
-
-        NdspEncodingType encoding;
-        getConstant((EncodingFormat)bitDepth, encoding);
-
-        return NDSP_CHANNELS(channels) | NDSP_ENCODING(encoding);
-    }
-
+        void Channel::stop(size_t id)
+        {
+            ndspChnWaveBufClear(id);
+        }
+        // #endregion
+    } // namespace audio
 } // namespace love

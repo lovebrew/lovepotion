@@ -2,6 +2,9 @@
 
 #include "driver/audio/DigitalSoundMemory.hpp"
 
+#include <cstring>
+#include <malloc.h>
+
 namespace love
 {
     DigitalSoundMemory::DigitalSoundMemory(DigitalSoundMemory&& other) noexcept :
@@ -44,34 +47,38 @@ namespace love
         }
     }
 
-    void DigitalSoundMemory::initialize(AudioDriver* driver)
+    bool DigitalSoundMemory::initialize(AudioDriver* driver)
     {
         std::lock_guard lock(this->mutex);
 
         if (this->base)
-            return;
+            return false;
 
-        this->base = aligned_alloc(AUDREN_MEMPOOL_ALIGNMENT, this->size);
+        this->base = memalign(AUDREN_MEMPOOL_ALIGNMENT, this->size);
 
         if (!this->base)
-            throw love::Exception("Failed to allocate memory for digital sound.");
+            return false;
+
+        std::memset(this->base, 0, this->size);
 
         auto* block = MemoryBlock::create((uint8_t*)this->base, this->size);
 
-        if (!block)
-            throw love::Exception("Failed to create memory block for digital sound.");
+        if (block == nullptr)
+            return false;
 
         this->pool.addBlock(block);
 
-        const auto id = audrvMemPoolAdd(driver, this->base, size);
+        const auto id = audrvMemPoolAdd(driver, this->base, this->size);
 
-        if (id == -1)
-            throw love::Exception("Failed to add memory pool!");
+        if (id < 0)
+            return false;
 
         bool attached = audrvMemPoolAttach(driver, id);
 
         if (!attached)
-            throw love::Exception("Failed to attach memory pool!");
+            return false;
+
+        return true;
     }
 
     void* DigitalSoundMemory::allocate(size_t size)

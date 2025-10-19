@@ -3,38 +3,111 @@
 #include "common/Map.hpp"
 #include "common/Singleton.tcc"
 
-#include <atomic>
+#include <array>
+#include <mutex>
+
+#if defined(__3DS__)
+    #include <3ds.h>
+using AudioBuf   = ndspWaveBuf;
+using NdspFormat = decltype(NDSP_FORMAT_MONO_PCM8);
+#elif defined(__SWITCH__)
+    #include <switch.h>
+using AudioBuf = AudioDriverWaveBuf;
+#else
+    #include <sndcore2/voice.h>
+struct AudioBuf
+{
+    std::array<AXVoice*, 2> voices;
+    int16_t* data_pcm16;
+    size_t nsamples;
+    uint32_t offset;
+    bool looping;
+    int channels;
+};
+#endif
 
 namespace love
 {
-    template<class T>
-    class DigitalSoundBase : public Singleton<T>
+    namespace audio
     {
-      public:
-        enum InterpretedFormat
+        class Device final
         {
-            FORMAT_MONO   = 0x01,
-            FORMAT_STEREO = 0x02,
-            FORMAT_MAX_ENUM
+          public:
+            static bool open();
+
+            static void close();
+
+            static void update();
+
+            static void setMasterVolume(float volume);
+
+            static float getMasterVolume();
+
+            static std::recursive_mutex& getMutex()
+            {
+                static std::recursive_mutex s_Mutex;
+                return s_Mutex;
+            }
         };
 
-        enum EncodingFormat
+        class Buffer final
         {
-            ENCODING_PCM8  = 0x08,
-            ENCODING_PCM16 = 0x10,
-            ENCODING_MAX_ENUM
+          public:
+            Buffer()
+            {}
+
+            Buffer(const size_t size, int channels);
+
+            void destroy();
+
+            bool isFinished() const;
+
+            void prepare(const void* data, const size_t size, int samples, bool own = true);
+
+            size_t getSampleCount() const;
+
+            void setLooping(bool looping);
+
+            bool isLooping() const;
+
+            void setStatus(uint8_t status);
+
+            AudioBuf* getHandle()
+            {
+                return std::addressof(this->buffer);
+            };
+
+            void* getData() const
+            {
+                return this->buffer.data_pcm16;
+            }
+
+          private:
+            AudioBuf buffer;
         };
 
-        DigitalSoundBase() : initialized(false)
-        {}
+        class Channel final
+        {
+          public:
+            static constexpr size_t MAX_CHANNELS = 24;
 
-        virtual void initialize() = 0;
+            static bool reset(size_t id, int channels, int bitdepth, int samplerate, float volume);
 
-        virtual void deInitialize() = 0;
+            static void setVolume(size_t id, float volume);
 
-        virtual void update() = 0;
+            static float getVolume(size_t id);
 
-      protected:
-        std::atomic<bool> initialized;
-    };
+            static size_t getSampleOffset(size_t id);
+
+            static bool addBuffer(size_t id, Buffer& buffer);
+
+            static void pause(size_t id, bool paused);
+
+            static bool isPaused(size_t id);
+
+            static bool isPlaying(size_t id);
+
+            static void stop(size_t id);
+        };
+    } // namespace audio
 } // namespace love

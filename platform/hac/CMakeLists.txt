@@ -58,7 +58,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/driver/display/Framebuffer.cpp
     source/driver/display/deko.cpp
     source/driver/EventQueue.cpp
-    source/modules/audio/Source.cpp
+    source/modules/audio/RecordingDevice.cpp
     source/modules/font/SystemFont.cpp
     source/modules/graphics/Graphics.cpp
     source/modules/graphics/Shader.cpp

@@ -137,12 +137,40 @@ namespace love
         if (!this->inFrame || !this->context.boundFramebuffer)
             return;
 
-        C3D_RenderTargetClear(this->getFramebuffer(), C3D_CLEAR_ALL, color.abgr(), 0);
+        C3D_RenderTargetClear(this->getFramebuffer(), C3D_CLEAR_COLOR, color.abgr(), 0);
     }
 
-    void citro3d::clearDepthStencil(int depth, uint8_t mask, double stencil)
+    void citro3d::clearDepth(double value)
     {
-        /// ???
+        if (!this->inFrame || !this->context.boundFramebuffer)
+            return;
+
+        C3D_RenderTargetClear(this->getFramebuffer(), C3D_CLEAR_DEPTH, 0, value);
+    }
+
+    void citro3d::clearStencil(int value)
+    {}
+
+    void citro3d::setStencilState(const StencilState& state)
+    {
+        const bool enabled = state.action != STENCIL_KEEP || state.compare != COMPARE_ALWAYS;
+
+        GPU_STENCILOP stencilAction = GPU_STENCIL_KEEP;
+        getConstant(state.action, stencilAction);
+
+        GPU_TESTFUNC testFunction = GPU_ALWAYS;
+        getConstant(state.compare, testFunction);
+
+        C3D_StencilTest(enabled, testFunction, state.value, state.readMask, state.writeMask);
+        C3D_StencilOp(GPU_STENCIL_KEEP, GPU_STENCIL_KEEP, stencilAction);
+    }
+
+    void citro3d::setDepthWrites(CompareMode compare, bool write)
+    {
+        const bool enabled = compare != COMPARE_ALWAYS || write;
+
+        GPU_TESTFUNC testFunction = GPU_ALWAYS;
+        C3D_DepthTest(enabled, testFunction, enabled ? GPU_WRITE_DEPTH : GPU_WRITE_COLOR);
     }
 
     C3D_RenderTarget* citro3d::getFramebuffer()
@@ -180,6 +208,12 @@ namespace love
 
             Graphics::advanceStreamBuffersGlobal();
             this->inFrame = false;
+        }
+
+        for (size_t index = this->deferred.size(); index > 0; index--)
+        {
+            this->deferred[index - 1]();
+            this->deferred.erase(this->deferred.begin() + index - 1);
         }
     }
 
@@ -244,7 +278,7 @@ namespace love
 
     void citro3d::setColorMask(ColorChannelMask mask)
     {
-        uint8_t writeMask = GPU_WRITE_DEPTH;
+        uint8_t writeMask = GPU_WRITE_COLOR;
         writeMask |= mask.get();
 
         if (this->context.colorMask == mask)
