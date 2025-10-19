@@ -7,7 +7,8 @@ extern "C"
     extern int luaopen_https(lua_State*);
 }
 
-static constexpr int STDIO_PORT = 8000;
+#include "common/debug.hpp"
+static love::DebugSocket g_debugSocket;
 
 const char* love_getVersion();
 

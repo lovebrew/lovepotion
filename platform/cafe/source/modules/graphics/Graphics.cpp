@@ -410,7 +410,7 @@ namespace love
         const uint32_t offset        = (uint32_t)command.indexBufferOffset;
         const uint32_t instanceCount = (uint32_t)command.instanceCount;
 
-        GX2RDrawIndexed(mode, buffer, indexType, count, offset, 0, instanceCount);
+        GX2RDrawIndexed(mode, buffer, indexType, count, BUFFER_OFFSET(offset), 0, instanceCount);
         ++this->drawCalls;
     }
 

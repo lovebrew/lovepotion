@@ -273,11 +273,85 @@ int Wrap_Joystick::isGamepadDown(lua_State* L)
     return 1;
 }
 
+int Wrap_Joystick::getPowerInfo(lua_State* L)
+{
+    auto* self  = luax_checkjoystick(L, 1);
+    int percent = 0;
+
+    const auto state = self->getPowerInfo(percent);
+    std::string_view str {};
+
+    if (!JoystickBase::getConstant(state, str))
+        str = "unknown";
+
+    luax_pushstring(L, str);
+
+    if (percent >= 0)
+        lua_pushnumber(L, percent);
+    else
+        lua_pushnil(L);
+
+    return 2;
+}
+
+int Wrap_Joystick::getConnectionState(lua_State* L)
+{
+    auto* self = luax_checkjoystick(L, 1);
+
+    const auto state = self->getConnectionState();
+
+    std::string_view str {};
+    if (!JoystickBase::getConstant(state, str))
+        str = "unknown";
+
+    luax_pushstring(L, str);
+
+    return 1;
+}
+
 int Wrap_Joystick::getGamepadMapping(lua_State* L)
 {
     auto* self = luax_checkjoystick(L, 1);
 
-    luax_pushstring(L, "");
+    const char* bindingName = luaL_checkstring(L, 2);
+    JoystickBase::GamepadInput gamepadInput {};
+
+    if (JoystickBase::getConstant(bindingName, gamepadInput.axis))
+        gamepadInput.type = JoystickBase::INPUT_TYPE_AXIS;
+    else if (JoystickBase::getConstant(bindingName, gamepadInput.button))
+        gamepadInput.type = JoystickBase::INPUT_TYPE_BUTTON;
+    else
+        return luax_enumerror(L, "gamepad axis/button", bindingName);
+
+    JoystickBase::JoystickInput joystickInput {};
+    joystickInput.type = JoystickBase::INPUT_TYPE_MAX_ENUM;
+
+    luax_catchexcept(L, [&]() { joystickInput = self->getGamepadMapping(gamepadInput); });
+
+    if (joystickInput.type == JoystickBase::INPUT_TYPE_MAX_ENUM)
+        return 0;
+
+    std::string_view inputTypeString {};
+    if (!JoystickBase::getConstant(joystickInput.type, inputTypeString))
+        return luaL_error(L, "Unknown joystick input type.");
+
+    luax_pushstring(L, inputTypeString);
+
+    switch (joystickInput.type)
+    {
+        case JoystickBase::INPUT_TYPE_AXIS:
+        {
+            lua_pushinteger(L, joystickInput.axis);
+            return 2;
+        }
+        case JoystickBase::INPUT_TYPE_BUTTON:
+        {
+            lua_pushinteger(L, joystickInput.button);
+            return 2;
+        }
+        default:
+            return luaL_error(L, "Unknown joystick input type.");
+    }
 
     return 1;
 }
@@ -286,7 +360,12 @@ int Wrap_Joystick::getGamepadMappingString(lua_State* L)
 {
     auto* self = luax_checkjoystick(L, 1);
 
-    luax_pushstring(L, "");
+    const auto mapping = self->getGamepadMappingString();
+
+    if (mapping.empty())
+        lua_pushnil(L);
+    else
+        luax_pushstring(L, mapping);
 
     return 1;
 }
@@ -419,8 +498,10 @@ static constexpr luaL_Reg functions[] = {
     { "getGamepadType",          Wrap_Joystick::getGamepadType          },
     { "getGamepadAxis",          Wrap_Joystick::getGamepadAxis          },
     { "isGamepadDown",           Wrap_Joystick::isGamepadDown           },
-    // { "getGamepadMapping",       Wrap_Joystick::getGamepadMapping       },
-    // { "getGamepadMappingString", Wrap_Joystick::getGamepadMappingString },
+    { "getPowerInfo",            Wrap_Joystick::getPowerInfo            },
+    { "getConnectionState",      Wrap_Joystick::getConnectionState      },
+    { "getGamepadMapping",       Wrap_Joystick::getGamepadMapping       },
+    { "getGamepadMappingString", Wrap_Joystick::getGamepadMappingString },
     { "isVibrationSupported",    Wrap_Joystick::isVibrationSupported    },
     { "setVibration",            Wrap_Joystick::setVibration            },
     { "getVibration",            Wrap_Joystick::getVibration            },

@@ -6,6 +6,8 @@
     #include "modules/font/freetype/Font.hpp"
 #endif
 
+#include "modules/font/SystemFont.hpp"
+
 #include "modules/font/wrap_GlyphData.hpp"
 #include "modules/font/wrap_Rasterizer.hpp"
 
@@ -91,7 +93,19 @@ static Data* luax_checkfilename(lua_State* L, int index)
     if (!FontModule::getConstant(name, systemFontType))
         return luax_getfiledata(L, index);
 
-    return FontModule::loadSystemFontByType(systemFontType);
+    SystemFont* font = nullptr;
+
+    try
+    {
+        font = new SystemFont(systemFontType);
+    }
+    catch (love::Exception& e)
+    {
+        luaL_error(L, "%s", e.what());
+        return nullptr;
+    }
+
+    return font;
 }
 
 int Wrap_FontModule::newTrueTypeRasterizer(lua_State* L)

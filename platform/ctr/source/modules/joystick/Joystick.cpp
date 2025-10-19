@@ -1,3 +1,5 @@
+#include "common/Result.hpp"
+
 #include "modules/joystick/Joystick.hpp"
 #include "utility/guid.hpp"
 
@@ -167,6 +169,31 @@ namespace love
         return false;
     }
 
+    Joystick::PowerState Joystick::getPowerInfo(int& percent) const
+    {
+        uint8_t isCharging = 0;
+        uint8_t level      = 0;
+
+        if (!ResultCode(MCUHWC_GetBatteryLevel(&level)))
+            return POWER_UNKNOWN;
+
+        percent = level;
+        if (!ResultCode(PTMU_GetBatteryChargeState(&isCharging)))
+            return POWER_UNKNOWN;
+
+        if (percent == 100 && !isCharging)
+            return POWER_CHARGED;
+
+        auto state = (isCharging) ? POWER_CHARGING : POWER_ON_BATTERY;
+
+        return state;
+    }
+
+    Joystick::ConnectionState Joystick::getConnectionState() const
+    {
+        return CONNECTION_WIRED;
+    }
+
     void Joystick::setPlayerIndex(int)
     {}
 
@@ -178,13 +205,61 @@ namespace love
     Joystick::JoystickInput Joystick::getGamepadMapping(const GamepadInput& input) const
     {
         JoystickInput result {};
+        result.type = INPUT_TYPE_MAX_ENUM;
+
+        if (!this->isGamepad())
+            return result;
+
+        HidKeyType button;
+        HidAxisType axis;
+
+        switch (input.type)
+        {
+            case INPUT_TYPE_BUTTON:
+            {
+                Joystick::getConstant(input.button, button);
+                result.type   = INPUT_TYPE_BUTTON;
+                result.button = button;
+                break;
+            }
+            case INPUT_TYPE_AXIS:
+            {
+                Joystick::getConstant(input.axis, axis);
+                result.type = INPUT_TYPE_AXIS;
+                result.axis = axis;
+                break;
+            }
+            default:
+                break;
+        }
 
         return result;
     }
 
     std::string Joystick::getGamepadMappingString() const
     {
-        return std::string();
+        std::string mapping = std::format("{},{},", this->guid, this->name);
+        for (size_t button = 0; button < GAMEPAD_BUTTON_MAX_ENUM; button++)
+        {
+            std::string_view name {};
+            Joystick::getConstant((GamepadButton)button, name);
+            HidKeyType hidButton;
+            if (Joystick::getConstant((GamepadButton)button, hidButton))
+                mapping.append(std::format("{}:b{},", name, (int)button));
+        }
+
+        for (size_t axis = 0; axis < GAMEPAD_AXIS_MAX_ENUM; axis++)
+        {
+            std::string_view name {};
+            Joystick::getConstant((GamepadAxis)axis, name);
+            HidAxisType hidAxis;
+            if (Joystick::getConstant((GamepadAxis)axis, hidAxis))
+                mapping.append(std::format("{}:a{},", name, (int)axis));
+        }
+
+        mapping.append("platform:ctr");
+
+        return mapping;
     }
 
     bool Joystick::isVibrationSupported() const

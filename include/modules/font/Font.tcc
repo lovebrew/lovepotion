@@ -13,40 +13,6 @@
 
 namespace love
 {
-    class SystemFont : public Data
-    {
-      public:
-        static inline Type type = Type("SystemFont", &Data::type);
-
-        SystemFont(uint32_t dataType);
-
-        virtual ~SystemFont();
-
-        SystemFont(const SystemFont& other) : data(other.data), size(other.size), dataType(other.dataType)
-        {}
-
-        SystemFont* clone() const override
-        {
-            return new SystemFont(*this);
-        }
-
-        void* getData() const override
-        {
-            return this->data;
-        }
-
-        size_t getSize() const override
-        {
-            return this->size;
-        }
-
-      private:
-        void* data;
-        size_t size;
-
-        uint32_t dataType;
-    };
-
     class FontModuleBase : public Module
     {
       public:

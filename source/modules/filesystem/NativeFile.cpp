@@ -42,6 +42,8 @@ namespace love
         if (this->file != nullptr)
             return false;
 
+        this->file = std::fopen(this->filename.c_str(), this->getModeString(mode));
+
         if (mode == MODE_READ && this->file == nullptr)
             throw love::Exception(E_COULD_NOT_OPEN_FILE, filename);
 

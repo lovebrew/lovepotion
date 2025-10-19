@@ -21,10 +21,12 @@
 #include "modules/graphics/renderstate.hpp"
 #include "modules/graphics/samplerstate.hpp"
 
-#include "driver/graphics/DrawCommand.hpp"
+#include "modules/graphics/DrawCommand.hpp"
 
 #include <string>
 #include <vector>
+
+#define BUFFER_OFFSET(offset) ((offset) / sizeof(uint16_t))
 
 namespace love
 {
@@ -472,6 +474,8 @@ namespace love
 
         virtual FontBase* newDefaultFont(int size, const Rasterizer::Settings& settings) = 0;
 
+        ParticleSystem* newParticleSystem(TextureBase* texture, int size) const;
+
         // Mesh* newMesh(int vertexCount, PrimitiveType mode);
 
         TextBatch* newTextBatch(FontBase* font, const std::vector<ColoredString>& text = {});
@@ -502,10 +506,6 @@ namespace love
         SpriteBatch* newSpriteBatch(TextureBase* texture, int size, BufferDataUsage usage);
 
         virtual void initCapabilities() = 0;
-
-        TextureBase* getDefaultTexture(TextureBase* texture);
-
-        TextureBase* getDefaultTexture(TextureType type, DataBaseType dataType);
 
         BlendMode getBlendMode(BlendAlpha& alphaMode) const
         {
@@ -561,6 +561,27 @@ namespace love
         Capabilities getCapabilities() const
         {
             return this->capabilities;
+        }
+
+        virtual bool isStereoscopic() const
+        {
+            return false;
+        }
+
+        virtual void setStereoscopic(bool enable)
+        {}
+
+        virtual bool isWideMode() const
+        {
+            return false;
+        }
+
+        virtual void setWideMode(bool enable)
+        {}
+
+        virtual float getDepth() const
+        {
+            return 0.0f;
         }
 
         PixelFormat getSizedFormat(PixelFormat format);
@@ -736,6 +757,24 @@ namespace love
 
         void draw(TextureBase* texture, Quad* quad, const Matrix4& matrix);
 
+        void setStencilMode(StencilMode mode, int value);
+
+        void setStencilMode();
+
+        StencilMode getStencilMode(int& value) const;
+
+        void setStencilState();
+
+        virtual void setStencilState(const StencilState& state) = 0;
+
+        const StencilState& getStencilState() const;
+
+        virtual void setDepthMode(CompareMode compare, bool write) = 0;
+
+        void setDepthMode();
+
+        void getDepthMode(CompareMode& compare, bool& write) const;
+
         template<typename T>
         T* getScratchBuffer(size_t count)
         {
@@ -775,9 +814,6 @@ namespace love
             { "transform",  STACK_TRANSFORM  }
         );
         // clang-format on
-
-      private:
-        TextureBase* defaultTextures[TEXTURE_MAX_ENUM];
 
       protected:
         int calculateEllipsePoints(float a, float b) const;

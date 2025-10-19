@@ -2,28 +2,12 @@
 #include "common/Result.hpp"
 
 #include "modules/font/BCFNTRasterizer.hpp"
+#include "modules/font/SystemFont.hpp"
 
 #include <string.h>
 
 namespace love
 {
-    // #region System Font
-    SystemFont::SystemFont(uint32_t dataType) : data(nullptr), size(0), dataType(dataType)
-    {
-        this->data = FontModule::loadSystemFont(CFG_REGION_USA, this->size);
-    }
-
-    SystemFont::~SystemFont()
-    {
-        linearFree(this->data);
-    }
-    // #endregion
-
-    SystemFont* FontModule::loadSystemFontByType(SystemFontType type)
-    {
-        return new SystemFont(type);
-    }
-
     static CFNT_s* loadFromArchive(uint64_t title, const char* path, size_t& outSize)
     {
         std::unique_ptr<uint8_t[]> data;
@@ -31,9 +15,9 @@ namespace love
 
         CFNT_s* font = nullptr;
 
-        if (auto result = Result(romfsMountFromTitle(title, MEDIATYPE_NAND, "font")); result.failed())
+        if (auto result = ResultCode(romfsMountFromTitle(title, MEDIATYPE_NAND, "font")); !result)
         {
-            throw love::Exception("Failed to mount 'font:/' from NAND: {:X}", result.get());
+            throw love::Exception("Failed to mount 'font:/' from NAND: {:X}", result.value());
             return nullptr;
         }
 

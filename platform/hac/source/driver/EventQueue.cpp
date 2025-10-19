@@ -7,35 +7,16 @@
 
 namespace love
 {
-
-#define JOYSTICK_MODULE() Module::getInstance<JoystickModule>(Module::M_JOYSTICK)
-#define GRAPHICS_MODULE() Module::getInstance<GraphicsBase>(Module::M_GRAPHICS)
-
     EventQueue::EventQueue() :
         EventQueueBase<EventQueue>(),
         padStyleUpdates {},
         previousTouchCount(0),
         touches {},
         oldTouches {}
-    {
-        // std::array<HidNpadIdType, 9> ids { HidNpadIdType_Handheld, HidNpadIdType_No1, HidNpadIdType_No2,
-        //                                    HidNpadIdType_No3,      HidNpadIdType_No4, HidNpadIdType_No5,
-        //                                    HidNpadIdType_No6,      HidNpadIdType_No7, HidNpadIdType_No8 };
-
-        // for (int index = 0; index < this->padStyleUpdates.size(); index++)
-        //     hidAcquireNpadStyleSetUpdateEventHandle(ids[index], &this->padStyleUpdates[index], true);
-
-        appletLockExit();
-        appletSetFocusHandlingMode(AppletFocusHandlingMode_NoSuspend);
-    }
+    {}
 
     void EventQueue::deInitialize()
-    {
-        appletSetFocusHandlingMode(AppletFocusHandlingMode_SuspendHomeSleepNotify);
-        appletUnlockExit();
-        // for (int index = 0; index < this->padStyleUpdates.size(); index++)
-        //     eventClose(&this->padStyleUpdates[index]);
-    }
+    {}
 
     void EventQueue::checkFocus()
     {
@@ -62,7 +43,13 @@ namespace love
                     AppletFocusState focusState = appletGetFocusState();
 
                     focused = (focusState == AppletFocusState_InFocus);
+
                     this->sendFocus(focused);
+
+                    auto* graphics = Module::getInstance<Graphics>(Module::M_GRAPHICS);
+
+                    if (graphics)
+                        graphics->setActive(focused);
 
                     if (focused == oldFocused)
                         break;
@@ -141,10 +128,12 @@ namespace love
 
         this->previousTouchCount = touchCount;
 
-        if (!JOYSTICK_MODULE())
+        auto* joystickModule = Module::getInstance<JoystickModule>(Module::M_JOYSTICK);
+
+        if (!joystickModule)
             return;
 
-        int current = JOYSTICK_MODULE()->getJoystickCount();
+        int current = joystickModule->getJoystickCount();
 
         // for (int index = 0; index < this->padStyleUpdates.size(); index++)
         // {
@@ -159,7 +148,7 @@ namespace love
 
         for (int index = 0; index < current; index++)
         {
-            auto* joystick = JOYSTICK_MODULE()->getJoystick(index);
+            auto* joystick = joystickModule->getJoystick(index);
 
             if (joystick == nullptr)
                 continue;

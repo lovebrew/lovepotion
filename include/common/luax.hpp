@@ -24,6 +24,8 @@ extern "C"
 
 #include <cstdarg>
 
+#define E_INVALID_ENUM "Invalid %s '%*s', expected one of: %s."
+
 namespace love
 {
     class Module;
@@ -146,8 +148,6 @@ namespace love
 
     Type* luax_type(lua_State* L, int index);
 
-    int luax_enumerror(lua_State* L, const char* enumName, const char* value);
-
     template<typename T>
     T* luax_totype(lua_State* L, int index, const Type& type)
     {
@@ -174,6 +174,15 @@ namespace love
     }
 
     int luax_typeerror(lua_State* L, int argc, const char* name);
+
+    int luax_enumerror(lua_State* L, const char* name, const char* value);
+
+    template<typename T>
+    int luax_enumerror(lua_State* L, const char* name, const T& map, std::string_view value)
+    {
+        const auto names = map.getNames();
+        return luaL_error(L, E_INVALID_ENUM, name, value.length(), value.data(), names.c_str());
+    }
 
     template<typename T>
     void luax_checktablefields(lua_State* L, int idx, const char* enumName,
@@ -341,13 +350,6 @@ namespace love
     }
 
     Proxy* luax_tryextractproxy(lua_State* L, int index);
-
-    template<typename T>
-    int luax_enumerror(lua_State* L, const char* name, const T& map, std::string_view value)
-    {
-        std::string expected = map.expected(name, value);
-        return luaL_error(L, "%s", expected.c_str());
-    }
 
     // #endregion
 

@@ -159,12 +159,13 @@ end
 -- Default callbacks.
 -----------------------------------------------------------
 
----Gets the stereoscopic 3D value of the 3D slide on Nintendo 3DS
+---Gets the stereoscopic 3D value of the 3D slide on Nintendo 3DS.
+---On other platforms, this function returns nil.
 ---@param screen string The current screen
----@return number | nil depth The stereoscopic 3D value (0.0 - 1.0)
+---@return number? depth The stereoscopic 3D value (0.0 - 1.0)
 local function get_stereoscopic_depth(screen)
-    if love._console ~= "3DS" then return end
-    local depth = love.graphics.getDepth()
+    if love._console ~= "3ds" then return end
+    local depth = love.graphics.getStereoscopicDepth()
     return screen ~= "bottom" and (screen == "left" and depth or -depth) or 0
 end
 
@@ -251,12 +252,14 @@ function love.errhand(msg)
             love.mouse.setCursor()
         end
     end
+
     if love.joystick then
         -- Stop all joystick vibrations.
         for i, v in ipairs(love.joystick.getJoysticks()) do
             v:setVibration()
         end
     end
+
     if love.audio then love.audio.stop() end
 
     love.graphics.reset()
@@ -265,7 +268,6 @@ function love.errhand(msg)
     love.graphics.setColor(1, 1, 1)
 
     local trace = debug.traceback()
-
     love.graphics.origin()
 
     local sanitizedmsg = {}
@@ -297,17 +299,19 @@ function love.errhand(msg)
     p = p:gsub("\t", "")
     p = p:gsub("%[string \"(.-)\"%]", "%1")
 
-    local pos = 70
+    local pos = 5
+
     local function draw()
         if not love.graphics.isActive() then return end
         for display_index = 1, love.window.getDisplayCount() do
             local display_name = love.window.getDisplayName(display_index)
             love.graphics.setActiveScreen(display_name)
             love.graphics.origin()
+            love.graphics.clear(0.35, 0.62, 0.86)
 
-            love.graphics.clear(89 / 255, 157 / 255, 220 / 255)
-
-            love.graphics.printf(p, pos, pos, love.graphics.getWidth() - pos)
+            if display_name ~= "bottom" then
+                love.graphics.printf(p, pos, pos, love.graphics.getWidth() - pos)
+            end
             love.graphics.copyCurrentScanBuffer()
         end
         love.graphics.present()
@@ -320,6 +324,8 @@ function love.errhand(msg)
             if e == "quit" then
                 return 1
             elseif e == "touchpressed" then
+                return 1
+            elseif e == "gamepadpressed" and b == "start" then
                 return 1
             end
         end

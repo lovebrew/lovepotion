@@ -7,7 +7,10 @@
 #include "modules/joystick/JoystickModule.hpp"
 #include "modules/touch/Touch.hpp"
 
+#include "common/Variant.hpp"
+
 #include <mutex>
+#include <vector>
 
 namespace love
 {
@@ -58,10 +61,12 @@ namespace love
                 break;
             }
             case SUBTYPE_RESIZE:
+            {
                 args.emplace_back((double)event.resize.width);
                 args.emplace_back((double)event.resize.height);
                 result = new Message("resize", args);
                 break;
+            }
             default:
                 break;
         }
@@ -80,12 +85,14 @@ namespace love
             case SUBTYPE_TOUCHMOVED:
             case SUBTYPE_TOUCHRELEASE:
             {
-                finger.id       = event.finger.id;
-                finger.x        = event.finger.x;
-                finger.y        = event.finger.y;
-                finger.dx       = event.finger.dx;
-                finger.dy       = event.finger.dy;
-                finger.pressure = event.finger.pressure;
+                finger.id         = event.finger.id;
+                finger.x          = event.finger.x;
+                finger.y          = event.finger.y;
+                finger.dx         = event.finger.dx;
+                finger.dy         = event.finger.dy;
+                finger.pressure   = event.finger.pressure;
+                finger.deviceType = event.finger.deviceType;
+                finger.mouse      = event.finger.mouse;
 
                 auto module = Module::getInstance<Touch>(Module::M_TOUCH);
 
@@ -98,6 +105,13 @@ namespace love
                 args.emplace_back(finger.dx);
                 args.emplace_back(finger.dy);
                 args.emplace_back(finger.pressure);
+
+                std::string_view type {};
+                if (!Touch::getConstant((Touch::DeviceType)finger.deviceType, type))
+                    type = "unknown";
+
+                args.emplace_back(type.data(), type.length());
+                args.emplace_back(finger.mouse);
 
                 if (event.subtype == SUBTYPE_TOUCHPRESS)
                     result = new Message("touchpressed", args);
@@ -301,10 +315,18 @@ namespace love
 
     void Event::push(Message* message)
     {
+        this->push(message, false);
+    }
+
+    void Event::push(Message* message, bool pushFront)
+    {
         std::unique_lock lock(this->mutex);
         message->retain();
 
-        this->messages.push(message);
+        if (pushFront)
+            this->messages.push_front(message);
+        else
+            this->messages.push_back(message);
     }
 
     bool Event::poll(Message*& message)
@@ -315,7 +337,7 @@ namespace love
             return false;
 
         message = this->messages.front();
-        this->messages.pop();
+        this->messages.pop_front();
 
         return true;
     }
@@ -324,18 +346,25 @@ namespace love
     {
         std::unique_lock lock(this->mutex);
 
+        LOVE_Event event {};
+        while (EventQueue::getInstance().poll(&event))
+        {
+            // do nothing
+        }
+
         while (!this->messages.empty())
         {
             this->messages.front()->release();
-            this->messages.pop();
+            this->messages.pop_front();
         }
     }
 
     void Event::pump(float timeout)
     {
-        while (EventQueue::getInstance().poll(&this->event))
+        LOVE_Event event {};
+        while (EventQueue::getInstance().poll(&event))
         {
-            StrongRef<Message> message(convert(this->event), Acquire::NO_RETAIN);
+            StrongRef<Message> message(convert(event), Acquire::NO_RETAIN);
 
             if (message)
                 this->push(message);
@@ -345,7 +374,6 @@ namespace love
     Message* Event::wait()
     {
         LOVE_Event event {};
-
         if (EventQueue::getInstance().poll(&event))
             return convert(event);
 

@@ -35,7 +35,7 @@ namespace love
 
         if (!file)
         {
-            this->warnings.append("Failed to open file {:s}", this->filepath.c_str());
+            this->warnings.append("Failed to open file");
             return false;
         }
 
@@ -47,7 +47,7 @@ namespace love
         if (!std::fread(&header, sizeof(header), 1, file))
         {
             std::fclose(file);
-            this->warnings.append(std::format("Failed to read file {:s}", this->filepath));
+            this->warnings.append("Failed to read file");
             return false;
         }
 

@@ -47,6 +47,9 @@ namespace love
 
     void Shader::attach()
     {
+        if (!this->program.isValid())
+            return;
+
         if (Shader::current != this)
         {
             Graphics::flushBatchedDrawsGlobal();
@@ -87,25 +90,16 @@ namespace love
         }
 
         if (this->hasStage(ShaderStageType::SHADERSTAGE_VERTEX))
-        {
-            this->program.vertex =
-                (dk::Shader*)this->stages[ShaderStageType::SHADERSTAGE_VERTEX]->getHandle();
-        }
+            this->program.vertex = (dk::Shader*)this->stages[SHADERSTAGE_VERTEX]->getHandle();
 
         if (this->hasStage(ShaderStageType::SHADERSTAGE_PIXEL))
-        {
-            this->program.fragment =
-                (dk::Shader*)this->stages[ShaderStageType::SHADERSTAGE_PIXEL]->getHandle();
-        }
+            this->program.fragment = (dk::Shader*)this->stages[SHADERSTAGE_PIXEL]->getHandle();
 
         return true;
     }
 
     void Shader::unloadVolatile()
-    {
-        this->program.vertex   = nullptr;
-        this->program.fragment = nullptr;
-    }
+    {}
 
     void Shader::updateBuiltinUniforms(GraphicsBase* graphics, glm::mat4& model)
     {}

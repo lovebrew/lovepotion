@@ -33,8 +33,27 @@ namespace love
         descriptor.initialize(image);
     }
 
-    static void createFramebufferObject()
-    {}
+    static void createFramebufferObject(dk::Image& image, CMemPool::Handle& memory,
+                                        dk::ImageDescriptor& descriptor, uint32_t width, uint32_t height)
+    {
+        auto device = d3d.getDevice();
+
+        dk::ImageLayout layout {};
+        dk::ImageLayoutMaker { device }
+            .setFlags(DkImageFlags_UsageRender | DkImageFlags_HwCompression)
+            .setFormat(DkImageFormat_RGBA8_Unorm)
+            .setDimensions(width, height)
+            .initialize(layout);
+
+        auto& pool = d3d.getMemoryPool(deko3d::MEMORYPOOL_IMAGE);
+        memory     = pool.allocate(layout.getSize(), layout.getAlignment());
+
+        if (!memory)
+            throw love::Exception("Failed to allocate CMemPool::Handle!");
+
+        image.initialize(layout, memory.getMemBlock(), memory.getOffset());
+        descriptor.initialize(image);
+    }
 
     Texture::Texture(GraphicsBase* graphics, const Settings& settings, const Slices* data) :
         TextureBase(graphics, settings, data),
@@ -105,15 +124,8 @@ namespace love
     {
         if (!this->isRenderTarget())
         {
-            try
-            {
-                createTextureObject(this->image, this->memory, this->descriptor, this->width, this->height,
-                                    this->format);
-            }
-            catch (love::Exception&)
-            {
-                throw;
-            }
+            createTextureObject(this->image, this->memory, this->descriptor, this->width, this->height,
+                                this->format);
 
             int mipCount   = this->getMipmapCount();
             int sliceCount = 1;
@@ -144,8 +156,7 @@ namespace love
             clearMips = mipmapCount;
 
         if (this->isRenderTarget())
-        {
-        }
+            createFramebufferObject(this->image, this->memory, this->descriptor, this->width, this->height);
         else if (!hasData)
         {
             for (int mipmap = 0; mipmap < clearMips; mipmap++)

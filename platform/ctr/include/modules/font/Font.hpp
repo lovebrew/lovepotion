@@ -13,8 +13,6 @@ namespace love
       public:
         FontModule();
 
-        static SystemFont* loadSystemFontByType(CFG_Region region);
-
         static CFNT_s* loadSystemFont(CFG_Region region, size_t& size);
 
         virtual Rasterizer* newRasterizer(FileData* data) const override;

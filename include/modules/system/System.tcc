@@ -3,6 +3,8 @@
 #include "common/Map.hpp"
 #include "common/Module.hpp"
 
+#include <vector>
+
 namespace love
 {
     class SystemBase : public Module
@@ -26,11 +28,38 @@ namespace love
             NETWORK_MAX_ENUM
         };
 
+        struct FriendInfo
+        {
+            std::string username;
+            std::string friendcode;
+        };
+
+        struct ProductInfo
+        {
+            std::string version;
+            uint8_t model;
+            uint8_t region;
+        };
+
         SystemBase() : Module(M_SYSTEM, "love.system")
         {}
 
         virtual ~SystemBase()
         {}
+
+        virtual int getProcessorCount() const = 0;
+
+        virtual PowerState getPowerInfo(int& seconds, int& percent) const = 0;
+
+        virtual NetworkState getNetworkInfo(int32_t& signal) const = 0;
+
+        virtual bool getFriendInfo(FriendInfo& info) const = 0;
+
+        virtual bool getInfo(ProductInfo& info) const = 0;
+
+        virtual int getMemorySize() const = 0;
+
+        virtual std::vector<std::string> getPreferredLocales() const = 0;
 
         static const char* getOS()
         {
@@ -46,19 +75,6 @@ namespace love
         {
             return this->clipboard;
         }
-
-        struct FriendInfo
-        {
-            std::string username;
-            std::string friendCode;
-        };
-
-        struct ProductInfo
-        {
-            std::string version;
-            std::string model;
-            std::string region;
-        };
 
         // clang-format off
         STRINGMAP_DECLARE(PowerStates, PowerState,

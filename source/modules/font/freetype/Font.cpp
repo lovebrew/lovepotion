@@ -3,50 +3,16 @@
 #include "modules/font/freetype/TrueTypeRasterizer.hpp"
 #include "modules/window/Window.hpp"
 
-#include <memory>
+#include "modules/font/SystemFont.hpp"
 
 namespace love
 {
-#if defined(__SWITCH__)
-    ByteData* FontModule::loadSystemFontByType(SystemFontType type = PlSharedFontType_Standard)
-    {
-        PlFontData data {};
-        if (R_FAILED(plGetSharedFontByType(&data, type)))
-            throw love::Exception("Failed to load Shared Font {:d}", (int)type);
-
-        std::string_view name {};
-        FontModule::getConstant(type, name);
-
-        if (data.address == nullptr)
-            throw love::Exception("Error loading system font '{:s}'", name);
-
-        // create a copy of the data
-        return new ByteData(data.address, data.size, false);
-    }
-#elif defined(__WIIU__)
-    ByteData* FontModule::loadSystemFontByType(SystemFontType type = OS_SHAREDDATATYPE_FONT_STANDARD)
-    {
-        void* data  = nullptr;
-        size_t size = 0;
-
-        std::string_view name {};
-        FontModule::getConstant(type, name);
-
-        if (!OSGetSharedData(type, 0, &data, &size))
-            throw love::Exception("Error loading system font '{:s}'", name);
-
-        return new ByteData(data, size, false);
-    }
-#else
-    #error "Unsupported platform for FreeType"
-#endif
-
     FontModule::FontModule() : FontModuleBase("love.font.freetype")
     {
         if (FT_Init_FreeType(&this->library) != 0)
             throw love::Exception("Error initializing FreeType library.");
 
-        this->defaultFontData.set(loadSystemFontByType(), Acquire::NO_RETAIN);
+        this->defaultFontData.set(new SystemFont(), Acquire::NO_RETAIN);
     }
 
     FontModule::~FontModule()

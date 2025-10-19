@@ -1,10 +1,12 @@
+#include "common/Result.hpp"
+
 #include "modules/system/System.hpp"
 
 namespace love
 {
     System::System()
     {
-        if (R_FAILED(accountGetPreselectedUser(&this->account)))
+        if (!ResultCode(accountGetPreselectedUser(&this->account)))
         {
             PselUiSettings settings {};
 
@@ -20,12 +22,17 @@ namespace love
 
     System::PowerState System::getPowerInfo(int& seconds, int& percent) const
     {
-        uint32_t currentPercent = 100;
-        PsmChargerType type     = PsmChargerType_Unconnected;
-        PowerState state        = PowerState::POWER_UNKNOWN;
+        PowerState state = POWER_UNKNOWN;
 
-        psmGetBatteryChargePercentage(&currentPercent);
-        psmGetChargerType(&type);
+        seconds = -1;
+        percent = -1;
+
+        if (!ResultCode(psmGetBatteryChargePercentage((uint32_t*)&percent)))
+            return PowerState::POWER_UNKNOWN;
+
+        PsmChargerType type = PsmChargerType_Unconnected;
+        if (!ResultCode(psmGetChargerType(&type)))
+            return PowerState::POWER_UNKNOWN;
 
         switch (type)
         {
@@ -41,79 +48,61 @@ namespace love
                 break;
         }
 
-        if (currentPercent == 100 && state == POWER_CHARGING)
+        if (percent == 100 && state == POWER_CHARGING)
             state = POWER_CHARGED;
 
-        seconds = 0;
-        percent = currentPercent;
-
         return state;
     }
 
-    System::NetworkState System::getNetworkInfo(uint8_t& signal) const
+    System::NetworkState System::getNetworkInfo(int32_t& signal) const
     {
-        NetworkState state = NETWORK_UNKNOWN;
-        uint32_t strength  = 0;
+        signal = -1;
 
-        const auto result = nifmGetInternetConnectionStatus(nullptr, &strength, nullptr);
+        if (!ResultCode(nifmGetInternetConnectionStatus(nullptr, (uint32_t*)&signal, nullptr)))
+            return NETWORK_UNKNOWN;
 
-        signal = (uint8_t)strength;
-        state  = R_SUCCEEDED(result) ? NETWORK_CONNECTED : NETWORK_DISCONNECTED;
-
-        return state;
+        return NETWORK_CONNECTED;
     }
 
-    System::FriendInfo System::getFriendInfo() const
+    bool System::getFriendInfo(FriendInfo& info) const
     {
-        FriendInfo info {};
-
         FriendsUserSetting settings {};
-        if (R_SUCCEEDED(friendsGetUserSetting(this->account, &settings)))
-            info.friendCode = settings.friend_code;
+        if (!ResultCode(friendsGetUserSetting(this->account, &settings)))
+            return false;
+
+        info.friendcode = settings.friend_code;
 
         AccountProfile profile {};
+
+        if (!ResultCode(accountGetProfile(&profile, this->account)))
+            return false;
+
         AccountProfileBase profileBase {};
 
-        if (R_FAILED(accountGetProfile(&profile, this->account)))
-            info.username = "Unknown";
-        else
-        {
-            if (R_SUCCEEDED(accountProfileGet(&profile, nullptr, &profileBase)))
-                info.username = profileBase.nickname;
-            else
-                info.username = "Unknown";
-        }
+        if (!ResultCode(accountProfileGet(&profile, nullptr, &profileBase)))
+            return false;
 
-        return info;
+        info.username = profileBase.nickname;
+
+        return true;
     }
 
-    System::ProductInfo System::getProductInfo() const
+    bool System::getInfo(ProductInfo& info) const
     {
-        ProductInfo info {};
-
-        SetSysProductModel model = SetSysProductModel_Invalid;
-        std::string_view modelStr {};
-
-        if (R_FAILED(setsysGetProductModel(&model)))
-            modelStr = "Unknown";
-
-        System::getConstant(model, modelStr);
+        if (!ResultCode(setsysGetProductModel((SetSysProductModel*)&info.model)))
+            return false;
 
         SetSysFirmwareVersion version {};
-        std::string_view versionStr = "Unknown";
 
-        if (R_SUCCEEDED(setsysGetFirmwareVersion(&version)))
-            versionStr = version.display_version;
+        if (!ResultCode(setsysGetFirmwareVersion(&version)))
+            return false;
 
-        std::string_view regionStr {};
-        SetRegion region = SetRegion_JPN;
+        info.version = version.display_version;
 
-        if (R_FAILED(setGetRegionCode(&region)))
-            regionStr = "Unknown";
+        if (!ResultCode(setGetRegionCode((SetRegion*)&info.region)))
+            return false;
 
-        System::getConstant(region, regionStr);
-
-        return { std::string(modelStr), std::string(versionStr), std::string(regionStr) };
+        return true;
     }
 
     std::vector<std::string> System::getPreferredLocales() const
@@ -135,5 +124,13 @@ namespace love
         locales.push_back(std::string(locale));
 
         return locales;
+    }
+
+    int System::getMemorySize() const
+    {
+        uint64_t size = 0;
+        svcGetInfo(&size, SystemInfoType_TotalPhysicalMemorySize, 0, PhysicalMemorySystemInfo_System);
+
+        return size / (1024 * 1024);
     }
 } // namespace love

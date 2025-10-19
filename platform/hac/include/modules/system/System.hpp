@@ -6,22 +6,28 @@
 
 namespace love
 {
+    using SystemLanguage = SetLanguage;
+    using SystemRegion   = SetRegion;
+    using SystemModel    = SetSysProductModel;
+
     class System : public SystemBase
     {
       public:
         System();
 
-        int getProcessorCount() const;
+        int getProcessorCount() const override;
 
-        PowerState getPowerInfo(int& seconds, int& percent) const;
+        PowerState getPowerInfo(int& seconds, int& percent) const override;
 
-        NetworkState getNetworkInfo(uint8_t& signal) const;
+        NetworkState getNetworkInfo(int32_t& signal) const override;
 
-        FriendInfo getFriendInfo() const;
+        bool getFriendInfo(FriendInfo& info) const override;
 
-        ProductInfo getProductInfo() const;
+        bool getInfo(ProductInfo& info) const override;
 
-        std::vector<std::string> getPreferredLocales() const;
+        std::vector<std::string> getPreferredLocales() const override;
+
+        int getMemorySize() const override;
 
         // clang-format off
         STRINGMAP_DECLARE(SystemLanguages, SetLanguage,

@@ -8,8 +8,11 @@ int Wrap_Data::getString(lua_State* L)
     auto* self     = luax_checkdata(L, 1);
     int64_t offset = (int64_t)luaL_optnumber(L, 2, 0);
 
-    int64_t size =
-        lua_isnoneornil(L, 3) ? ((int64_t)self->getSize() - offset) : (int64_t)luaL_checknumber(L, 3);
+    // clang-format off
+    int64_t size = lua_isnoneornil(L, 3)
+        ? ((int64_t)self->getSize() - offset)
+        : (int64_t)luaL_checknumber(L, 3);
+    // clang-format on
 
     if (size <= 0)
         return luaL_error(L, E_INVALID_SIZE_PARAMETER);

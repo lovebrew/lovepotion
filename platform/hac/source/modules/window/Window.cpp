@@ -5,16 +5,12 @@
 namespace love
 {
     Window::Window() : WindowBase("love.window.deko3d")
-    {
-        d3d.initialize();
-        // this->setDisplaySleepEnabled(false);
-    }
+    {}
 
     Window::~Window()
     {
         this->close(false);
         this->graphics.set(nullptr);
-        d3d.deInitialize();
     }
 
     void Window::setGraphics(GraphicsBase* graphics)
@@ -45,13 +41,27 @@ namespace love
         if (!this->graphics.get())
             this->graphics.set(Module::getInstance<GraphicsBase>(Module::M_GRAPHICS));
 
-        this->close();
+        if (this->graphics.get() && this->graphics->isRenderTargetActive())
+            throw love::Exception("love.window.setMode cannot be called while a render target is active.");
 
-        if (!this->createWindowAndContext(0, 0, width, height, 0))
-            return false;
+        bool shouldSetMode = false;
+
+        if (!this->isOpen())
+        {
+            if (!this->createWindowAndContext(0, 0, width, height, 0))
+                return false;
+
+            shouldSetMode = true;
+        }
 
         if (this->graphics.get())
-            this->graphics->setMode(width, height, width, height, false, false, 0);
+        {
+            double scaledw, scaledh;
+            this->fromPixels((double)this->pixelWidth, (double)this->pixelHeight, scaledw, scaledh);
+
+            if (shouldSetMode)
+                this->graphics->setMode(width, height, width, height, false, false, 0);
+        }
 
         return true;
     }
@@ -77,10 +87,9 @@ namespace love
             this->fromPixels(width, height, scaledw, scaledh);
 
             this->graphics->backbufferChanged(0, 0, scaledw, scaledh);
-            return true;
         }
 
-        return false;
+        return true;
     }
 
     void Window::setDisplaySleepEnabled(bool enable)

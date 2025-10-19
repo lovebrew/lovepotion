@@ -256,9 +256,9 @@ namespace love
         {
             const int length = luax_objlen(L, index);
 
-            for (int i = 0; i <= length; i++)
+            for (int i = 1; i <= length; i++)
             {
-                lua_rawgeti(L, index, i + 1);
+                lua_rawgeti(L, index, i);
 
                 if (lua_istable(L, -1))
                 {
@@ -274,14 +274,20 @@ namespace love
                 }
                 else
                 {
-                    coloredString.string = luaL_checkstring(L, -1);
+                    size_t stringLength = 0;
+                    const char* string  = luaL_checklstring(L, -1, &stringLength);
+                    coloredString.string.assign(string, stringLength);
                     strings.push_back(coloredString);
                 }
+
+                lua_pop(L, 1);
             }
         }
         else
         {
-            coloredString.string = luaL_checkstring(L, index);
+            size_t stringLength = 0;
+            const char* string  = luaL_checklstring(L, index, &stringLength);
+            coloredString.string.assign(string, stringLength);
             strings.push_back(coloredString);
         }
     }

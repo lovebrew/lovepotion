@@ -55,8 +55,6 @@ namespace love
 
         void clearDepthStencil(int stencil, uint8_t mask, double depth);
 
-        dk::Image& getInternalBackbuffer();
-
         void bindFramebuffer(dk::Image* target = nullptr);
 
         void present();
@@ -81,7 +79,7 @@ namespace love
 
         void useProgram(const std::vector<dk::Shader*>& shaders);
 
-        void bindBuffer(BufferUsage usage, CMemPool::Handle& memory);
+        void bindBuffer(BufferUsage usage, DkGpuAddr address, size_t size);
 
         void onModeChanged()
         {
@@ -91,7 +89,7 @@ namespace love
 
         CMemPool& getMemoryPool(MemoryPool pool);
 
-        dk::Device& getDevice()
+        dk::Device getDevice()
         {
             return this->device;
         }

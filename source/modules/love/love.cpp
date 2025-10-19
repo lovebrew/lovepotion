@@ -25,17 +25,6 @@
 
 #include "boot.hpp"
 
-// #region DEBUG CONSOLE
-#include <arpa/inet.h>
-#include <netinet/tcp.h>
-#include <sys/select.h>
-#include <sys/socket.h>
-
-#if defined(__WIIU__)
-    #include <unistd.h>
-#endif
-// #endregion
-
 #include <stdio.h>
 #include <string.h>
 
@@ -172,22 +161,6 @@ static int love_hasOSSpeedup(lua_State* L)
 }
 #endif
 
-static constexpr const char* ERROR_PANIC = "PANIC: unprotected error in call to Lua API (%s)";
-
-/*
- * If an error happens outside any protected environment, Lua calls a panic function and then calls
- * exit(EXIT_FAILURE), thus exiting the host application. We want to inform the user of the error.
- * However, this will only be informative via the console.
- */
-static int love_atpanic(lua_State* L)
-{
-    char message[0x80] {};
-    std::snprintf(message, sizeof(message), ERROR_PANIC, lua_tostring(L, -1));
-    std::printf("%s\n", message);
-
-    return 0;
-}
-
 static void luax_addcompatibilityalias(lua_State* L, const char* module, const char* name, const char* alias)
 {
     lua_getglobal(L, module);
@@ -208,6 +181,8 @@ static void luax_addcompatibilityalias(lua_State* L, const char* module, const c
 
     lua_pop(L, 1);
 }
+
+#define E_PANIC "PANIC: unprotected error in call to Lua API ({:s})"
 
 int love_initialize(lua_State* L)
 {
@@ -283,92 +258,31 @@ int love_initialize(lua_State* L)
     love::luax_preload(L, luaopen_luautf8, "utf8");
     love::luax_preload(L, luaopen_https, "https");
 
-    // lua_atpanic(L, love_atpanic);
+    lua_atpanic(L, [](lua_State* L) {
+        const auto message = std::format(E_PANIC, lua_tostring(L, -1));
+        love::platform::errorHandler(message);
+        return 0;
+    });
 
     return 1;
 }
 
 /**
  * @brief Initializes the console output.
+ * See: common/debug.hpp
  *
  * Users will need to use telnet on Windows or netcat on Linux/macOS:
  * `telnet/nc 192.168.x.x 8000`
  */
-
-#define SEND(sockfd, s) send(sockfd, s, strlen(s), 0)
-
 int love_openConsole(lua_State* L)
 {
-    struct sockaddr_in server;
-    int lsockfd = socket(AF_INET, SOCK_STREAM, 0);
+    std::string error;
 
-    if (lsockfd < 0)
-    {
+    if (!g_debugSocket.open(error))
         love::luax_pushboolean(L, false);
-        return 1;
-    }
+    else
+        love::luax_pushboolean(L, true);
 
-    /* make piepie happy :) */
-    std::fill_n(&server, 1, sockaddr_in {});
-
-    server.sin_family      = AF_INET;
-    server.sin_addr.s_addr = 0;
-    server.sin_port        = htons(STDIO_PORT);
-
-    if (bind(lsockfd, (struct sockaddr*)&server, sizeof(server)) < 0)
-    {
-        love::luax_pushboolean(L, false);
-        close(lsockfd);
-        return 1;
-    }
-
-    if (listen(lsockfd, 5) < 0)
-    {
-        love::luax_pushboolean(L, false);
-        close(lsockfd);
-        return 1;
-    }
-
-    fd_set set;
-    FD_ZERO(&set);
-    FD_SET(lsockfd, &set);
-
-    struct timeval timeout;
-    timeout.tv_sec  = 3;
-    timeout.tv_usec = 0;
-
-    const auto result = select(lsockfd + 1, &set, NULL, NULL, &timeout);
-
-    if (result == -1)
-    {
-        // select(...) failed
-        love::luax_pushboolean(L, false);
-        close(lsockfd);
-        return 1;
-    }
-    else if (result == 0)
-    {
-        // timeout occurred
-        love::luax_pushboolean(L, false);
-        close(lsockfd);
-        return 1;
-    }
-
-    int sockfd = accept(lsockfd, NULL, NULL);
-    close(lsockfd);
-
-    if (sockfd < 0)
-    {
-        love::luax_pushboolean(L, false);
-        return 1;
-    }
-
-    std::fflush(stdout);
-    dup2(sockfd, STDOUT_FILENO);
-
-    close(sockfd);
-
-    love::luax_pushboolean(L, true);
     return 1;
 }
 

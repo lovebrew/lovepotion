@@ -7,11 +7,13 @@
 
 #include "modules/graphics/Font.hpp"
 
+#include "common/Exception.hpp"
+
 namespace love
 {
     Graphics::Graphics() : GraphicsBase("love.graphics.citro3d")
     {
-        auto* window = Module::getInstance<Window>(M_WINDOW);
+        auto* window = Module::getInstance<WindowBase>(M_WINDOW);
 
         if (window != nullptr)
         {
@@ -29,7 +31,25 @@ namespace love
     }
 
     Graphics::~Graphics()
-    {}
+    {
+        for (int index = 0; index < ShaderBase::STANDARD_MAX_ENUM; index++)
+        {
+            if (ShaderBase::standardShaders[index])
+            {
+                ShaderBase::standardShaders[index]->release();
+                ShaderBase::standardShaders[index] = nullptr;
+            }
+        }
+
+        this->states.clear();
+        this->defaultFont.set(nullptr);
+
+        if (this->batchedDrawState.vertexBuffer)
+            this->batchedDrawState.vertexBuffer->release();
+
+        if (this->batchedDrawState.indexBuffer)
+            this->batchedDrawState.indexBuffer->release();
+    }
 
     void Graphics::initCapabilities()
     {
@@ -108,6 +128,12 @@ namespace love
 
         if (color.hasValue || stencil.hasValue || depth.hasValue)
             this->flushBatchedDraws();
+
+        if (stencil.hasValue)
+            c3d.clearStencil(stencil.value);
+
+        if (depth.hasValue)
+            c3d.clearDepth(depth.value);
 
         if (color.hasValue)
         {
@@ -229,6 +255,26 @@ namespace love
         this->states.back().colorMask = mask;
     }
 
+    void Graphics::setStencilState(const StencilState& state)
+    {
+        Graphics::flushBatchedDraws();
+        c3d.setStencilState(state);
+
+        this->states.back().stencil = state;
+    }
+
+    void Graphics::setDepthMode(CompareMode compare, bool write)
+    {
+        auto& state = this->states.back();
+        if (state.depthTest != compare || state.depthWrite != write)
+            Graphics::flushBatchedDraws();
+
+        state.depthTest  = compare;
+        state.depthWrite = write;
+
+        c3d.setDepthWrites(compare, write);
+    }
+
     void Graphics::setBlendState(const BlendState& state)
     {
         if (!(state == this->states.back().blend))
@@ -286,11 +332,13 @@ namespace love
 
         try
         {
+            // clang-format off
             if (this->batchedDrawState.vertexBuffer == nullptr)
             {
-                this->batchedDrawState.indexBuffer  = newIndexBuffer(INIT_INDEX_BUFFER_SIZE);
-                this->batchedDrawState.vertexBuffer = newVertexBuffer(INIT_VERTEX_BUFFER_SIZE);
+                this->batchedDrawState.indexBuffer  = createStreamBuffer(BUFFERUSAGE_INDEX, INIT_INDEX_BUFFER_SIZE);
+                this->batchedDrawState.vertexBuffer = createStreamBuffer(BUFFERUSAGE_VERTEX, INIT_VERTEX_BUFFER_SIZE);
             }
+            // clang-format on
         }
         catch (love::Exception&)
         {
@@ -468,13 +516,12 @@ namespace love
         c3d.bindTextureToUnit(command.texture, 0);
 
         const auto* indices = (const uint16_t*)command.indexBuffer->getHandle();
-        const size_t offset = command.indexBufferOffset;
+        const int index     = BUFFER_OFFSET(command.indexBufferOffset);
 
         const auto primitiveType = citro3d::getPrimitiveType(command.primitiveType);
         const auto dataType      = C3D_UNSIGNED_SHORT;
 
-        C3D_DrawElements(primitiveType, command.indexCount, dataType, &indices[offset]);
-
+        C3D_DrawElements(primitiveType, command.indexCount, dataType, &indices[index]);
         ++this->drawCalls;
     }
 
@@ -490,22 +537,22 @@ namespace love
         ++this->drawCalls;
     }
 
-    bool Graphics::is3D() const
+    bool Graphics::isStereoscopic() const
     {
         return gfxIs3D();
     }
 
-    void Graphics::set3D(bool enable)
+    void Graphics::setStereoscopic(bool enable)
     {
         c3d.set3DMode(enable);
     }
 
-    bool Graphics::isWide() const
+    bool Graphics::isWideMode() const
     {
         return gfxIsWide();
     }
 
-    void Graphics::setWide(bool enable)
+    void Graphics::setWideMode(bool enable)
     {
         c3d.setWideMode(enable);
     }

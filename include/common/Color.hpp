@@ -143,6 +143,20 @@ namespace love
         }
     };
 
+    template<typename T>
+    Color operator*(const Color& other, T s)
+    {
+        Color temp(other);
+        return temp *= s;
+    }
+
+    template<typename T>
+    Color operator+(const Color& other, T s)
+    {
+        Color temp(other);
+        return temp += s;
+    }
+
     struct Color32
     {
       public:

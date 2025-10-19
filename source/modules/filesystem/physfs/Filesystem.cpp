@@ -83,7 +83,7 @@ namespace love
 
     void Filesystem::init(const char* arg0)
     {
-        this->executablePath = getApplicationPath(arg0);
+        this->executablePath = platform::getApplicationPath(arg0);
 
         if (this->executablePath.empty())
             throw love::Exception("Error getting application path.");

@@ -5,7 +5,7 @@
 
 namespace love
 {
-    Source* luax_checksource(lua_State* L, int index);
+    SourceBase* luax_checksource(lua_State* L, int index);
 
     int open_source(lua_State* L);
 } // namespace love

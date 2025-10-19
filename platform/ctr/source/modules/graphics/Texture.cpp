@@ -2,7 +2,7 @@
 #include "modules/graphics/Graphics.hpp"
 
 #include "driver/display/citro3d.hpp"
-#include "driver/graphics/DrawCommand.hpp"
+#include "modules/graphics/DrawCommand.hpp"
 
 #include <tex3ds.h>
 
@@ -22,6 +22,7 @@ namespace love
             throw love::Exception("Failed to create framebuffer object!");
 
         c3d.bindFramebuffer(target);
+
         if (clear)
             c3d.clear(Color::CLEAR);
     }
@@ -90,14 +91,20 @@ namespace love
 
     void Texture::unloadVolatile()
     {
-        if (this->texture != nullptr)
+        if (!this->isRenderTarget() && this->texture != nullptr)
         {
             C3D_TexDelete(this->texture);
             delete this->texture;
         }
 
-        if (this->target != nullptr)
-            C3D_RenderTargetDelete(this->target);
+        if (this->isRenderTarget())
+        {
+            c3d.deferCallToEndOfFrame(([target = this->target, texture = this->texture]() {
+                C3D_RenderTargetDelete(target);
+                C3D_TexDelete(texture);
+                delete texture;
+            }));
+        }
 
         this->setGraphicsMemorySize(0);
     }

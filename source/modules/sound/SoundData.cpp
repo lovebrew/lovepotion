@@ -58,8 +58,7 @@ namespace love
         this->load(samples, sampleRate, bitDepth, channels);
     }
 
-    SoundData::SoundData(const void* data, int samples, int sampleRate, int bitDepth,
-                         int channels) :
+    SoundData::SoundData(const void* data, int samples, int sampleRate, int bitDepth, int channels) :
         data(),
         size(0),
         sampleRate(sampleRate),
@@ -69,12 +68,7 @@ namespace love
         this->load(samples, sampleRate, bitDepth, channels, data);
     }
 
-    SoundData::SoundData(const SoundData& other) :
-        data(),
-        size(0),
-        sampleRate(0),
-        bitDepth(0),
-        channels(0)
+    SoundData::SoundData(const SoundData& other) : data(), size(0), sampleRate(0), bitDepth(0), channels(0)
     {
         this->load(other.getSampleCount(), other.getSampleRate(), other.getBitDepth(),
                    other.getChannelCount(), other.getData());
@@ -88,8 +82,7 @@ namespace love
         return new SoundData(*this);
     }
 
-    void SoundData::load(int samples, int sampleRate, int bitDepth, int channels,
-                         const void* newData)
+    void SoundData::load(int samples, int sampleRate, int bitDepth, int channels, const void* newData)
     {
         if (samples <= 0)
             throw love::Exception("Invalid sample count: {:d}", samples);
@@ -110,6 +103,11 @@ namespace love
         this->bitDepth   = bitDepth;
         this->channels   = channels;
 
+        double realSize = samples;
+        realSize *= (bitDepth / 8) * channels;
+        if (realSize > std::numeric_limits<size_t>::max())
+            throw love::Exception("Data is too big!");
+
         try
         {
             this->data.resize(this->size);
@@ -122,7 +120,7 @@ namespace love
         if (newData != nullptr)
             std::copy_n((uint8_t*)newData, this->size, this->data.data());
         else
-            std::fill_n(this->data.data(), this->size, bitDepth == 8 ? 128 : 0);
+            std::memset(this->data.data(), bitDepth == 8 ? 128 : 0, this->size);
     }
 
     void* SoundData::getData() const
@@ -162,7 +160,7 @@ namespace love
 
     void SoundData::setSample(int i, float sample)
     {
-        if (i < 0 || (size_t)i >= this->size + (this->bitDepth / 8))
+        if (i < 0 || (size_t)i >= this->size / (this->bitDepth / 8))
             throw love::Exception("Attempt to set out-of-range sample: {:d}", i);
 
         if (this->bitDepth == 8)

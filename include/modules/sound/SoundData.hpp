@@ -4,6 +4,8 @@
 #include "modules/filesystem/File.tcc"
 #include "modules/sound/Decoder.hpp"
 
+#include <vector>
+
 namespace love
 {
     class SoundData : public Data
@@ -50,8 +52,7 @@ namespace love
         SoundData* slice(int start, int length = -1) const;
 
       private:
-        void load(int samples, int sampleRate, int bitDepth, int channels,
-                  const void* newData = nullptr);
+        void load(int samples, int sampleRate, int bitDepth, int channels, const void* newData = nullptr);
 
         std::vector<uint8_t> data;
         size_t size;

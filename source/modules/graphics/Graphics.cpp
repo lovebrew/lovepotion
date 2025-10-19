@@ -1,5 +1,6 @@
 #include "modules/graphics/Graphics.tcc"
 
+#include "modules/graphics/ParticleSystem.hpp"
 #include "modules/graphics/Polyline.hpp"
 #include "modules/graphics/SpriteBatch.hpp"
 #include "modules/window/Window.tcc"
@@ -13,7 +14,6 @@ namespace love
 {
     GraphicsBase::GraphicsBase(const char* name) :
         Module(M_GRAPHICS, name),
-        defaultTextures(),
         created(false),
         active(true),
         deviceProjectionMatrix(),
@@ -39,25 +39,7 @@ namespace love
     }
 
     GraphicsBase::~GraphicsBase()
-    {
-        for (int index = 0; index < ShaderBase::STANDARD_MAX_ENUM; index++)
-        {
-            if (ShaderBase::standardShaders[index])
-            {
-                ShaderBase::standardShaders[index]->release();
-                ShaderBase::standardShaders[index] = nullptr;
-            }
-        }
-
-        this->states.clear();
-        this->defaultFont.set(nullptr);
-
-        if (this->batchedDrawState.vertexBuffer)
-            this->batchedDrawState.vertexBuffer->release();
-
-        if (this->batchedDrawState.indexBuffer)
-            this->batchedDrawState.indexBuffer->release();
-    }
+    {}
 
     void GraphicsBase::resetProjection()
     {
@@ -90,7 +72,7 @@ namespace love
     bool GraphicsBase::isActive() const
     {
         auto* window = Module::getInstance<WindowBase>(M_WINDOW);
-        return this->active && this->created && window != nullptr && window->isOpen();
+        return this->active && this->isCreated() && window != nullptr && window->isOpen();
     }
 
     void GraphicsBase::restoreState(const DisplayState& state)
@@ -118,8 +100,8 @@ namespace love
         this->setShader(state.shader.get());
         this->setRenderTargets(state.renderTargets);
 
-        // this->setStencilState(state.stencil);
-        // this->setDepthMode(state.depthTest, state.depthWrite);
+        this->setStencilState(state.stencil);
+        this->setDepthMode(state.depthTest, state.depthWrite);
 
         this->setColorMask(state.colorMask);
 
@@ -195,11 +177,11 @@ namespace love
         if (targetsChanged)
             this->setRenderTargets(state.renderTargets);
 
-        // if (this->stencil != state.stencil)
-        //     this->setStencilState(state.stencil);
+        if (!(state.stencil == current.stencil))
+            this->setStencilState(state.stencil);
 
-        // if (this->depthTest != state.depthTest || this->depthWrite != state.depthWrite)
-        //     this->setDepthMode(state.depthTest, state.depthWrite);
+        if (state.depthTest != current.depthTest || state.depthWrite != current.depthWrite)
+            this->setDepthMode(state.depthTest, state.depthWrite);
 
         if (state.colorMask != current.colorMask)
             this->setColorMask(state.colorMask);
@@ -589,13 +571,13 @@ namespace love
             if (state.vertexBuffer->getSize() < bufferSizes[0])
             {
                 state.vertexBuffer->release();
-                state.vertexBuffer = newVertexBuffer(bufferSizes[0]);
+                state.vertexBuffer = createStreamBuffer(BUFFERUSAGE_VERTEX, bufferSizes[0]);
             }
 
             if (state.indexBuffer->getSize() < bufferSizes[1])
             {
                 state.indexBuffer->release();
-                state.indexBuffer = newIndexBuffer(bufferSizes[1]);
+                state.indexBuffer = createStreamBuffer(BUFFERUSAGE_INDEX, bufferSizes[1]);
             }
         }
 
@@ -604,10 +586,10 @@ namespace love
             if (state.indexBufferMap.data == nullptr)
                 state.indexBufferMap = state.indexBuffer->map(requestedIndexSize);
 
-            auto* indices = state.indexBufferMap.data;
+            auto* indices = (uint16_t*)state.indexBufferMap.data;
             fillIndices(command.indexMode, state.vertexCount, command.vertexCount, indices);
 
-            state.indexBufferMap.data += requestedIndexCount;
+            state.indexBufferMap.data += requestedIndexSize;
         }
 
         BatchedVertexData data {};
@@ -618,7 +600,7 @@ namespace love
                 state.vertexBufferMap = state.vertexBuffer->map(newDataSize);
 
             data.stream = state.vertexBufferMap.data;
-            state.vertexBufferMap.data += command.vertexCount;
+            state.vertexBufferMap.data += newDataSize;
         }
 
         if (state.vertexCount > 0)
@@ -648,13 +630,11 @@ namespace love
         if (state.format != CommonFormat::NONE)
         {
             attributes.setCommonFormat(state.format, (uint8_t)0);
-
-            usedSizes[0] = state.lastVertexCount;
+            usedSizes[0] = getFormatStride(state.format) * state.lastVertexCount;
 
             size_t offset = state.vertexBuffer->unmap(usedSizes[0]);
-            buffers.set(0, state.vertexBuffer, offset, state.vertexCount);
-
-            state.vertexBufferMap = MapInfo<Vertex>();
+            buffers.set(0, state.vertexBuffer, offset, state.lastVertexCount);
+            state.vertexBufferMap = StreamBufferBase::MapInfo();
         }
 
         state.flushing = true;
@@ -668,7 +648,7 @@ namespace love
 
         if (state.lastIndexCount > 0)
         {
-            usedSizes[1] = state.lastIndexCount;
+            usedSizes[1] = sizeof(uint16_t) * state.lastIndexCount;
 
             DrawIndexedCommand command(&attributes, &buffers, state.indexBuffer);
             command.primitiveType     = state.primitiveMode;
@@ -677,10 +657,9 @@ namespace love
             command.indexBufferOffset = state.indexBuffer->unmap(usedSizes[1]);
             command.texture           = state.texture;
             command.isFont            = state.isFont;
-
             this->draw(command);
 
-            state.indexBufferMap = MapInfo<uint16_t>();
+            state.indexBufferMap = StreamBufferBase::MapInfo();
         }
         else
         {
@@ -689,7 +668,6 @@ namespace love
             command.vertexStart   = 0;
             command.vertexCount   = state.lastVertexCount;
             command.texture       = state.texture;
-
             this->draw(command);
         }
 
@@ -746,7 +724,7 @@ namespace love
 
             const auto type = ShaderStageType(index);
 
-            if (validStages[index] && stages[index].get() == nullptr)
+            if (stages[index].get() == nullptr)
                 stages[index].set(this->newShaderStage(type, filepaths[index]), Acquire::NO_RETAIN);
         }
 
@@ -826,14 +804,6 @@ namespace love
             instance->advanceStreamBuffers();
     }
 
-    TextureBase* GraphicsBase::getDefaultTexture(TextureBase* texture)
-    {
-        if (texture != nullptr)
-            return texture;
-
-        return getDefaultTexture(TEXTURE_2D, DATA_BASETYPE_FLOAT);
-    }
-
     void GraphicsBase::push(StackType type)
     {
         if (this->getStackDepth() == MAX_USER_STACK_DEPTH)
@@ -907,10 +877,12 @@ namespace love
         switch (format)
         {
             case PIXELFORMAT_NORMAL:
+            {
                 if (isGammaCorrect())
                     return PIXELFORMAT_RGBA8_sRGB;
                 else
                     return PIXELFORMAT_RGBA8_UNORM;
+            }
             case PIXELFORMAT_HDR:
                 return PIXELFORMAT_RGBA16_FLOAT;
             default:
@@ -931,7 +903,6 @@ namespace love
     }
 
     GraphicsBase::RendererInfo GraphicsBase::getRendererInfo() const
-
     {
         RendererInfo info {};
         info.name    = __RENDERER_NAME__;
@@ -970,6 +941,55 @@ namespace love
 
         scissor = state.scissorRect;
         return state.scissor;
+    }
+
+    void GraphicsBase::setStencilMode(StencilMode mode, int value)
+    {
+        this->setStencilState(computeStencilState(mode, value));
+
+        if (mode == STENCIL_MODE_DRAW)
+            this->setColorMask({ false, false, false, false });
+        else
+            this->setColorMask({ true, true, true, true });
+    }
+
+    void GraphicsBase::setStencilMode()
+    {
+        this->setStencilState(computeStencilState(STENCIL_MODE_OFF, 0));
+        this->setColorMask({ true, true, true, true });
+    }
+
+    StencilMode GraphicsBase::getStencilMode(int& value) const
+    {
+        const auto& state = this->states.back();
+        StencilMode mode  = computeStencilMode(state.stencil);
+        value             = state.stencil.value;
+
+        return mode;
+    }
+
+    void GraphicsBase::setStencilState()
+    {
+        StencilState state {};
+        this->setStencilState(state);
+    }
+
+    const StencilState& GraphicsBase::getStencilState() const
+    {
+        const auto& state = this->states.back();
+        return state.stencil;
+    }
+
+    void GraphicsBase::setDepthMode()
+    {
+        this->setDepthMode(COMPARE_ALWAYS, false);
+    }
+
+    void GraphicsBase::getDepthMode(CompareMode& compare, bool& write) const
+    {
+        const auto& state = this->states.back();
+        compare           = state.depthTest;
+        write             = state.depthWrite;
     }
 
     bool GraphicsBase::isRenderTargetActive() const
@@ -1019,60 +1039,6 @@ namespace love
         }
 
         return false;
-    }
-
-    TextureBase* GraphicsBase::getDefaultTexture(TextureType type, DataBaseType dataType)
-    {
-        TextureBase* texture = this->defaultTextures[type];
-
-        if (texture != nullptr)
-            return texture;
-
-        TextureBase::Settings settings {};
-        settings.type   = type;
-        settings.width  = 1;
-        settings.height = 1;
-
-        switch (dataType)
-        {
-            case DATA_BASETYPE_INT:
-                settings.format = PIXELFORMAT_RGBA8_INT;
-                break;
-            case DATA_BASETYPE_UINT:
-                settings.format = PIXELFORMAT_RGBA8_UINT;
-                break;
-            case DATA_BASETYPE_FLOAT:
-            default:
-                settings.format = PIXELFORMAT_RGBA8_UNORM;
-                break;
-        }
-
-        if constexpr (Console::is(Console::CTR))
-        {
-            settings.width  = 5;
-            settings.height = 5;
-        }
-
-        texture = this->newTexture(settings);
-
-        SamplerState state {};
-        state.minFilter = state.magFilter = SamplerState::FILTER_NEAREST;
-        state.wrapU = state.wrapV = state.wrapW = SamplerState::WRAP_CLAMP;
-
-        texture->setSamplerState(state);
-
-        uint8_t pixel[4] = { 255, 255, 255, 255 };
-        if (isPixelFormatInteger(settings.format))
-            pixel[0] = pixel[1] = pixel[2] = pixel[3] = 1;
-
-        // clang-format off
-        for (int slice = 0; slice < (type == TEXTURE_CUBE ? 6 : 1); slice++)
-            texture->replacePixels(pixel, sizeof(pixel), slice, 0, { 0, 0, settings.width, settings.height }, false);
-        // clang-format on
-
-        this->defaultTextures[type] = texture;
-
-        return texture;
     }
 
     void GraphicsBase::polyline(std::span<const Vector2> vertices)
@@ -1386,6 +1352,11 @@ namespace love
             for (int index = 0; index < command.vertexCount; index++)
                 stream[index].color = colors[index];
         }
+    }
+
+    ParticleSystem* GraphicsBase::newParticleSystem(TextureBase* texture, int size) const
+    {
+        return new ParticleSystem(texture, size);
     }
 
     void GraphicsBase::draw(Drawable* drawable, const Matrix4& matrix)

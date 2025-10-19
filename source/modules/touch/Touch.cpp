@@ -25,7 +25,7 @@ namespace love
 
     void Touch::onEvent(SubEventType type, const Finger& info)
     {
-        auto compare = [&info](const Finger& touch) -> bool { return touch.id == info.id; };
+        auto compare = [&](const Finger& touch) -> bool { return touch.id == info.id; };
 
         switch (type)
         {

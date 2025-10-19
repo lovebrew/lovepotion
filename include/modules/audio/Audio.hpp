@@ -5,66 +5,62 @@
 #include "modules/audio/Source.hpp"
 #include "modules/thread/Threadable.hpp"
 
+#include "modules/audio/RecordingDevice.tcc"
+
+#include <vector>
+
 namespace love
 {
-    class Audio : public Module
+    class AudioBase : public Module
     {
       public:
-        Audio();
-
-        ~Audio();
-
-        Source* newSource(SoundData* soundData) const;
-
-        Source* newSource(Decoder* decoder) const;
-
-        Source* newSource(int sampleRate, int bitDepth, int channels, int buffers) const;
-
-        int getActiveSourceCount() const;
-
-        int getMaxSources() const;
-
-        bool play(Source* source);
-
-        void stop();
-
-        void stop(Source* source);
-
-        void pause(Source* source);
-
-        void setVolume(float volume);
-
-        float getVolume() const;
-
-        static bool play(const std::vector<Source*>& sources);
-
-        static void stop(const std::vector<Source*>& sources);
-
-        static void pause(const std::vector<Source*>& sources);
-
-        std::vector<Source*> pause();
-
-      private:
-        Pool* pool;
-
-        class PoolThread : public Threadable
+        enum AudioFormat
         {
-          public:
-            PoolThread(Pool* pool);
-
-            void setFinish()
-            {
-                this->finish = true;
-            }
-
-            void run();
-
-          protected:
-            Pool* pool;
-            std::atomic<bool> finish;
-            std::recursive_mutex mutex;
+            FORMAT_NONE,
+            FORMAT_MONO8,
+            FORMAT_MONO16,
+            FORMAT_STEREO8,
+            FORMAT_STEREO16
         };
 
-        PoolThread* poolThread;
+        virtual ~AudioBase()
+        {}
+
+        virtual SourceBase* newSource(SoundData* soundData) const = 0;
+
+        virtual SourceBase* newSource(Decoder* decoder) const = 0;
+
+        virtual SourceBase* newSource(int sampleRate, int bitDepth, int channels, int buffers) const = 0;
+
+        virtual int getActiveSourceCount() const = 0;
+
+        virtual int getMaxSources() const = 0;
+
+        virtual bool play(SourceBase* source) = 0;
+
+        virtual bool play(const std::vector<SourceBase*>& sources) = 0;
+
+        virtual void stop(SourceBase* source) = 0;
+
+        virtual void stop(const std::vector<SourceBase*>& sources) = 0;
+
+        virtual void stop() = 0;
+
+        virtual void pause(SourceBase* source) = 0;
+
+        virtual void pause(const std::vector<SourceBase*>& sources) = 0;
+
+        virtual std::vector<SourceBase*> pause() = 0;
+
+        virtual void setVolume(float volume) = 0;
+
+        virtual float getVolume() const = 0;
+
+        virtual const std::vector<RecordingDeviceBase*>& getRecordingDevices() = 0;
+
+        static bool setMixWithSystem(bool mix);
+
+      protected:
+        AudioBase(const char* name);
     };
 } // namespace love

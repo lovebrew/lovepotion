@@ -6,7 +6,7 @@ static constexpr char wrap_Window_lua[] = {
 
 using namespace love;
 
-#define instance() (Module::getInstance<Window>(Module::M_WINDOW))
+#define instance() (Module::getInstance<WindowBase>(Module::M_WINDOW))
 
 int Wrap_Window::getDisplayCount(lua_State* L)
 {
@@ -56,13 +56,13 @@ static int readWindowSettings(lua_State* L, int index, Window::WindowSettings& s
     lua_pop(L, 1);
 
     // clang-format off
-    settings.displayindex = luax_intflag(L, index, Window::getConstant(Window::SETTING_DISPLAYINDEX), settings.displayindex);
+    settings.displayindex = luax_intflag(L, index, Window::getConstant(Window::SETTING_DISPLAYINDEX), settings.displayindex + 1) - 1;
     // clang-format on
 
     lua_getfield(L, index, Window::getConstant(Window::SETTING_VSYNC));
     if (lua_isnumber(L, -1))
         settings.vsync = lua_tointeger(L, -1);
-    else
+    else if (lua_isboolean(L, -1))
         settings.vsync = lua_toboolean(L, -1);
     lua_pop(L, 1);
 
@@ -71,8 +71,8 @@ static int readWindowSettings(lua_State* L, int index, Window::WindowSettings& s
     settings.useposition = !(lua_isnoneornil(L, -2) && lua_isnoneornil(L, -1));
     if (settings.useposition)
     {
-        settings.x = lua_tointeger(L, -2);
-        settings.y = lua_tointeger(L, -1);
+        settings.x = luaL_optinteger(L, -2, 0);
+        settings.y = luaL_optinteger(L, -1, 0);
     }
     lua_pop(L, 2);
 
@@ -271,14 +271,14 @@ int Wrap_Window::getFullscreen(lua_State* L)
 
 int Wrap_Window::isOpen(lua_State* L)
 {
-    lua_pushboolean(L, instance()->isOpen());
+    luax_pushboolean(L, instance()->isOpen());
 
     return 1;
 }
 
-int Wrap_Window::close(lua_State*)
+int Wrap_Window::close(lua_State* L)
 {
-    instance()->close();
+    luax_catchexcept(L, [&]() { instance()->close(); });
 
     return 0;
 }

@@ -16,7 +16,7 @@ namespace love
         backBufferHasDepth(false),
         requestedBackbufferMSAA(0)
     {
-        auto* window = Module::getInstance<Window>(M_WINDOW);
+        auto* window = Module::getInstance<WindowBase>(M_WINDOW);
 
         if (window != nullptr)
         {
@@ -34,7 +34,27 @@ namespace love
     }
 
     Graphics::~Graphics()
-    {}
+    {
+        for (int index = 0; index < ShaderBase::STANDARD_MAX_ENUM; index++)
+        {
+            if (ShaderBase::standardShaders[index])
+            {
+                ShaderBase::standardShaders[index]->release();
+                ShaderBase::standardShaders[index] = nullptr;
+            }
+        }
+
+        this->states.clear();
+        this->defaultFont.set(nullptr);
+
+        if (this->batchedDrawState.vertexBuffer)
+            this->batchedDrawState.vertexBuffer->release();
+
+        if (this->batchedDrawState.indexBuffer)
+            this->batchedDrawState.indexBuffer->release();
+
+        d3d.deInitialize();
+    }
 
     void Graphics::initCapabilities()
     {
@@ -69,7 +89,7 @@ namespace love
         this->capabilities.limits[LIMIT_THREADGROUPS_X]             = 0;
         this->capabilities.limits[LIMIT_THREADGROUPS_Y]             = 0;
         this->capabilities.limits[LIMIT_THREADGROUPS_Z]             = 0;
-        this->capabilities.limits[LIMIT_RENDER_TARGETS]             = 1; //< max simultaneous render targets
+        this->capabilities.limits[LIMIT_RENDER_TARGETS]             = DK_MAX_RENDER_TARGETS; //< max simultaneous render targets
         this->capabilities.limits[LIMIT_TEXTURE_MSAA]               = 0;
         this->capabilities.limits[LIMIT_ANISOTROPY]                 = 0;
         static_assert(LIMIT_MAX_ENUM == 13, "Graphics::initCapabilities must be updated when adding a new system limit!");
@@ -168,9 +188,6 @@ namespace love
 
         if (this->isRenderTargetActive())
             throw love::Exception("present cannot be called while a render target is active.");
-
-        this->flushBatchedDraws();
-        this->advanceStreamBuffers();
 
         d3d.present();
 
@@ -271,9 +288,8 @@ namespace love
     void Graphics::setRenderTargetsInternal(const RenderTargets& targets, int pixelWidth, int pixelHeight,
                                             bool hasSRGBTexture)
     {
-        const auto& state = this->states.back();
-
-        bool isWindow = targets.getFirstTarget().texture == nullptr;
+        const auto& state   = this->states.back();
+        const bool isWindow = targets.getFirstTarget().texture == nullptr;
 
         if (isWindow)
             d3d.bindFramebuffer();
@@ -298,12 +314,12 @@ namespace love
 
     FontBase* Graphics::newDefaultFont(int size, const Rasterizer::Settings& settings)
     {
-        auto* module = Module::getInstance<FontModuleBase>(Module::M_FONT);
+        auto* fontModule = Module::getInstance<FontModuleBase>(Module::M_FONT);
 
-        if (module == nullptr)
+        if (!fontModule)
             throw love::Exception("Font module has not been loaded.");
 
-        StrongRef<Rasterizer> r(module->newTrueTypeRasterizer(size, settings), Acquire::NO_RETAIN);
+        StrongRef<Rasterizer> r(fontModule->newTrueTypeRasterizer(size, settings), Acquire::NO_RETAIN);
         return this->newFont(r.get());
     }
 
@@ -321,16 +337,20 @@ namespace love
     bool Graphics::setMode(int width, int height, int pixelWidth, int pixelHeight, bool backBufferStencil,
                            bool backBufferDepth, int msaa)
     {
+        d3d.initialize();
+
         this->created = true;
         this->initCapabilities();
 
         try
         {
+            // clang-format off
             if (this->batchedDrawState.vertexBuffer == nullptr)
             {
-                this->batchedDrawState.indexBuffer  = newIndexBuffer(INIT_INDEX_BUFFER_SIZE);
-                this->batchedDrawState.vertexBuffer = newVertexBuffer(INIT_VERTEX_BUFFER_SIZE);
+                this->batchedDrawState.indexBuffer  = createStreamBuffer(BUFFERUSAGE_INDEX, INIT_INDEX_BUFFER_SIZE);
+                this->batchedDrawState.vertexBuffer = createStreamBuffer(BUFFERUSAGE_VERTEX, INIT_VERTEX_BUFFER_SIZE);
             }
+            // clang-format on
         }
         catch (love::Exception&)
         {
@@ -377,6 +397,7 @@ namespace love
 
         this->flushBatchedDraws();
         Volatile::unloadAll();
+
         this->created = false;
     }
 
@@ -395,7 +416,7 @@ namespace love
         const auto offset        = command.indexBufferOffset;
         const auto instanceCount = command.instanceCount;
 
-        d3d.drawIndexed(primitive, indexCount, offset, instanceCount);
+        d3d.drawIndexed(primitive, indexCount, BUFFER_OFFSET(offset), instanceCount);
         ++drawCalls;
     }
 

@@ -29,6 +29,10 @@ extern "C"
         USCLanguage_RU = 10,
         USCLanguage_TW = 11
     };
+
+    using SystemLanguage = USCLanguage;
+    using SystemRegion   = MCPRegion;
+    using SystemModel    = BSPHardwareVersion;
 }
 
 namespace love
@@ -40,17 +44,19 @@ namespace love
 
         virtual ~System();
 
-        int getProcessorCount() const;
+        int getProcessorCount() const override;
 
-        PowerState getPowerInfo(int& seconds, int& percent) const;
+        PowerState getPowerInfo(int& seconds, int& percent) const override;
 
-        std::vector<std::string> getPreferredLocales() const;
+        NetworkState getNetworkInfo(int32_t& signal) const override;
 
-        NetworkState getNetworkInfo(uint8_t& signal) const;
+        bool getFriendInfo(FriendInfo& info) const override;
 
-        FriendInfo getFriendInfo() const;
+        bool getInfo(ProductInfo& info) const override;
 
-        ProductInfo getProductInfo() const;
+        std::vector<std::string> getPreferredLocales() const override;
+
+        int getMemorySize() const override;
 
         using SystemBase::getConstant;
 
@@ -107,5 +113,7 @@ namespace love
         int32_t mcpHandle;
         UCHandle ucHandle;
         uint8_t account;
+
+        MCPSysProdSettings settings;
     };
 } // namespace love

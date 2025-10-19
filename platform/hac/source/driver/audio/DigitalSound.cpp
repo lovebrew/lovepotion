@@ -1,240 +1,267 @@
 #include "common/Exception.hpp"
 #include "common/Result.hpp"
 
-#include "driver/audio/DigitalSound.hpp"
+#include "modules/audio/dsp/Audio.hpp"
+
+#include "driver/DigitalSound.tcc"
 #include "driver/audio/DigitalSoundMemory.hpp"
 
 #include <cstring>
 
 namespace love
 {
-    static constexpr AudioRendererConfig config = {
-        .output_rate     = AudioRendererOutputRate_48kHz,
-        .num_voices      = 24,
-        .num_effects     = 0,
-        .num_sinks       = 1,
-        .num_mix_objs    = 1,
-        .num_mix_buffers = 2,
-    };
-
-    static constexpr uint8_t sinkChannels[2] = { 0, 1 };
-
-    DigitalSound::DigitalSound() : memory(new DigitalSoundMemory())
-    {}
-
-    void DigitalSound::initialize()
+    namespace audio
     {
-        if (auto result = Result(audrenInitialize(&config)); !result)
-            throw love::Exception("Failed to initialize audren: {:x}", result.get());
+        static constexpr AudioRendererConfig AUDIO_CONFIG = {
+            .output_rate     = AudioRendererOutputRate_48kHz,
+            .num_voices      = 24,
+            .num_effects     = 0,
+            .num_sinks       = 1,
+            .num_mix_objs    = 1,
+            .num_mix_buffers = 2,
+        };
 
-        if (auto result = Result(audrvCreate(&this->driver, &config, 2)); !result)
-            throw love::Exception("Failed to create audio driver: {:x}", result.get());
+        static constexpr std::array<uint8_t, 2> SINK_CHANNELS = { 0, 1 };
 
-        this->memory->initialize(&this->driver);
+        static AudioDriver s_Driver;
+        static DigitalSoundMemory s_Memory;
+        volatile bool s_Init = false;
 
-        const auto id = audrvDeviceSinkAdd(&this->driver, AUDREN_DEFAULT_DEVICE_NAME, 2, sinkChannels);
+        static std::array<bool, AUDIO_CONFIG.num_voices> s_VoiceInitialized;
 
-        if (id == -1)
-            throw love::Exception("Failed to add sink to driver!");
+        // #region Device
 
-        if (auto result = Result(audrvUpdate(&this->driver)); !result)
-            throw love::Exception("Failed to update audio driver: {:x}", result.get());
-
-        if (auto result = Result(audrenStartAudioRenderer()); !result)
-            throw love::Exception("Failed to start audio renderer: {:x}", result.get());
-
-        this->initialized = true;
-    }
-
-    void DigitalSound::deInitialize()
-    {
-        if (!this->initialized)
-            return;
-
-        delete this->memory;
-
-        audrvClose(&this->driver);
-        audrenExit();
-
-        this->initialized = false;
-    }
-
-    void DigitalSound::updateImpl()
-    {
+        bool Device::open()
         {
-            std::unique_lock lock(this->mutex);
-            audrvUpdate(&this->driver);
+            if (!ResultCode(audrenInitialize(&AUDIO_CONFIG)))
+                return false;
+
+            if (!ResultCode(audrvCreate(&s_Driver, &AUDIO_CONFIG, 2)))
+                return false;
+
+            if (!s_Memory.initialize(&s_Driver))
+                return false;
+
+            if (audrvDeviceSinkAdd(&s_Driver, AUDREN_DEFAULT_DEVICE_NAME, 2, SINK_CHANNELS.data()) < 0)
+                return false;
+
+            if (!ResultCode(audrvUpdate(&s_Driver)))
+                return false;
+
+            if (!ResultCode(audrenStartAudioRenderer()))
+                return false;
+
+            s_Init = true;
+            return s_Init;
         }
 
-        audrenWaitFrame();
-    }
-
-    void DigitalSound::setMasterVolume(float volume)
-    {
-        std::unique_lock lock(this->mutex);
-
-        for (int mix = 0; mix < 2; mix++)
-            audrvMixSetVolume(&this->driver, mix, volume);
-    }
-
-    float DigitalSound::getMasterVolume() const
-    {
-        return this->driver.in_mixes[0].volume;
-    }
-
-    AudioBuffer DigitalSound::createBuffer(int size, int)
-    {
-        AudioBuffer buffer {};
-
-        if (size != 0)
+        void Device::update()
         {
-            buffer.data_pcm16 = (int16_t*)this->memory->allocate(size);
+            if (!s_Init)
+                return;
 
-            if (buffer.data_pcm16 == nullptr)
+            {
+                std::unique_lock lock(Device::getMutex());
+                audrvUpdate(&s_Driver);
+            }
+            audrenWaitFrame();
+        }
+
+        void Device::close()
+        {
+            if (!s_Init)
+                return;
+
+            audrvClose(&s_Driver);
+            audrenExit();
+            s_Init = false;
+        }
+
+        void Device::setMasterVolume(float volume)
+        {
+            std::unique_lock lock(Device::getMutex());
+
+            for (auto mix : SINK_CHANNELS)
+                audrvMixSetVolume(&s_Driver, mix, volume);
+        }
+
+        float Device::getMasterVolume()
+        {
+            std::unique_lock lock(Device::getMutex());
+            return s_Driver.in_mixes[0].volume;
+        }
+
+        // #endregion
+
+        // #region Buffer
+
+        Buffer::Buffer(size_t size, int) : buffer {}
+        {
+            if (size == 0)
+                throw love::Exception("Audio buffer size cannot be zero.");
+
+            this->buffer.data_pcm16 = (int16_t*)s_Memory.allocate(size);
+
+            if (!this->buffer.data_pcm16)
                 throw love::Exception(E_OUT_OF_MEMORY);
         }
-        else
-            throw love::Exception("Size cannot be zero.");
 
-        return buffer;
-    }
-
-    void DigitalSound::freeBuffer(const AudioBuffer& buffer)
-    {
-        this->memory->free(buffer.data_pcm16);
-    }
-
-    bool DigitalSound::isBufferDone(const AudioBuffer& buffer) const
-    {
-        return buffer.state == AudioDriverWaveBufState_Done;
-    }
-
-    void DigitalSound::prepare(AudioBuffer& buffer, const void* data, size_t size, int samples)
-    {
-        if (data == nullptr)
-            return;
-
-        buffer.size              = size;
-        buffer.end_sample_offset = samples;
-
-        std::memcpy(buffer.data_pcm16, data, size);
-
-        armDCacheFlush(buffer.data_pcm16, size);
-    }
-
-    size_t DigitalSound::getSampleCount(const AudioBuffer& buffer) const
-    {
-        return buffer.end_sample_offset;
-    }
-
-    void DigitalSound::setLooping(AudioBuffer& buffer, bool looping)
-    {
-        buffer.is_looping = looping;
-    }
-
-    bool DigitalSound::channelReset(size_t id, int channels, int bitDepth, int sampleRate)
-    {
-        std::unique_lock lock(this->mutex);
-
-        int8_t format = PcmFormat_Invalid;
-        if ((format = DigitalSound::getFormat(channels, bitDepth)) < 0)
-            return false;
-
-        this->resetChannel = audrvVoiceInit(&this->driver, id, channels, (PcmFormat)format, sampleRate);
-
-        if (this->resetChannel)
+        void Buffer::destroy()
         {
-            audrvVoiceSetDestinationMix(&this->driver, id, AUDREN_FINAL_MIX_ID);
-            audrvVoiceSetMixFactor(&this->driver, id, 1.0f, 0, 0);
-
-            if (channels == 2)
-                audrvVoiceSetMixFactor(&this->driver, id, 1.0f, 0, 1);
+            s_Memory.free(this->buffer.data_pcm16);
+            this->buffer.data_pcm16 = nullptr;
         }
 
-        return this->resetChannel;
-    }
-
-    void DigitalSound::channelSetVolume(size_t id, float volume)
-    {
-        std::unique_lock lock(this->mutex);
-
-        audrvVoiceSetVolume(&this->driver, id, volume);
-    }
-
-    float DigitalSound::channelGetVolume(size_t id) const
-    {
-        return this->driver.in_voices[id].volume;
-    }
-
-    size_t DigitalSound::channelGetSampleOffset(size_t id)
-    {
-        std::unique_lock lock(this->mutex);
-
-        return audrvVoiceGetPlayedSampleCount(&this->driver, id);
-    }
-
-    bool DigitalSound::channelAddBuffer(size_t id, AudioBuffer* buffer)
-    {
-        if (this->resetChannel)
+        bool Buffer::isFinished() const
         {
-            std::unique_lock lock(this->mutex);
-
-            bool success = audrvVoiceAddWaveBuf(&this->driver, id, buffer);
-
-            if (success)
-                audrvVoiceStart(&this->driver, id);
-
-            return success;
+            return this->buffer.state == AudioDriverWaveBufState_Done;
         }
 
-        return false;
-    }
+        void Buffer::prepare(const void* data, const size_t size, int samples, bool own)
+        {
+            if (data == nullptr || size == 0)
+                return;
 
-    void DigitalSound::channelPause(size_t id, bool paused)
-    {
-        std::unique_lock lock(this->mutex);
+            this->buffer.size              = size;
+            this->buffer.end_sample_offset = samples;
 
-        audrvVoiceSetPaused(&this->driver, id, paused);
-    }
+            if (own)
+            {
+                if (!this->buffer.data_pcm16)
+                    return;
 
-    bool DigitalSound::isChannelPaused(size_t id)
-    {
-        return audrvVoiceIsPaused(&this->driver, id);
-    }
+                std::memcpy(this->buffer.data_pcm16, data, size);
+            }
+            else
+                this->buffer.data_pcm16 = (int16_t*)data;
 
-    bool DigitalSound::isChannelPlaying(size_t id)
-    {
-        return audrvVoiceIsPlaying(&this->driver, id);
-    }
+            armDCacheFlush(this->buffer.data_pcm16, size);
+        }
 
-    void DigitalSound::channelStop(size_t id)
-    {
-        std::unique_lock lock(this->mutex);
+        size_t Buffer::getSampleCount() const
+        {
+            return this->buffer.end_sample_offset;
+        }
 
-        audrvVoiceStop(&this->driver, id);
-    }
+        void Buffer::setLooping(bool looping)
+        {
+            this->buffer.is_looping = looping;
+        }
 
-    void* DigitalSound::allocateBuffer(size_t size)
-    {
-        return this->memory->allocate(size);
-    }
+        bool Buffer::isLooping() const
+        {
+            return this->buffer.is_looping;
+        }
 
-    void DigitalSound::freeBuffer(void* buffer)
-    {
-        this->memory->free(buffer);
-    }
+        void Buffer::setStatus(uint8_t status)
+        {
+            this->buffer.state = (AudioDriverWaveBufState)status;
+        }
 
-    int8_t DigitalSound::getFormat(int channels, int bitDepth)
-    {
-        if (bitDepth != 8 && bitDepth != 16)
-            return -1;
+        // #endregion
 
-        if (channels < 1 || channels > 2)
-            return -2;
+        // #region Channel
 
-        PcmFormat format;
-        DigitalSound::getConstant((EncodingFormat)bitDepth, format);
+        static PcmFormat getChannelFormat(AudioBase::AudioFormat format)
+        {
+            switch (format)
+            {
+                default:
+                case AudioBase::FORMAT_MONO8:
+                case AudioBase::FORMAT_STEREO8:
+                    return PcmFormat_Int8;
+                case AudioBase::FORMAT_MONO16:
+                case AudioBase::FORMAT_STEREO16:
+                    return PcmFormat_Int16;
+            }
+        }
 
-        return format;
-    }
+        bool Channel::reset(size_t id, int channels, int bitdepth, int samplerate, float volume)
+        {
+            const auto format = dsp::Audio::getFormat(bitdepth, channels);
+
+            if (format == AudioBase::FORMAT_NONE)
+                return false;
+
+            const auto fmt = getChannelFormat(format);
+
+            std::unique_lock lock(Device::getMutex());
+            const bool ok = audrvVoiceInit(&s_Driver, id, channels, fmt, samplerate);
+
+            if (ok)
+            {
+                s_VoiceInitialized[id] = true;
+                audrvVoiceSetDestinationMix(&s_Driver, id, AUDREN_FINAL_MIX_ID);
+                audrvVoiceSetMixFactor(&s_Driver, id, 1.0f, 0, 0);
+
+                if (channels == 2)
+                    audrvVoiceSetMixFactor(&s_Driver, id, 1.0f, 0, 1);
+
+                Channel::setVolume(id, volume);
+            }
+            else
+                s_VoiceInitialized[id] = false;
+
+            return ok;
+        }
+
+        void Channel::setVolume(size_t id, float volume)
+        {
+            std::unique_lock lock(Device::getMutex());
+            audrvVoiceSetVolume(&s_Driver, id, volume);
+        }
+
+        float Channel::getVolume(size_t id)
+        {
+            std::unique_lock lock(Device::getMutex());
+            return s_Driver.in_voices[id].volume;
+        }
+
+        size_t Channel::getSampleOffset(size_t id)
+        {
+            std::unique_lock lock(Device::getMutex());
+            return audrvVoiceGetPlayedSampleCount(&s_Driver, id);
+        }
+
+        bool Channel::addBuffer(size_t id, Buffer& buffer)
+        {
+            if (id >= s_VoiceInitialized.size() || !s_VoiceInitialized[id])
+                return false;
+
+            std::unique_lock lock(Device::getMutex());
+            bool success = audrvVoiceAddWaveBuf(&s_Driver, id, buffer.getHandle());
+
+            if (!success)
+                return false;
+
+            audrvVoiceStart(&s_Driver, id);
+            return true;
+        }
+
+        void Channel::pause(size_t id, bool paused)
+        {
+            std::unique_lock lock(Device::getMutex());
+            audrvVoiceSetPaused(&s_Driver, id, paused);
+        }
+
+        bool Channel::isPaused(size_t id)
+        {
+            std::unique_lock lock(Device::getMutex());
+            return audrvVoiceIsPaused(&s_Driver, id);
+        }
+
+        bool Channel::isPlaying(size_t id)
+        {
+            std::unique_lock lock(Device::getMutex());
+            return audrvVoiceIsPlaying(&s_Driver, id);
+        }
+
+        void Channel::stop(size_t id)
+        {
+            std::unique_lock lock(Device::getMutex());
+            audrvVoiceStop(&s_Driver, id);
+        }
+
+        // #endregion
+    } // namespace audio
 } // namespace love

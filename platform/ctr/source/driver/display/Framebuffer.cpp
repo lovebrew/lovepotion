@@ -1,6 +1,7 @@
 #include "common/Exception.hpp"
 
 #include "driver/display/Framebuffer.hpp"
+#include "driver/display/citro3d.hpp"
 
 namespace love
 {
@@ -34,11 +35,10 @@ namespace love
 
     void Framebuffer::destroy()
     {
-        if (this->target != nullptr)
-        {
-            C3D_RenderTargetDelete(this->target);
-            this->target = nullptr;
-        }
+        if (!this->target)
+            return;
+
+        c3d.deferCallToEndOfFrame(([target = this->target]() { C3D_RenderTargetDelete(target); }));
     }
 
     void Framebuffer::calculateBounds(const Rect& bounds, Rect& out, const int width, const int height)

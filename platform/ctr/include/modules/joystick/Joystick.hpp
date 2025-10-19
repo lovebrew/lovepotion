@@ -59,6 +59,10 @@ namespace love
 
         virtual std::vector<float> getSensorData(Sensor::SensorType type) const override;
 
+        virtual PowerState getPowerInfo(int& percent) const override;
+
+        virtual ConnectionState getConnectionState() const override;
+
         enum HidAxisType
         {
             HIDAXIS_LEFTX        = KEY_CPAD_LEFT | KEY_CPAD_RIGHT,

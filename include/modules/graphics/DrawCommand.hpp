@@ -1,0 +1,105 @@
+#pragma once
+
+#include "common/Exception.hpp"
+
+#include "modules/graphics/StreamBuffer.tcc"
+
+#include "modules/graphics/Shader.tcc"
+#include "modules/graphics/Texture.tcc"
+#include "modules/graphics/vertex.hpp"
+
+namespace love
+{
+    struct BatchedDrawCommand
+    {
+        PrimitiveType primitiveMode           = PRIMITIVE_TRIANGLES;
+        CommonFormat format                   = CommonFormat::NONE;
+        TriangleIndexMode indexMode           = TRIANGLEINDEX_NONE;
+        int vertexCount                       = 0;
+        TextureBase* texture                  = nullptr;
+        ShaderBase::StandardShader shaderType = ShaderBase::STANDARD_DEFAULT;
+
+        bool isFont        = false;
+        bool pushTransform = true;
+    };
+
+    struct DrawIndexedCommand
+    {
+        PrimitiveType primitiveType = PRIMITIVE_TRIANGLES;
+        int indexCount              = 0;
+        int instanceCount           = 1;
+
+        const VertexAttributes* attributes;
+        const BufferBindings* buffers;
+
+        Resource* indexBuffer = nullptr;
+
+        IndexDataType indexType  = INDEX_UINT16;
+        size_t indexBufferOffset = 0;
+
+        TextureBase* texture = nullptr;
+        CullMode cullMode    = CULL_NONE;
+
+        bool isFont = false;
+
+        DrawIndexedCommand(const VertexAttributes* attributes, const BufferBindings* buffers,
+                           Resource* indexBuffer) :
+            attributes(attributes),
+            buffers(buffers),
+            indexBuffer(indexBuffer)
+        {}
+    };
+
+    struct DrawCommand
+    {
+        DrawCommand(const BufferBindings* buffers) : buffers(buffers)
+        {}
+
+        PrimitiveType primitiveType = PRIMITIVE_TRIANGLES;
+
+        int vertexStart   = 0;
+        int vertexCount   = 0;
+        int instanceCount = 1;
+
+        TextureBase* texture = nullptr;
+        CullMode cullMode    = CULL_NONE;
+        const BufferBindings* buffers;
+
+        bool isFont = false;
+    };
+
+    struct BatchedVertexData
+    {
+        void* stream;
+    };
+
+    struct BatchedDrawState
+    {
+        StreamBufferBase* vertexBuffer = nullptr;
+        StreamBufferBase* indexBuffer  = nullptr;
+
+        PrimitiveType primitiveMode = PRIMITIVE_TRIANGLES;
+        CommonFormat format         = CommonFormat::NONE;
+        StrongRef<TextureBase> texture;
+        ShaderBase::StandardShader shaderType = ShaderBase::STANDARD_DEFAULT;
+
+        int vertexCount = 0;
+        int indexCount  = 0;
+
+        int lastVertexCount = 0;
+        int lastIndexCount  = 0;
+
+        StreamBufferBase::MapInfo vertexBufferMap = StreamBufferBase::MapInfo();
+        StreamBufferBase::MapInfo indexBufferMap  = StreamBufferBase::MapInfo();
+
+        bool flushing = false;
+
+        bool isFont        = false;
+        bool pushTransform = true;
+    };
+
+    constexpr size_t INIT_VERTEX_BUFFER_SIZE = 1024 * 1024 * 1;
+    constexpr size_t INIT_INDEX_BUFFER_SIZE  = sizeof(uint16_t) * LOVE_UINT16_MAX;
+
+    StreamBufferBase* createStreamBuffer(BufferUsage usage, size_t size);
+} // namespace love
