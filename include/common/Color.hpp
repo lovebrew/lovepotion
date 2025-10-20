@@ -28,10 +28,10 @@ namespace love
 
         Color(uint32_t abgr)
         {
-            a = ((abgr >> 24) & 0xFF) / 255.0f;
-            b = ((abgr >> 16) & 0xFF) / 255.0f;
-            g = ((abgr >> 8) & 0xFF) / 255.0f;
-            r = (abgr & 0xFF) / 255.0f;
+            r = ((abgr >> 24) & 0xFF) / 255.0f;
+            g = ((abgr >> 16) & 0xFF) / 255.0f;
+            b = ((abgr >> 8) & 0xFF) / 255.0f;
+            a = (abgr & 0xFF) / 255.0f;
         }
 
         constexpr std::strong_ordering operator<=>(const Color& other) const noexcept = default;
