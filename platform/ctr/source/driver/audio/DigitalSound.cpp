@@ -84,6 +84,8 @@ namespace love
 
             if (!this->buffer.data_pcm16)
                 throw love::Exception(E_OUT_OF_MEMORY);
+
+            this->buffer.status = NDSP_WBUF_DONE;
         }
 
         void Buffer::destroy()

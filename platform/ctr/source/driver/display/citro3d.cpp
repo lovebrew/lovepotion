@@ -278,14 +278,11 @@ namespace love
 
     void citro3d::setColorMask(ColorChannelMask mask)
     {
-        uint8_t writeMask = GPU_WRITE_COLOR;
-        writeMask |= mask.get();
-
         if (this->context.colorMask == mask)
             return;
 
         this->context.colorMask = mask;
-        C3D_DepthTest(true, GPU_GEQUAL, (GPU_WRITEMASK)writeMask);
+        C3D_DepthTest(true, GPU_GEQUAL, (GPU_WRITEMASK)mask.get());
     }
 
     void citro3d::setBlendState(const BlendState& state)

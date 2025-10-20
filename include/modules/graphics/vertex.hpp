@@ -187,6 +187,7 @@ namespace love
                         // color.
         XYf_RGBAf,
         XYf_STPf_RGBAf, //< 2D position, 3D texture coordinates and 32-bit floating point RGBA color.
+        COUNT,
     };
 
     struct STf_RGBAf

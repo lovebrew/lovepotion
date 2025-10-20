@@ -10,6 +10,8 @@
 #include <cmath>
 #include <cstdlib>
 
+#include "common/debug.hpp"
+
 namespace love
 {
     namespace
@@ -154,9 +156,17 @@ namespace love
 
     void ParticleSystem::createBuffers(size_t size)
     {
-        this->pFree = this->pMemory = new Particle[size];
-        this->maxParticles          = (uint32_t)size;
-        this->buffer.resize(size);
+        try
+        {
+            this->pFree = this->pMemory = new Particle[size];
+            this->maxParticles          = (uint32_t)size;
+            this->buffer.resize(size * 4);
+        }
+        catch (std::bad_alloc&)
+        {
+            this->deleteBuffers();
+            throw love::Exception(E_OUT_OF_MEMORY);
+        }
     }
 
     void ParticleSystem::deleteBuffers()
@@ -189,102 +199,89 @@ namespace love
         if (this->isFull())
             return;
 
-        auto* particle = this->pFree++;
-        this->initParticle(particle, t);
+        Particle* p = this->pFree++;
+        this->initParticle(p, t);
 
-        switch (this->insertMode)
+        switch (insertMode)
         {
             default:
             case INSERT_MODE_TOP:
-            {
-                this->insertTop(particle);
+                insertTop(p);
                 break;
-            }
             case INSERT_MODE_BOTTOM:
-            {
-                this->insertBottom(particle);
+                insertBottom(p);
                 break;
-            }
             case INSERT_MODE_RANDOM:
-            {
-                this->insertRandom(particle);
+                insertRandom(p);
                 break;
-            }
         }
 
         this->activeParticles++;
     }
 
-    void ParticleSystem::initParticle(Particle* particle, float t)
+    void ParticleSystem::initParticle(Particle* p, float t)
     {
         float min, max;
-        Vector2 position = this->previousPosition + (this->position - this->previousPosition) * t;
 
-        min = this->particleLifeMin;
-        max = this->particleLifeMax;
+        // Linearly interpolate between the previous and current emitter position.
+        love::Vector2 pos = previousPosition + (position - previousPosition) * t;
 
+        min = particleLifeMin;
+        max = particleLifeMax;
         if (min == max)
-            particle->life = min;
+            p->life = min;
         else
-            particle->life = (float)rng.random(min, max);
+            p->life = (float)rng.random(min, max);
+        p->lifetime = p->life;
 
-        particle->lifetime = particle->life;
-        particle->position = position;
+        p->position = pos;
 
-        min       = this->direction - this->spread / 2.0f;
-        max       = this->direction + this->spread / 2.0f;
+        min       = direction - spread / 2.0f;
+        max       = direction + spread / 2.0f;
         float dir = (float)rng.random(min, max);
 
+        // In this switch statement, variables 'rand_y', 'min', and 'max'
+        // are sometimes reused as data stores for performance reasons
         float rand_x, rand_y;
         float c, s;
-
         switch (emissionAreaDistribution)
         {
             case DISTRIBUTION_UNIFORM:
-            {
                 c      = cosf(emissionAreaAngle);
                 s      = sinf(emissionAreaAngle);
                 rand_x = (float)rng.random(-emissionArea.x, emissionArea.x);
                 rand_y = (float)rng.random(-emissionArea.y, emissionArea.y);
-                particle->position.x += c * rand_x - s * rand_y;
-                particle->position.y += s * rand_x + c * rand_y;
+                p->position.x += c * rand_x - s * rand_y;
+                p->position.y += s * rand_x + c * rand_y;
                 break;
-            }
             case DISTRIBUTION_NORMAL:
-            {
                 c      = cosf(emissionAreaAngle);
                 s      = sinf(emissionAreaAngle);
                 rand_x = (float)rng.randomNormal(emissionArea.x);
                 rand_y = (float)rng.randomNormal(emissionArea.y);
-                particle->position.x += c * rand_x - s * rand_y;
-                particle->position.y += s * rand_x + c * rand_y;
+                p->position.x += c * rand_x - s * rand_y;
+                p->position.y += s * rand_x + c * rand_y;
                 break;
-            }
             case DISTRIBUTION_ELLIPSE:
-            {
                 c      = cosf(emissionAreaAngle);
                 s      = sinf(emissionAreaAngle);
                 rand_x = (float)rng.random(-1, 1);
                 rand_y = (float)rng.random(-1, 1);
                 min    = emissionArea.x * (rand_x * sqrt(1 - 0.5f * pow(rand_y, 2)));
                 max    = emissionArea.y * (rand_y * sqrt(1 - 0.5f * pow(rand_x, 2)));
-                particle->position.x += c * min - s * max;
-                particle->position.y += s * min + c * max;
+                p->position.x += c * min - s * max;
+                p->position.y += s * min + c * max;
                 break;
-            }
             case DISTRIBUTION_BORDER_ELLIPSE:
-            {
                 c      = cosf(emissionAreaAngle);
                 s      = sinf(emissionAreaAngle);
                 rand_x = (float)rng.random(0, LOVE_M_PI * 2);
                 min    = cosf(rand_x) * emissionArea.x;
                 max    = sinf(rand_x) * emissionArea.y;
-                particle->position.x += c * min - s * max;
-                particle->position.y += s * min + c * max;
+                p->position.x += c * min - s * max;
+                p->position.y += s * min + c * max;
                 break;
-            }
             case DISTRIBUTION_BORDER_RECTANGLE:
-            {
                 c      = cosf(emissionAreaAngle);
                 s      = sinf(emissionAreaAngle);
                 rand_x = (float)rng.random((emissionArea.x + emissionArea.y) * -2,
@@ -293,180 +290,179 @@ namespace love
                 if (rand_x < -rand_y)
                 {
                     min = rand_x + rand_y + emissionArea.x;
-                    particle->position.x += c * min - s * -emissionArea.y;
-                    particle->position.y += s * min + c * -emissionArea.y;
+                    p->position.x += c * min - s * -emissionArea.y;
+                    p->position.y += s * min + c * -emissionArea.y;
                 }
                 else if (rand_x < 0)
                 {
                     max = rand_x + emissionArea.y;
-                    particle->position.x += c * -emissionArea.x - s * max;
-                    particle->position.y += s * -emissionArea.x + c * max;
+                    p->position.x += c * -emissionArea.x - s * max;
+                    p->position.y += s * -emissionArea.x + c * max;
                 }
                 else if (rand_x < rand_y)
                 {
                     max = rand_x - emissionArea.y;
-                    particle->position.x += c * emissionArea.x - s * max;
-                    particle->position.y += s * emissionArea.x + c * max;
+                    p->position.x += c * emissionArea.x - s * max;
+                    p->position.y += s * emissionArea.x + c * max;
                 }
                 else
                 {
                     min = rand_x - rand_y - emissionArea.x;
-                    particle->position.x += c * min - s * emissionArea.y;
-                    particle->position.y += s * min + c * emissionArea.y;
+                    p->position.x += c * min - s * emissionArea.y;
+                    p->position.y += s * min + c * emissionArea.y;
                 }
                 break;
-            }
             case DISTRIBUTION_NONE:
             default:
                 break;
-        };
+        }
 
         // Determine if the origin of each particle is the center of the area
         if (directionRelativeToEmissionCenter)
-            dir += atan2(particle->position.y - position.y, particle->position.x - position.x);
+            dir += atan2(p->position.y - pos.y, p->position.x - pos.x);
 
-        particle->origin = position;
+        p->origin = pos;
 
         min         = speedMin;
         max         = speedMax;
         float speed = (float)rng.random(min, max);
 
-        particle->velocity = Vector2(cosf(dir), sinf(dir)) * speed;
+        p->velocity = love::Vector2(cosf(dir), sinf(dir)) * speed;
 
-        particle->linearAcceleration.x = (float)rng.random(linearAccelerationMin.x, linearAccelerationMax.x);
-        particle->linearAcceleration.y = (float)rng.random(linearAccelerationMin.y, linearAccelerationMax.y);
+        p->linearAcceleration.x = (float)rng.random(linearAccelerationMin.x, linearAccelerationMax.x);
+        p->linearAcceleration.y = (float)rng.random(linearAccelerationMin.y, linearAccelerationMax.y);
 
-        min                          = radialAccelerationMin;
-        max                          = radialAccelerationMax;
-        particle->radialAcceleration = (float)rng.random(min, max);
+        min                   = radialAccelerationMin;
+        max                   = radialAccelerationMax;
+        p->radialAcceleration = (float)rng.random(min, max);
 
-        min                              = tangentialAccelerationMin;
-        max                              = tangentialAccelerationMax;
-        particle->tangentialAcceleration = (float)rng.random(min, max);
+        min                       = tangentialAccelerationMin;
+        max                       = tangentialAccelerationMax;
+        p->tangentialAcceleration = (float)rng.random(min, max);
 
-        min                     = linearDampingMin;
-        max                     = linearDampingMax;
-        particle->linearDamping = (float)rng.random(min, max);
+        min              = linearDampingMin;
+        max              = linearDampingMax;
+        p->linearDamping = (float)rng.random(min, max);
 
-        particle->sizeOffset       = (float)rng.random(sizeVariation); // time offset for size change
-        particle->sizeIntervalSize = (1.0f - (float)rng.random(sizeVariation)) - particle->sizeOffset;
-        particle->size             = sizes[(size_t)(particle->sizeOffset - .5f) * (sizes.size() - 1)];
+        p->sizeOffset       = (float)rng.random(sizeVariation); // time offset for size change
+        p->sizeIntervalSize = (1.0f - (float)rng.random(sizeVariation)) - p->sizeOffset;
+        p->size             = sizes[(size_t)(p->sizeOffset - .5f) * (sizes.size() - 1)];
 
-        min                 = rotationMin;
-        max                 = rotationMax;
-        particle->spinStart = calculate_variation(spinStart, spinEnd, spinVariation);
-        particle->spinEnd   = calculate_variation(spinEnd, spinStart, spinVariation);
-        particle->rotation  = (float)rng.random(min, max);
+        min          = rotationMin;
+        max          = rotationMax;
+        p->spinStart = calculate_variation(spinStart, spinEnd, spinVariation);
+        p->spinEnd   = calculate_variation(spinEnd, spinStart, spinVariation);
+        p->rotation  = (float)rng.random(min, max);
 
-        particle->angle = particle->rotation;
+        p->angle = p->rotation;
         if (relativeRotation)
-            particle->angle += atan2f(particle->velocity.y, particle->velocity.x);
+            p->angle += atan2f(p->velocity.y, p->velocity.x);
 
-        particle->color = colors[0];
+        p->color = colors[0];
 
-        particle->quadIndex = 0;
+        p->quadIndex = 0;
     }
 
-    void ParticleSystem::insertTop(Particle* particle)
+    void ParticleSystem::insertTop(Particle* p)
     {
-        if (this->pHead == nullptr)
+        if (pHead == nullptr)
         {
-            this->pHead        = particle;
-            particle->previous = nullptr;
+            pHead   = p;
+            p->prev = nullptr;
         }
         else
         {
-            this->pTail->next  = particle;
-            particle->previous = this->pTail;
+            pTail->next = p;
+            p->prev     = pTail;
         }
-        particle->next = nullptr;
-        this->pTail    = particle;
+        p->next = nullptr;
+        pTail   = p;
     }
 
-    void ParticleSystem::insertBottom(Particle* particle)
+    void ParticleSystem::insertBottom(Particle* p)
     {
-        if (this->pTail == nullptr)
+        if (pTail == nullptr)
         {
-            this->pTail    = particle;
-            particle->next = nullptr;
+            pTail   = p;
+            p->next = nullptr;
         }
         else
         {
-            this->pHead->previous = particle;
-            particle->next        = this->pHead;
+            pHead->prev = p;
+            p->next     = pHead;
         }
-        particle->previous = nullptr;
-        this->pHead        = particle;
+        p->prev = nullptr;
+        pHead   = p;
     }
 
-    void ParticleSystem::insertRandom(Particle* particle)
+    void ParticleSystem::insertRandom(Particle* p)
     {
-        uint64_t position = rng.rand() % ((int64_t)this->activeParticles + 1);
+        // Nonuniform, but 64-bit is so large nobody will notice. Hopefully.
+        uint64_t pos = rng.rand() % ((int64_t)activeParticles + 1);
 
-        if (position == this->activeParticles)
+        // Special case where the particle gets inserted before the head.
+        if (pos == activeParticles)
         {
-            Particle* pA = this->pHead;
-
+            Particle* pA = pHead;
             if (pA)
-                pA->previous = particle;
-
-            particle->previous = nullptr;
-            particle->next     = pA;
-            this->pHead        = particle;
+                pA->prev = p;
+            p->prev = nullptr;
+            p->next = pA;
+            pHead   = p;
             return;
         }
 
-        Particle* pA = this->pMemory + position;
+        // Inserts the particle after the randomly selected particle.
+        Particle* pA = pMemory + pos;
         Particle* pB = pA->next;
-        pA->next     = particle;
-
+        pA->next     = p;
         if (pB)
-            pB->previous = particle;
+            pB->prev = p;
         else
-            this->pTail = particle;
-
-        particle->previous = pA;
-        particle->next     = pB;
+            pTail = p;
+        p->prev = pA;
+        p->next = pB;
     }
 
-    ParticleSystem::Particle* ParticleSystem::removeParticle(Particle* particle)
+    ParticleSystem::Particle* ParticleSystem::removeParticle(Particle* p)
     {
         Particle* pNext = nullptr;
 
-        if (particle->previous)
-            particle->previous->next = particle->next;
+        // Removes the particle from the linked list.
+        if (p->prev)
+            p->prev->next = p->next;
         else
-            this->pHead = particle->next;
+            pHead = p->next;
 
-        if (particle->next)
+        if (p->next)
         {
-            particle->next->previous = particle->previous;
-            pNext                    = particle->next;
+            p->next->prev = p->prev;
+            pNext         = p->next;
         }
         else
-            this->pTail = particle->previous;
+            pTail = p->prev;
 
-        this->pFree--;
-
-        if (particle != this->pFree)
+        // The (in memory) last particle can now be moved into the free slot.
+        // It will skip the moving if it happens to be the removed particle.
+        pFree--;
+        if (p != pFree)
         {
-            *particle = *this->pFree;
+            *p = *pFree;
+            if (pNext == pFree)
+                pNext = p;
 
-            if (pNext == this->pFree)
-                pNext = particle;
-
-            if (particle->previous)
-                particle->previous->next = particle;
+            if (p->prev)
+                p->prev->next = p;
             else
-                this->pHead = particle;
+                pHead = p;
 
-            if (particle->next)
-                particle->next->previous = particle;
+            if (p->next)
+                p->next->prev = p;
             else
-                this->pTail = particle;
+                pTail = p;
         }
 
-        this->activeParticles--;
+        activeParticles--;
         return pNext;
     }
 
@@ -882,95 +878,119 @@ namespace love
 
     void ParticleSystem::update(float dt)
     {
-        if (this->pMemory == nullptr || dt == 0.0f)
+        if (pMemory == nullptr || dt == 0.0f)
             return;
 
-        auto* particle = this->pHead;
+        // Traverse all particles and update.
+        Particle* p = pHead;
 
-        while (particle)
+        while (p)
         {
-            particle->life -= dt;
+            // Decrease lifespan.
+            p->life -= dt;
 
-            if (particle->life <= 0)
-                particle = removeParticle(particle);
+            if (p->life <= 0)
+                p = removeParticle(p);
             else
             {
-                Vector2 radial, tangential;
-                Vector2 ppos = this->position;
+                // Temp variables.
+                love::Vector2 radial, tangential;
+                love::Vector2 ppos = p->position;
 
-                radial = ppos - particle->origin;
+                // Get vector from particle center to particle.
+                radial = ppos - p->origin;
                 radial.normalize();
                 tangential = radial;
 
-                radial *= particle->radialAcceleration;
+                // Resize radial acceleration.
+                radial *= p->radialAcceleration;
 
+                // Calculate tangential acceleration.
                 {
                     float a      = tangential.x;
                     tangential.x = -tangential.y;
                     tangential.y = a;
                 }
 
-                tangential *= particle->tangentialAcceleration;
-                particle->velocity += (radial + tangential + particle->linearAcceleration) * dt;
-                particle->velocity *= 1.0f / (1.0f + particle->linearDamping * dt);
+                // Resize tangential.
+                tangential *= p->tangentialAcceleration;
 
-                ppos += particle->velocity * dt;
-                particle->position = ppos;
+                // Update velocity.
+                p->velocity += (radial + tangential + p->linearAcceleration) * dt;
 
-                const float t = 1.0f - particle->life / particle->lifetime;
-                particle->rotation += (particle->spinStart * (1.0f - t) + particle->spinEnd * t) * dt;
-                particle->angle = particle->rotation;
+                // Apply damping.
+                p->velocity *= 1.0f / (1.0f + p->linearDamping * dt);
 
-                if (this->relativeRotation)
-                    particle->angle += atan2(particle->velocity.y, particle->velocity.x);
+                // Modify position.
+                ppos += p->velocity * dt;
 
-                float s = particle->sizeOffset + t * particle->sizeIntervalSize;
-                s *= (float)(this->sizes.size() - 1);
+                p->position = ppos;
 
+                const float t = 1.0f - p->life / p->lifetime;
+
+                // Rotate.
+                p->rotation += (p->spinStart * (1.0f - t) + p->spinEnd * t) * dt;
+
+                p->angle = p->rotation;
+
+                if (relativeRotation)
+                    p->angle += atan2f(p->velocity.y, p->velocity.x);
+
+                // Change size according to given intervals:
+                // i = 0       1       2      3          n-1
+                //     |-------|-------|------|--- ... ---|
+                // t = 0    1/(n-1)        3/(n-1)        1
+                //
+                // `s' is the interpolation variable scaled to the current
+                // interval width, e.g. if n = 5 and t = 0.3, then the current
+                // indices are 1,2 and s = 0.3 - 0.25 = 0.05
+                float s = p->sizeOffset + t * p->sizeIntervalSize; // size variation
+                s *= (float)(sizes.size() - 1);                    // 0 <= s < sizes.size()
                 size_t i = (size_t)s;
-                size_t k = (i == this->sizes.size() - 1) ? i : i + 1;
-                s -= (float)i;
+                size_t k =
+                    (i == sizes.size() - 1) ? i : i + 1; // boundary check (prevents failing on t = 1.0f)
+                s -= (float)i; // transpose s to be in interval [0:1]: i <= s < i + 1 ~> 0 <= s < 1
+                p->size = sizes[i] * (1.0f - s) + sizes[k] * s;
 
-                particle->size = this->sizes[i] * (1.0f - s) + this->sizes[k] * s;
-
-                s = t * (float)(this->colors.size() - 1);
+                // Update color according to given intervals (as above)
+                s = t * (float)(colors.size() - 1);
                 i = (size_t)s;
-                k = (i == this->colors.size() - 1) ? i : i + 1;
-                s -= (float)i;
+                k = (i == colors.size() - 1) ? i : i + 1;
+                s -= (float)i; // 0 <= s <= 1
+                p->color = colors[i] * (1.0f - s) + colors[k] * s;
 
-                particle->color = this->colors[i] * (1.0f - s) + this->colors[k] * s;
-
-                k = this->quads.size();
-
+                // Update the quad index.
+                k = quads.size();
                 if (k > 0)
                 {
-                    s                   = t * (float)k;
-                    i                   = (s > 0.0f) ? (size_t)s : 0;
-                    particle->quadIndex = (int)((i < k) ? i : k - 1);
+                    s            = t * (float)k; // [0:numquads-1] (clamped below)
+                    i            = (s > 0.0f) ? (size_t)s : 0;
+                    p->quadIndex = (int)((i < k) ? i : k - 1);
                 }
 
-                particle = particle->next;
+                // Next particle.
+                p = p->next;
             }
         }
 
-        if (this->active)
+        // Make some more particles.
+        if (active)
         {
-            float rate = 1.0f / this->emissionRate;
-            this->emitCounter += dt;
-            float total = this->emitCounter - rate;
-
-            while (this->emitCounter > rate)
+            float rate = 1.0f / emissionRate; // the amount of time between each particle emit
+            emitCounter += dt;
+            float total = emitCounter - rate;
+            while (emitCounter > rate)
             {
-                this->addParticle(1.0f - (this->emitCounter - rate) / total);
-                this->emitCounter -= rate;
+                addParticle(1.0f - (emitCounter - rate) / total);
+                emitCounter -= rate;
             }
 
-            this->life -= dt;
-            if (this->lifetime != -1 && this->life < 0)
-                this->stop();
+            life -= dt;
+            if (lifetime != -1 && life < 0)
+                stop();
         }
 
-        this->previousPosition = this->position;
+        this->previousPosition = position;
     }
 
     static constexpr ShaderBase::StandardShader SHADER_TYPE =
@@ -985,14 +1005,10 @@ namespace love
 
         graphics->flushBatchedDraws();
 
-        if (ShaderBase::isDefaultActive())
-            ShaderBase::attachDefault(ShaderBase::STANDARD_DEFAULT);
-
         const auto* positions = this->texture->getQuad()->getVertexPositions();
         const auto* texcoords = this->texture->getQuad()->getTextureCoordinates();
 
-        auto* vertices = this->buffer.data();
-        auto* p        = this->pHead;
+        Particle* p = this->pHead;
 
         bool useQuads = !this->quads.empty();
 
@@ -1019,33 +1035,28 @@ namespace love
                 destination[vertex].t     = texcoords[vertex].y;
                 destination[vertex].color = p->color;
             }
-
             baseIndex += 4;
             p = p->next;
         }
 
-        GraphicsBase::TempTransform(graphics, matrix);
+        // GraphicsBase::TempTransform(graphics, matrix);
 
         BatchedDrawCommand command {};
         command.format        = CommonFormat::XYf_STf_RGBAf;
         command.indexMode     = TRIANGLEINDEX_QUADS;
         command.texture       = this->texture;
-        command.vertexCount   = baseIndex;
+        command.vertexCount   = count * 4;
         command.pushTransform = false;
         command.shaderType    = SHADER_TYPE;
 
         auto data = graphics->requestBatchedDraw(command);
 
         Vertex* stream = (Vertex*)data.stream;
+        std::memcpy(stream, this->buffer.data(), command.vertexCount * sizeof(Vertex));
 
         auto& m_transform = graphics->getTransform();
-        m_transform.transformXY(stream, this->buffer.data(), command.vertexCount);
+        Matrix4 translated(m_transform, matrix);
 
-        for (int index = 0; index < command.vertexCount; index++)
-        {
-            stream[index].s     = this->buffer[index].s;
-            stream[index].t     = this->buffer[index].t;
-            stream[index].color = this->buffer[index].color;
-        }
+        translated.transformXY(stream, this->buffer.data(), command.vertexCount);
     }
 } // namespace love

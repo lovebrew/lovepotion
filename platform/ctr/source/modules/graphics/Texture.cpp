@@ -24,7 +24,7 @@ namespace love
         c3d.bindFramebuffer(target);
 
         if (clear)
-            c3d.clear(Color::CLEAR);
+            c3d.clear({ 0, 0, 0, 0 });
     }
 
     static void createTextureObject(C3D_Tex*& texture, PixelFormat format, uint16_t width, uint16_t height)
@@ -255,8 +255,8 @@ namespace love
         {
             for (int x = 0; x < std::min(rect.w, width - rect.x); x++)
             {
-                const auto* sourcePixel = Color::fromTile<T>(source, sourcePowerTwo, x, y);
-                auto* destPixel         = Color::fromTile<T>(texture, destPowerTwo, rect.x + x, rect.y + y);
+                const auto* sourcePixel = colorFromTile<T>(source, sourcePowerTwo, x, y);
+                auto* destPixel         = colorFromTile<T>(texture, destPowerTwo, rect.x + x, rect.y + y);
 
                 *destPixel = *sourcePixel;
             }

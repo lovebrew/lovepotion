@@ -535,7 +535,7 @@ namespace love
         if (Console::is(Console::CTR))
         {
             const auto _width = NextPo2(this->getWidth());
-            pixel             = (Pixel*)Color::fromTile(this->data, _width, x, y);
+            pixel             = (Pixel*)colorFromTile(this->data, _width, x, y);
         }
         else
             pixel = (Pixel*)(this->data + ((y * this->width + x) * pixelSize));
@@ -559,7 +559,7 @@ namespace love
         if (Console::is(Console::CTR))
         {
             const auto _width = NextPo2(this->getWidth());
-            pixel             = (const Pixel*)Color::fromTile(this->data, _width, x, y);
+            pixel             = (const Pixel*)colorFromTile(this->data, _width, x, y);
         }
         else
             pixel = (const Pixel*)(this->data + ((y * this->width + x) * pixelSize));
@@ -740,10 +740,10 @@ namespace love
                 for (int x_ = 0; x_ < std::min(sw, destWidth - dx); x_++)
                 {
                     Color color {};
-                    const auto* srcPixel = Color::fromTile(source, NextPo2(srcWidth), sx + x_, sy + y_);
+                    const auto* srcPixel = colorFromTile(source, NextPo2(srcWidth), sx + x_, sy + y_);
                     getFunction((const Pixel*)srcPixel, color);
 
-                    auto* dstPixel = Color::fromTile(dest, NextPo2(destWidth), dx + x_, dy + y_);
+                    auto* dstPixel = colorFromTile(dest, NextPo2(destWidth), dx + x_, dy + y_);
                     setFunction(color, (Pixel*)dstPixel);
                 }
             }

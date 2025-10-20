@@ -562,13 +562,13 @@ int Wrap_ParticleSystem::setColors(lua_State* L)
 
     if (lua_istable(L, 2))
     {
-        int count = lua_gettop(L) - 1;
+        int numColors = lua_gettop(L) - 1;
 
-        if (count > 8)
+        if (numColors > 8)
             return luaL_error(L, "At most eight (8) colors may be used.");
 
-        std::vector<Color> colors(count);
-        for (int index = 0; index < count; index++)
+        std::vector<Color> colors(numColors);
+        for (int index = 0; index < numColors; index++)
         {
             luaL_checktype(L, index + 2, LUA_TTABLE);
 
@@ -590,18 +590,18 @@ int Wrap_ParticleSystem::setColors(lua_State* L)
     }
     else
     {
-        int argc  = lua_gettop(L) - 1;
-        int count = (argc + 3) / 4;
+        int argc      = lua_gettop(L) - 1;
+        int numColors = (argc + 3) / 4;
 
         if (argc != 3 && (argc % 4 != 0 || argc == 0))
-            return luaL_error(L, "Expected 3 components, got %d.", argc % 4);
+            return luaL_error(L, "Expected 4 components, got %d.", argc % 4);
 
-        if (count > 8)
+        if (numColors > 8)
             return luaL_error(L, "At most eight (8) colors may be used.");
 
-        std::vector<Color> colors(count);
+        std::vector<Color> colors(numColors);
 
-        for (int index = 0; index < count; ++index)
+        for (int index = 0; index < numColors; ++index)
         {
             colors[index].r = luaL_checknumber(L, 1 + index * 4 + 1);
             colors[index].g = luaL_checknumber(L, 1 + index * 4 + 2);

@@ -475,14 +475,6 @@ namespace love
         this->setBlendState(computeBlendState(mode, alphaMode));
     }
 
-    void GraphicsBase::setBlendState(const BlendState& state)
-    {
-        if (!(state == this->states.back().blend))
-            this->flushBatchedDraws();
-
-        this->states.back().blend = state;
-    }
-
     void GraphicsBase::captureScreenshot(const ScreenshotInfo& info)
     {
         this->pendingScreenshotCallbacks.push_back(info);
@@ -641,7 +633,7 @@ namespace love
 
         auto originalColor = this->getColor();
         if (attributes.isEnabled(ATTRIB_COLOR))
-            this->setColor(Color::WHITE);
+            this->setColor({ 1, 1, 1, 1 });
 
         if (state.pushTransform)
             this->pushIdentityTransform();

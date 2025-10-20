@@ -88,4 +88,20 @@ namespace love
 // Window
 #define E_WINDOW_CLOSING_RENDERTARGET_ACTIVE \
     "love.window.close cannot be called while a render target is active in love.graphics."
+
+// Buffer
+#define E_INVALID_VERTEX_BIND_LOCATION \
+    "Vertex buffer attributes must have a valid binding location value within [0, {:d})."
+#define E_BUFFER_READBACK_TYPE                                                                      \
+    "Buffers created with 'readback' data usage cannot be index, vertex, texel, shaderstorage, or " \
+    "indirectarguments buffer types."
+#define E_SHADER_STORAGE_BYTE_OFFSET                                                                     \
+    "Cannot create Buffer with different bytes per array element ({:d}) than when used as other buffer " \
+    "types ({:d})"
+#define E_SHADER_STORAGE_STRIDE "Shader storage buffers cannot have more than {:d} bytes per array element."
+#define E_TEXEL_BUFFER_SIZE                                                                             \
+    "Cannot create texel buffer: total number of values in the buffer (%d * %d) is too large for this " \
+    "system (maximum %d)."
+#define E_BUFFER_CLEAR_NOT_MULTIPLES_OF_4 \
+    "clear() must be used with offset and size parameters that are multiples of 4 bytes."
 } // namespace love

@@ -210,7 +210,7 @@ namespace love
       private:
         struct Particle
         {
-            Particle* previous;
+            Particle* prev;
             Particle* next;
 
             float lifetime;
