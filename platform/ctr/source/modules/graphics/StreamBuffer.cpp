@@ -1,3 +1,5 @@
+#include "common/Exception.hpp"
+
 #include "modules/graphics/StreamBuffer.tcc"
 #include "modules/graphics/Volatile.hpp"
 

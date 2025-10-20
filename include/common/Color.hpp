@@ -15,13 +15,10 @@ namespace love
 
         constexpr ColorT() noexcept = default;
 
-        constexpr ColorT(T r, T g, T b, T a) noexcept : r(r), g(g), b(b), a(a)
+        ColorT(T r, T g, T b, T a) noexcept : r(r), g(g), b(b), a(a)
         {}
 
-        constexpr ColorT(const Color& other) noexcept : r(other.r), g(other.g), b(other.b), a(other.a)
-        {}
-
-        constexpr explicit ColorT(uint32_t abgr) noexcept
+        explicit ColorT(uint32_t abgr) noexcept
         {
             this->a = ((abgr >> 24) & 0xFF) / 255.0f;
             this->b = ((abgr >> 16) & 0xFF) / 255.0f;
