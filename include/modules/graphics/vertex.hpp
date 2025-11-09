@@ -202,6 +202,12 @@ namespace love
         Color color;
     };
 
+    struct XYf_RGBAf
+    {
+        float x, y;
+        Color color;
+    };
+
     struct XYf_STf
     {
         float x, y;
@@ -391,6 +397,29 @@ namespace love
         void setCommonFormat(CommonFormat format, uint8_t bufferIndex);
 
         bool operator==(const VertexAttributes& other) const;
+    };
+
+    struct VertexAttributesID
+    {
+        int id = 0;
+
+        bool isValid() const
+        {
+            return id > 0;
+        }
+        void invalidate()
+        {
+            id = 0;
+        }
+
+        bool operator==(VertexAttributesID other) const
+        {
+            return other.id == id;
+        }
+        bool operator!=(VertexAttributesID other) const
+        {
+            return other.id != id;
+        }
     };
 
     IndexDataType getIndexDataTypeFromMax(size_t maxValue);

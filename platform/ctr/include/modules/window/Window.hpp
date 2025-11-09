@@ -2,9 +2,8 @@
 
 #include "common/StrongRef.hpp"
 
-#include "modules/window/Window.tcc"
-
 #include "modules/graphics/Graphics.hpp"
+#include "modules/window/Window.tcc"
 
 namespace love
 {
@@ -26,7 +25,7 @@ namespace love
 
         void updateSettings(const WindowSettings& settings, bool updateGraphicsViewport) override;
 
-        bool onSizeChanged(int width, int height);
+        bool onSizeChanged(int width, int height) override;
 
         void setDisplaySleepEnabled(bool enable) override;
 

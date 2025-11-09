@@ -53,13 +53,17 @@ namespace love
 
         void clear(const Color& color);
 
-        void clearDepthStencil(int stencil, uint8_t mask, double depth);
+        void clearDepthStencil(int stencil, double depth);
 
         void bindFramebuffer(dk::Image* target = nullptr);
 
         void present();
 
         void setBlendState(const BlendState& state);
+
+        void setStencilState(const StencilState& state);
+
+        void setDepthWrites(CompareMode compare, bool write);
 
         void setViewport(const Rect& viewport);
 
@@ -204,6 +208,28 @@ namespace love
             { PIXELFORMAT_ASTC_10x10_UNORM, DkImageFormat_RGBA_ASTC_10x10     },
             { PIXELFORMAT_ASTC_12x10_UNORM, DkImageFormat_RGBA_ASTC_12x10     },
             { PIXELFORMAT_ASTC_12x12_UNORM, DkImageFormat_RGBA_ASTC_12x12     }
+        );
+
+        ENUMMAP_DECLARE(StencilOps, StencilAction, DkStencilOp,
+            { STENCIL_KEEP,           DkStencilOp_Keep     },
+            { STENCIL_ZERO,           DkStencilOp_Zero     },
+            { STENCIL_REPLACE,        DkStencilOp_Replace  },
+            { STENCIL_INCREMENT,      DkStencilOp_Incr     },
+            { STENCIL_DECREMENT,      DkStencilOp_Decr     },
+            { STENCIL_INCREMENT_WRAP, DkStencilOp_IncrWrap },
+            { STENCIL_DECREMENT_WRAP, DkStencilOp_DecrWrap },
+            { STENCIL_INVERT,         DkStencilOp_Invert   }
+        );
+
+        ENUMMAP_DECLARE(CompareModes, CompareMode, DkCompareOp,
+            { COMPARE_NEVER,         DkCompareOp_Never        },
+            { COMPARE_LESS,          DkCompareOp_Less         },
+            { COMPARE_EQUAL,         DkCompareOp_Equal        },
+            { COMPARE_LEQUAL,        DkCompareOp_Lequal       },
+            { COMPARE_GREATER,       DkCompareOp_Greater      },
+            { COMPARE_NOTEQUAL,      DkCompareOp_NotEqual     },
+            { COMPARE_GEQUAL,        DkCompareOp_Gequal       },
+            { COMPARE_ALWAYS,        DkCompareOp_Always       }
         );
 
         ENUMMAP_DECLARE(PrimitiveTypes, PrimitiveType, DkPrimitive,

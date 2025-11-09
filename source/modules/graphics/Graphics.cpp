@@ -1,8 +1,10 @@
 #include "modules/graphics/Graphics.tcc"
 
+#include "modules/graphics/Buffer.tcc"
 #include "modules/graphics/ParticleSystem.hpp"
 #include "modules/graphics/Polyline.hpp"
 #include "modules/graphics/SpriteBatch.hpp"
+
 #include "modules/window/Window.tcc"
 
 #include "common/Console.hpp"
@@ -12,6 +14,54 @@
 
 namespace love
 {
+    static bool gammaCorrect = false;
+
+    void setGammaCorrect(bool enable)
+    {
+        gammaCorrect = enable;
+    }
+
+    bool isGammaCorrect()
+    {
+        return gammaCorrect;
+    }
+
+    void gammaCorrectColor(Color& color)
+    {
+        if (love::isGammaCorrect())
+        {
+            color.r = love::gammaToLinear(color.r);
+            color.g = love::gammaToLinear(color.g);
+            color.b = love::gammaToLinear(color.b);
+        }
+    }
+
+    void unGammaCorrectColor(Color& color)
+    {
+        if (love::isGammaCorrect())
+        {
+            color.r = love::linearToGamma(color.r);
+            color.g = love::linearToGamma(color.g);
+            color.b = love::linearToGamma(color.b);
+        }
+    }
+
+    Color gammaCorrectColor(const Color& color)
+    {
+        Color result = color;
+        gammaCorrectColor(result);
+
+        return result;
+    }
+
+    Color unGammaCorrectColor(const Color& color)
+    {
+        Color result = color;
+        unGammaCorrectColor(result);
+
+        return result;
+    }
+
     GraphicsBase::GraphicsBase(const char* name) :
         Module(M_GRAPHICS, name),
         created(false),
@@ -36,6 +86,8 @@ namespace love
 
         this->states.reserve(10);
         this->states.push_back(DisplayState());
+
+        this->noAttributesID = registerVertexAttributes(VertexAttributes {});
     }
 
     GraphicsBase::~GraphicsBase()
@@ -429,8 +481,8 @@ namespace love
         stats.textures             = TextureBase::textureCount;
         stats.textureMemory        = TextureBase::totalGraphicsMemory;
         stats.fonts                = FontBase::fontCount;
-        stats.buffers              = 0;
-        stats.bufferMemory         = 0;
+        stats.buffers              = BufferBase::bufferCount;
+        stats.bufferMemory         = BufferBase::totalGraphicsMemory;
         stats.shaderSwitches       = ShaderBase::shaderSwitches;
         stats.cpuProcessingTime    = GraphicsBase::cpuProcessingTime;
         stats.gpuDrawingTime       = GraphicsBase::gpuDrawingTime;
@@ -903,6 +955,29 @@ namespace love
         info.device  = __RENDERER_DEVICE__;
 
         return info;
+    }
+
+    VertexAttributesID GraphicsBase::registerVertexAttributes(const VertexAttributes& attributes)
+    {
+        for (size_t index = 0; index < this->vertexAttributesDatabase.size(); index++)
+        {
+            if (attributes == this->vertexAttributesDatabase[index])
+                return { (int)index + 1 };
+        }
+
+        this->vertexAttributesDatabase.push_back(attributes);
+        return { (int)this->vertexAttributesDatabase.size() };
+    }
+
+    bool GraphicsBase::findVertexAttributes(VertexAttributesID id, VertexAttributes& out)
+    {
+        int index = id.id - 1;
+
+        if (index < 0 || index >= (int)this->vertexAttributesDatabase.size())
+            return false;
+
+        out = this->vertexAttributesDatabase[index];
+        return true;
     }
 
     void GraphicsBase::intersectScissor(const Rect& scissor)

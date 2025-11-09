@@ -26,7 +26,7 @@ namespace love
 
         bool setWindow(int width = 800, int height = 600, WindowSettings* settings = nullptr);
 
-        bool onSizeChanged(int width, int height);
+        bool onSizeChanged(int width, int height) override;
 
         void setDisplaySleepEnabled(bool enable) override;
 

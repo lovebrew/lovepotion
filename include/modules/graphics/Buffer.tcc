@@ -45,6 +45,8 @@ namespace love
             {}
         };
 
+        using BufferFormat = std::vector<DataDeclaration>;
+
         struct DataMember
         {
             DataDeclaration declaration;
@@ -75,8 +77,8 @@ namespace love
             {}
         };
 
-        BufferBase(GraphicsBase* graphics, const Settings& settings,
-                   const std::vector<DataDeclaration>& bufferFormat, size_t size, size_t length);
+        BufferBase(GraphicsBase* graphics, const Settings& settings, const BufferFormat& bufferFormat,
+                   size_t size, size_t length);
 
         virtual ~BufferBase();
 

@@ -18,15 +18,17 @@ namespace love
         ColorT(T r, T g, T b, T a) noexcept : r(r), g(g), b(b), a(a)
         {}
 
+        /* Construct RGBA from ABGR data */
         explicit ColorT(uint32_t abgr) noexcept
         {
-            this->a = ((abgr >> 24) & 0xFF) / 255.0f;
-            this->b = ((abgr >> 16) & 0xFF) / 255.0f;
-            this->g = ((abgr >> 8) & 0xFF) / 255.0f;
-            this->r = (abgr & 0xFF) / 255.0f;
+            this->r = ((abgr >> 24) & 0xFF) / 255.0f;
+            this->g = ((abgr >> 16) & 0xFF) / 255.0f;
+            this->b = ((abgr >> 8) & 0xFF) / 255.0f;
+            this->a = (abgr & 0xFF) / 255.0f;
         }
 
-        uint8_t abgr() const
+        /* Create ABGR data */
+        uint32_t abgr() const
         {
             uint8_t _r = as_uint8_t(this->r);
             uint8_t _g = as_uint8_t(this->g);
@@ -140,7 +142,7 @@ namespace love
     using ColorD  = ColorT<double>;
 
     // clang-format off
-    static constexpr inline uint32_t coordinates[0x40] = {
+    constexpr uint32_t coordinates[0x40] = {
         0,  1,  4,  5,  16, 17, 20, 21, 2,  3,  6,  7,  18,
         19, 22, 23, 8,  9,  12, 13, 24, 25, 28, 29, 10, 11,
         14, 15, 26, 27, 30, 31, 32, 33, 36, 37, 48, 49, 52,
@@ -149,29 +151,20 @@ namespace love
     };
     // clang-format on
 
-    static unsigned indexOfTile(const unsigned width, const unsigned x, const unsigned y)
+    inline unsigned indexOfTile(const unsigned width, const unsigned x, const unsigned y)
     {
-        const auto tile_x = x / 8, tile_y = y / 8;
-        const auto subtile_x = x % 8, subtile_y = y % 8;
+        const auto tile_x = x / 8;
+        const auto tile_y = y / 8;
 
-        return ((width / 8) * tile_y + tile_x) * 64 + coordinates[subtile_y * 8 + subtile_x];
+        const auto subtile_x = x % 8;
+        const auto subtile_y = y % 8;
+
+        return ((width / 8u) * tile_y + tile_x) * 64u + coordinates[subtile_y * 8u + subtile_x];
     }
 
     template<typename T = uint32_t>
     inline T* colorFromTile(const void* data, const unsigned width, int x, int y)
     {
         return ((T*)data) + indexOfTile(width, x, y);
-    }
-
-    static bool gammaCorrect = false;
-
-    inline void setGammaCorrect(bool enable)
-    {
-        gammaCorrect = enable;
-    }
-
-    inline bool isGammaCorrect()
-    {
-        return gammaCorrect;
     }
 } // namespace love

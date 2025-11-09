@@ -1,6 +1,6 @@
 #include "common/Exception.hpp"
 
-#include "modules/graphics/Buffer.hpp"
+#include "modules/graphics/Buffer.tcc"
 #include "modules/graphics/Graphics.tcc"
 
 namespace love
@@ -10,8 +10,8 @@ namespace love
     int BufferBase::bufferCount             = 0;
     int64_t BufferBase::totalGraphicsMemory = 0;
 
-    BufferBase::BufferBase(GraphicsBase* graphics, const Settings& settings,
-                           const std::vector<DataDeclaration>& bufferFormat, size_t size, size_t length) :
+    BufferBase::BufferBase(GraphicsBase* graphics, const Settings& settings, const BufferFormat& bufferFormat,
+                           size_t size, size_t length) :
         arrayLength(0),
         arrayStride(0),
         size(size),

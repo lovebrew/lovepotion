@@ -12,11 +12,14 @@
 #include "modules/font/Font.tcc"
 #include "modules/math/MathModule.hpp"
 
+#include "modules/graphics/Buffer.tcc"
 #include "modules/graphics/Font.tcc"
 #include "modules/graphics/Shader.tcc"
 #include "modules/graphics/ShaderStage.tcc"
 #include "modules/graphics/TextBatch.hpp"
 #include "modules/graphics/Texture.tcc"
+#include "modules/graphics/vertex.hpp"
+
 #include "modules/graphics/Volatile.hpp"
 #include "modules/graphics/renderstate.hpp"
 #include "modules/graphics/samplerstate.hpp"
@@ -34,45 +37,21 @@ namespace love
     class ParticleSystem;
     class TextBatch;
     class Video;
-    class Buffer;
+    class BufferBase;
 
     using OptionalColor = Optional<Color>;
 
-    inline void gammaCorrectColor(Color& color)
-    {
-        if (love::isGammaCorrect())
-        {
-            color.r = love::gammaToLinear(color.r);
-            color.g = love::gammaToLinear(color.g);
-            color.b = love::gammaToLinear(color.b);
-        }
-    }
+    void setGammaCorrect(bool enable);
 
-    inline void unGammaCorrectColor(Color& color)
-    {
-        if (love::isGammaCorrect())
-        {
-            color.r = love::linearToGamma(color.r);
-            color.g = love::linearToGamma(color.g);
-            color.b = love::linearToGamma(color.b);
-        }
-    }
+    bool isGammaCorrect();
 
-    inline Color gammaCorrectColor(const Color& color)
-    {
-        Color result = color;
-        gammaCorrectColor(result);
+    void gammaCorrectColor(Color& color);
 
-        return result;
-    }
+    void unGammaCorrectColor(Color& color);
 
-    inline Color unGammaCorrectColor(const Color& color)
-    {
-        Color result = color;
-        unGammaCorrectColor(result);
+    Color gammaCorrectColor(const Color& color);
 
-        return result;
-    }
+    Color unGammaCorrectColor(const Color& color);
 
     class GraphicsBase : public Module
     {
@@ -476,6 +455,13 @@ namespace love
 
         ParticleSystem* newParticleSystem(TextureBase* texture, int size) const;
 
+        // virtual BufferBase* newBuffer(const BufferBase::Settings& settings,
+        //                               const BufferBase::BufferFormat& format, const void* data, size_t
+        //                               size, size_t length);
+
+        // virtual BufferBase* newBuffer(const BufferBase::Settings& settings, DataFormat format,
+        //                               const void* data, size_t size, size_t length);
+
         // Mesh* newMesh(int vertexCount, PrimitiveType mode);
 
         TextBatch* newTextBatch(FontBase* font, const std::vector<ColoredString>& text = {});
@@ -511,6 +497,10 @@ namespace love
         {
             return computeBlendMode(this->states.back().blend, alphaMode);
         }
+
+        VertexAttributesID registerVertexAttributes(const VertexAttributes& attributes);
+
+        bool findVertexAttributes(VertexAttributesID id, VertexAttributes& attributes);
 
         virtual void setBlendState(const BlendState& blend) = 0;
 
@@ -850,5 +840,9 @@ namespace love
         StrongRef<FontBase> defaultFont;
 
         std::vector<ScreenshotInfo> pendingScreenshotCallbacks;
+
+      private:
+        std::vector<VertexAttributes> vertexAttributesDatabase;
+        VertexAttributesID noAttributesID;
     };
 } // namespace love

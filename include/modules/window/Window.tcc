@@ -150,6 +150,8 @@ namespace love
 
         bool setFullscreen(bool fullscreen);
 
+        virtual bool onSizeChanged(int width, int height) = 0;
+
         virtual void close() = 0;
 
         virtual void setDisplaySleepEnabled(bool enable) = 0;

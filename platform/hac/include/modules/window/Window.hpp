@@ -23,7 +23,7 @@ namespace love
 
         void updateSettings(const WindowSettings& settings, bool updateGraphicsViewport) override;
 
-        bool onSizeChanged(int width, int height);
+        bool onSizeChanged(int width, int height) override;
 
         void setDisplaySleepEnabled(bool enable) override;
 

@@ -30,6 +30,10 @@ namespace love
 
         void setBlendState(const BlendState& state) override;
 
+        void setStencilState(const StencilState& state) override;
+
+        void setDepthMode(CompareMode compare, bool write) override;
+
         void setPointSize(float size) override;
 
         FontBase* newFont(Rasterizer* data) override;

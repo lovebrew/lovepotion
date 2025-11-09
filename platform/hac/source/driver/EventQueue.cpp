@@ -46,7 +46,7 @@ namespace love
 
                     this->sendFocus(focused);
 
-                    auto* graphics = Module::getInstance<Graphics>(Module::M_GRAPHICS);
+                    auto* graphics = Module::getInstance<GraphicsBase>(Module::M_GRAPHICS);
 
                     if (graphics)
                         graphics->setActive(focused);

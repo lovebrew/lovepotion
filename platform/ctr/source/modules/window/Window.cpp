@@ -66,7 +66,7 @@ namespace love
 
     bool Window::onSizeChanged(int width, int height)
     {
-        return false;
+        return true;
     }
 
     void Window::setDisplaySleepEnabled(bool enable)

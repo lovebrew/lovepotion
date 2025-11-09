@@ -1,5 +1,6 @@
 #include "driver/display/citro3d.hpp"
 
+#include "modules/graphics/Buffer.hpp"
 #include "modules/graphics/Graphics.hpp"
 #include "modules/graphics/Shader.hpp"
 #include "modules/graphics/ShaderStage.hpp"

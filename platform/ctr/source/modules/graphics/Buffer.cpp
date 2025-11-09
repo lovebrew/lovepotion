@@ -1,57 +1,60 @@
 #include "modules/graphics/Buffer.hpp"
 
-#include <3ds.h>
+#include "common/Exception.hpp"
+
+#include "modules/graphics/Graphics.hpp"
+#include "modules/graphics/vertex.hpp"
+
+#include <algorithm>
+#include <cstdlib>
+#include <cstring>
+#include <limits>
 
 namespace love
 {
-    Buffer::Buffer(GraphicsBase* graphics, const Settings& settings,
-                   const std::vector<DataDeclaration>& format, const void* data, size_t size,
-                   size_t arraylength) :
-        BufferBase(graphics, settings, format, size, arraylength),
+    Buffer::Buffer(GraphicsBase* gfx, const Settings& settings, const BufferFormat& format, const void* data,
+                   size_t size, size_t length) :
+        BufferBase(gfx, settings, format, size, length)
     {
-        this->size  = this->getSize();
-        arraylength = this->getArrayLength();
+        size   = this->getSize();
+        length = this->getArrayLength();
 
-        if (usageFlags & BUFFERUSAGEFLAG_VERTEX)
-        {
-            mapUsage     = BUFFERUSAGE_VERTEX;
-            this->buffer = new C3D_BufInfo();
-        }
-        else if (usageFlags & BUFFERUSAGEFLAG_INDEX)
-            mapUsage = BUFFERUSAGE_INDEX;
+        if (this->usage & BUFFERUSAGEFLAG_VERTEX)
+            this->mapUsage = BUFFERUSAGE_VERTEX;
+        else if (this->usage & BUFFERUSAGEFLAG_INDEX)
+            this->mapUsage = BUFFERUSAGE_INDEX;
 
-        if (dataUsage == BUFFERDATAUSAGE_STREAM)
+        if (this->dataUsage == BUFFERDATAUSAGE_STREAM)
             this->ownsMemoryMap = true;
 
-        std::vector<uint8_t> empty {};
+        if (settings.zeroInitialize && data == nullptr)
+        {
+            try
+            {
 
-        try
-        {
-            empty.resize(this->getSize());
-            data = empty.data();
-        }
-        catch (std::exception&)
-        {
-            data = nullptr;
+                this->bytes.resize(size);
+            }
+            catch (std::exception&)
+            {
+                throw love::Exception(E_OUT_OF_MEMORY);
+            }
         }
 
         if (!this->load(data))
         {
             this->unloadVolatile();
-            throw love::Exception("Could not create buffer with %d bytes (out of VRAM?)", size);
+            throw love::Exception("Could not create Buffer with {:d} bytes (out of VRAM?)", size);
         }
     }
 
     Buffer::~Buffer()
     {
         this->unloadVolatile();
-        if (this->memoryMap != nullptr && this->ownsMemoryMap)
-            linearFree(this->memoryMap);
     }
 
     bool Buffer::loadVolatile()
     {
-        if (this->buffer != nullptr)
+        if (!this->bytes.empty())
             return true;
 
         return this->load(nullptr);
@@ -60,27 +63,25 @@ namespace love
     void Buffer::unloadVolatile()
     {
         this->mapped = false;
-
-        if (this->buffer != nullptr)
-            delete this->buffer;
-
-        this->buffer = nullptr;
-
-        if (this->texture != nullptr)
-            delete this->texture;
-
-        this->texture = nullptr;
+        this->bytes.clear();
+        this->bytes.shrink_to_fit();
     }
 
     bool Buffer::load(const void* data)
     {
-        if (this->mapUsage != BUFFERUSAGE_VERTEX)
-            return true;
-
-        BufInfo_Init(this->buffer);
+        try
+        {
+            this->bytes.resize(this->getSize());
+        }
+        catch (std::bad_alloc&)
+        {
+            return false;
+        }
 
         if (data != nullptr)
-            BufInfo_Add(this->buffer, data, this->getArrayStride(), 3, 0x210);
+            std::memcpy(this->bytes.data(), data, this->getSize());
+        else
+            std::memset(this->bytes.data(), 0, this->getSize());
 
         return true;
     }
@@ -90,44 +91,96 @@ namespace love
         if (size == 0)
             return nullptr;
 
-        const bool isReadback = this->dataUsage == BUFFERDATAUSAGE_READBACK;
-        if (map == MAP_WRITE_INVALIDATE && (this->isImmutable() || isReadback))
+        if (map == MAP_WRITE_INVALIDATE &&
+            (this->isImmutable() || this->dataUsage == BUFFERDATAUSAGE_READBACK))
+        {
             return nullptr;
+        }
 
         if (map == MAP_READ_ONLY && this->dataUsage != BUFFERDATAUSAGE_READBACK)
             return nullptr;
 
-        Range range(offset, size);
+        Range r(offset, size);
 
-        if (!Range(0, this->getSize()).contains(range))
+        if (!Range(0, this->getSize()).contains(r))
             return nullptr;
 
-        char* data = nullptr;
+        this->mapped      = true;
+        this->mappedType  = map;
+        this->mappedRange = r;
 
         if (map == MAP_READ_ONLY)
-        {
-        }
-        else if (this->ownsMemoryMap)
-        {
-            if (this->memoryMap == nullptr)
-                this->memoryMap = (char*)linearAlloc(this->getSize());
+            return (void*)(this->bytes.data() + offset);
 
-            data = this->memoryMap;
-        }
-        else
+        try
         {
+            this->staging.resize(size);
         }
-
-        if (data != nullptr)
+        catch (std::bad_alloc&)
         {
-            this->mapped      = true;
-            this->mappedType  = map;
-            this->mappedRange = range;
-
-            if (!this->ownsMemoryMap)
-                this->memoryMap = data;
+            this->mapped = false;
+            return nullptr;
         }
 
-        return data;
+        if (map != MAP_WRITE_INVALIDATE)
+            std::memcpy(this->staging.data(), this->bytes.data() + offset, size);
+
+        return (void*)this->staging.data();
+    }
+
+    void Buffer::unmap(size_t offset, size_t size)
+    {
+        Range r(offset, size);
+
+        if (!this->mapped || !this->mappedRange.contains(r))
+            return;
+
+        this->mapped = false;
+
+        if (this->mappedType == MAP_READ_ONLY)
+            return;
+
+        std::memcpy(this->bytes.data() + offset, this->staging.data(), size);
+        this->staging.clear();
+    }
+
+    bool Buffer::fill(size_t offset, size_t size, const void* data)
+    {
+        if (size == 0 || this->isImmutable() || this->dataUsage == BUFFERDATAUSAGE_READBACK)
+            return false;
+
+        size_t bufferSize = this->getSize();
+
+        if (!Range(0, bufferSize).contains(Range(offset, size)))
+            return false;
+
+        std::memcpy(this->bytes.data() + offset, data, size);
+
+        return true;
+    }
+
+    void Buffer::clearInternal(size_t offset, size_t size)
+    {
+        if (size == 0)
+            return;
+
+        try
+        {
+            std::vector<uint8_t> empty(size);
+            this->fill(offset, size, empty.data());
+        }
+        catch (std::bad_alloc&)
+        {
+            throw love::Exception(E_OUT_OF_MEMORY);
+        }
+    }
+
+    void Buffer::copyTo(BufferBase* destination, size_t sourceOffset, size_t destOffset, size_t size)
+    {
+        if (destination == nullptr || size == 0)
+            return;
+
+        const char* src = (const char*)this->bytes.data() + sourceOffset;
+        destination->fill(destOffset, size, src);
     }
 } // namespace love

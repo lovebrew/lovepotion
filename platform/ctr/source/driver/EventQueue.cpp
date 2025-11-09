@@ -7,8 +7,6 @@
 
 using namespace love;
 
-#define JOYSTICK_MODULE() Module::getInstance<JoystickModule>(Module::M_JOYSTICK)
-
 static aptHookCookie s_aptHookCookie;
 
 static void aptEventHook(const APT_HookType type, void*)
@@ -84,7 +82,12 @@ namespace love
             this->sendTouchEvent(SUBTYPE_TOUCHRELEASE, 0, x, y, 0.0f, 0.0, 0.0f);
         }
 
-        const auto* joystick = JOYSTICK_MODULE()->getJoystick(0);
+        auto* joystickModule = Module::getInstance<JoystickModule>(Module::M_JOYSTICK);
+
+        if (!joystickModule)
+            return;
+
+        auto* joystick = joystickModule->getJoystick(0);
 
         if (!joystick)
             return;

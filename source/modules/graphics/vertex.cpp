@@ -58,6 +58,8 @@ namespace love
                 return sizeof(STf_RGBAf);
             case CommonFormat::STPf_RGBAf:
                 return sizeof(STPf_RGBAf);
+            case CommonFormat::XYf_RGBAf:
+                return sizeof(XYf_RGBAf);
             case CommonFormat::XYf_STf:
                 return sizeof(XYf_STf);
             case CommonFormat::XYf_STPf:
@@ -68,6 +70,8 @@ namespace love
                 return sizeof(XYf_STus_RGBAf);
             case CommonFormat::XYf_STPf_RGBAf:
                 return sizeof(XYf_STPf_RGBAf);
+            case CommonFormat::COUNT:
+                return 0;
         }
 
         return 0;

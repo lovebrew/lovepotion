@@ -85,7 +85,6 @@ namespace love
         {
             double scaledw, scaledh;
             this->fromPixels(width, height, scaledw, scaledh);
-
             this->graphics->backbufferChanged(0, 0, scaledw, scaledh);
         }
 

@@ -137,12 +137,12 @@ namespace love
         this->commandBuffer.clearColor(0, DkColorMask_RGBA, color.r, color.g, color.b, color.a);
     }
 
-    void deko3d::clearDepthStencil(int depth, uint8_t mask, double stencil)
+    void deko3d::clearDepthStencil(int depth, double stencil)
     {
         if (!this->inFrame)
             return;
 
-        this->commandBuffer.clearDepthStencil(true, depth, mask, stencil);
+        this->commandBuffer.clearDepthStencil(true, depth, stencil, this->context.stencilState.writeMask);
     }
 
     // dk::Image& deko3d::getInternalBackbuffer()
@@ -239,6 +239,41 @@ namespace love
         this->commandBuffer.bindVtxBufferState(attributes.bufferState);
     }
 
+    void deko3d::setStencilState(const StencilState& state)
+    {
+        const bool enabled = state.action != STENCIL_KEEP || state.compare != COMPARE_ALWAYS;
+
+        DkStencilOp action = DkStencilOp_Keep;
+        if (!deko3d::getConstant(state.action, action))
+            return;
+
+        DkCompareOp compare = DkCompareOp_Always;
+        if (!deko3d::getConstant(state.compare, compare))
+            return;
+
+        this->context.stencilState = state;
+
+        this->context.depthStencil.setStencilTestEnable(enabled);
+        this->context.depthStencil.setStencilBackCompareOp(compare);
+        this->context.depthStencil.setStencilFrontCompareOp(compare);
+        this->context.depthStencil.setStencilBackFailOp(DkStencilOp_Keep);
+        this->context.depthStencil.setStencilFrontFailOp(DkStencilOp_Keep);
+        this->context.depthStencil.setStencilBackPassOp(action);
+        this->context.depthStencil.setStencilFrontPassOp(action);
+        this->context.depthStencil.setStencilBackDepthFailOp(DkStencilOp_Keep);
+        this->context.depthStencil.setStencilFrontDepthFailOp(DkStencilOp_Keep);
+    }
+
+    void deko3d::setDepthWrites(CompareMode compare, bool write)
+    {
+        DkCompareOp compareOp;
+        if (!deko3d::getConstant(compare, compareOp))
+            return;
+
+        this->context.depthStencil.setDepthCompareOp(compareOp);
+        this->context.depthStencil.setDepthWriteEnable(write);
+    }
+
     void deko3d::bindTextureToUnit(TextureBase* texture, int unit)
     {
         if (!texture)
@@ -296,6 +331,7 @@ namespace love
         if (!this->swapchain)
             return;
 
+        this->commandBuffer.bindDepthStencilState(this->context.depthStencil);
         this->commandBuffer.bindRasterizerState(this->context.rasterizer);
         this->commandBuffer.bindColorState(this->context.color);
         this->commandBuffer.bindColorWriteState(this->context.colorWrite);

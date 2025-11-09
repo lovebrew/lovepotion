@@ -6,6 +6,7 @@
 #include "modules/graphics/Graphics.tcc"
 #include "modules/joystick/JoystickModule.hpp"
 #include "modules/touch/Touch.hpp"
+#include "modules/window/Window.tcc"
 
 #include "common/Variant.hpp"
 
@@ -50,6 +51,7 @@ namespace love
     static Message* convertWindowEvent(const LOVE_Event& event, std::vector<Variant>& args)
     {
         Message* result = nullptr;
+        auto* window    = Module::getInstance<WindowBase>(Module::M_WINDOW);
 
         switch (event.subtype)
         {
@@ -62,6 +64,9 @@ namespace love
             }
             case SUBTYPE_RESIZE:
             {
+                if (window)
+                    window->onSizeChanged(event.resize.width, event.resize.height);
+
                 args.emplace_back((double)event.resize.width);
                 args.emplace_back((double)event.resize.height);
                 result = new Message("resize", args);

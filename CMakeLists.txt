@@ -246,6 +246,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/font/wrap_Rasterizer.cpp
     source/modules/font/wrap_GlyphData.cpp
     source/modules/graphics/ShaderStage.cpp
+    source/modules/graphics/Buffer.cpp
     source/modules/graphics/Graphics.cpp
     source/modules/graphics/FontBase.cpp
     source/modules/graphics/ParticleSystem.cpp

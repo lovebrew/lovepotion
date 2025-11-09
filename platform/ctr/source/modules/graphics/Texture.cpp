@@ -24,7 +24,12 @@ namespace love
         c3d.bindFramebuffer(target);
 
         if (clear)
+        {
+            c3d.clearDepth(1.0);
+            c3d.clearStencil(0);
+
             c3d.clear({ 0, 0, 0, 0 });
+        }
     }
 
     static void createTextureObject(C3D_Tex*& texture, PixelFormat format, uint16_t width, uint16_t height)

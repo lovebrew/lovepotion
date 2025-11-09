@@ -108,39 +108,15 @@ namespace love
 
     void Graphics::clear(OptionalColor color, OptionalInt stencil, OptionalDouble depth)
     {
-        if (color.hasValue)
-        {
-            bool hasIntegerFormat = false;
-            const auto& targets   = this->states.back().renderTargets;
+        if (!color.hasValue && !stencil.hasValue && !depth.hasValue)
+            return;
 
-            for (const auto& target : targets.colors)
-            {
-                if (target.texture.get() && love::isPixelFormatInteger(target.texture->getPixelFormat()))
-                    hasIntegerFormat = true;
-
-                if (hasIntegerFormat)
-                {
-                    std::vector<OptionalColor> colors(targets.colors.size());
-
-                    for (size_t index = 0; index < colors.size(); index++)
-                        colors[index] = color;
-
-                    this->clear(colors, stencil, depth);
-                    return;
-                }
-            }
-        }
-
-        d3d.bindFramebuffer();
-
-        if (color.hasValue || stencil.hasValue || depth.hasValue)
-            this->flushBatchedDraws();
+        std::vector<OptionalColor> colors {};
 
         if (color.hasValue)
-        {
-            gammaCorrectColor(color.value);
-            d3d.clear(color.value);
-        }
+            colors.resize(std::max(1, (int)this->states.back().renderTargets.colors.size()), color);
+
+        this->clear(colors, stencil, depth);
     }
 
     void Graphics::clear(const std::vector<OptionalColor>& colors, OptionalInt stencil, OptionalDouble depth)
@@ -148,37 +124,18 @@ namespace love
         if (colors.size() == 0 && !stencil.hasValue && !depth.hasValue)
             return;
 
-        int numColors = (int)colors.size();
+        this->flushBatchedDraws();
 
-        const auto& targets       = this->states.back().renderTargets.colors;
-        const int numColorTargets = targets.size();
-
-        if (numColors <= 1 &&
-            (numColorTargets == 0 || (numColorTargets == 1 && targets[0].texture.get() != nullptr &&
-                                      !isPixelFormatInteger(targets[0].texture->getPixelFormat()))))
-        {
-            this->clear(colors.size() > 0 ? colors[0] : OptionalColor(), stencil, depth);
-            return;
-        }
+        const auto& targets  = this->states.back().renderTargets.colors;
+        bool targetActive    = this->isRenderTargetActive();
+        size_t nColorBuffers = targetActive ? targets.size() : 1;
+        size_t nColors       = std::min(nColorBuffers, colors.size());
 
         d3d.bindFramebuffer();
 
-        this->flushBatchedDraws();
+        d3d.clear(colors[0].value);
 
-        numColors = std::min(numColors, numColorTargets);
-
-        for (int index = 0; index < numColors; index++)
-        {
-            OptionalColor current = colors[index];
-
-            if (!current.hasValue)
-                continue;
-
-            Color value(current.value.r, current.value.g, current.value.b, current.value.a);
-
-            gammaCorrectColor(value);
-            d3d.clear(value);
-        }
+        d3d.clearDepthStencil(stencil.value, depth.value);
     }
 
     void Graphics::present(void* screenshotCallback)
@@ -222,6 +179,26 @@ namespace love
 
         this->states.back().scissor = false;
         d3d.setScissor(Rect::EMPTY);
+    }
+
+    void Graphics::setStencilState(const StencilState& state)
+    {
+        Graphics::flushBatchedDraws();
+        d3d.setStencilState(state);
+
+        this->states.back().stencil = state;
+    }
+
+    void Graphics::setDepthMode(CompareMode compare, bool write)
+    {
+        auto& state = this->states.back();
+        if (state.depthTest != compare || state.depthWrite != write)
+            Graphics::flushBatchedDraws();
+
+        state.depthTest  = compare;
+        state.depthWrite = write;
+
+        d3d.setDepthWrites(compare, write);
     }
 
     void Graphics::setPointSize(float size)

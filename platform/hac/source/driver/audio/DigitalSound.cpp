@@ -104,6 +104,8 @@ namespace love
 
             if (!this->buffer.data_pcm16)
                 throw love::Exception(E_OUT_OF_MEMORY);
+
+            this->buffer.state = AudioDriverWaveBufState_Done;
         }
 
         void Buffer::destroy()
