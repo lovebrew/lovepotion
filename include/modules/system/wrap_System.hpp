@@ -35,7 +35,5 @@ namespace Wrap_System
 
     int setPlayCoins(lua_State* L);
 
-    int getTheme(lua_State* L);
-
     int open(lua_State* L);
 } // namespace Wrap_System

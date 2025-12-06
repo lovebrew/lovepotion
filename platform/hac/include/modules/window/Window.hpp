@@ -29,6 +29,8 @@ namespace love
 
         bool isDisplaySleepEnabled() const override;
 
+        SystemTheme getSystemTheme() const override;
+
         using WindowBase::getConstant;
 
       private:

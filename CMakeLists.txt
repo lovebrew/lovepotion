@@ -27,8 +27,6 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 )
 
 set(APP_TITLE "LÖVE Potion")
-string(APPEND ${APP_TITLE} $<$<CONFIG:Debug>:" (${COMMIT_HASH})">)
-
 if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
     execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
         WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
@@ -37,7 +35,7 @@ if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
 endif()
-
+string(APPEND ${APP_TITLE} $<$<CONFIG:Debug>:" (${COMMIT_HASH})">)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(LUASOCKET_COPY_DIR ${CMAKE_CURRENT_BINARY_DIR})

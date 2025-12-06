@@ -59,5 +59,7 @@ namespace Wrap_Window
 
     int setTitle(lua_State* L);
 
+    int getSystemTheme(lua_State* L);
+
     int open(lua_State* L);
 } // namespace Wrap_Window

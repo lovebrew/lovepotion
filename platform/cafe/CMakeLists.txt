@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 3.13)
+
 dkp_add_asset_target(${PROJECT_NAME}_cafe_content content)
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
@@ -71,6 +73,6 @@ wut_create_wuhb(${PROJECT_NAME}
     NAME       "${APP_TITLE}"
     CONTENT    ${PROJECT_NAME}_cafe_content
     SHORTNAME  "${APP_TITLE}"
-    AUTHOR     ${APP_AUTHOR}
+    AUTHOR     "LÖVEBrew Team"
     ICON       icon$<$<CONFIG:Debug>:-dev>.png
 )

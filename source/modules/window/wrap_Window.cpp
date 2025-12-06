@@ -497,6 +497,18 @@ int Wrap_Window::setIcon(lua_State*)
     return 0;
 }
 
+int Wrap_Window::getSystemTheme(lua_State* L)
+{
+    const auto theme = instance()->getSystemTheme();
+
+    std::string_view name = "unknown";
+    Window::getConstant(theme, name);
+
+    luax_pushstring(L, name);
+
+    return 1;
+}
+
 // clang-format off
 static constexpr luaL_Reg functions[] =
 {
@@ -526,7 +538,8 @@ static constexpr luaL_Reg functions[] =
     { "isMinimized",             Wrap_Window::isMinimized            },
     { "showMessageBox",          Wrap_Window::showMessageBox         },
     { "setTitle",                Wrap_Window::setTitle               },
-    { "setIcon",                 Wrap_Window::setIcon                }
+    { "setIcon",                 Wrap_Window::setIcon                },
+    { "getSystemTheme",          Wrap_Window::getSystemTheme         },
 };
 // clang-format on
 

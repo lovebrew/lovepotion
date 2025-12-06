@@ -75,6 +75,15 @@ namespace love
             ORIENTATION_MAX_ENUM
         };
 
+        enum SystemTheme
+        {
+            THEME_UNKNOWN,
+            THEME_LIGHT,
+            THEME_DARK,
+            THEME_CUSTOM,
+            THEME_MAX_ENUM,
+        };
+
         struct WindowSize
         {
             int width;
@@ -157,6 +166,8 @@ namespace love
         virtual void setDisplaySleepEnabled(bool enable) = 0;
 
         virtual bool isDisplaySleepEnabled() const = 0;
+
+        virtual SystemTheme getSystemTheme() const = 0;
 
         int getDisplayCount() const
         {
@@ -263,6 +274,14 @@ namespace love
             { "landscapeflipped", ORIENTATION_LANDSCAPE_FLIPPED },
             { "portrait",         ORIENTATION_PORTRAIT          },
             { "portraitflipped",  ORIENTATION_PORTRAIT_FLIPPED  }
+        );
+
+        // clang-format off
+        STRINGMAP_DECLARE(Themes, SystemTheme,
+            { "unknown",    THEME_UNKNOWN },
+            { "light",      THEME_LIGHT   },
+            { "dark",       THEME_DARK    },
+            { "custom",     THEME_CUSTOM  }
         );
         // clang-format on
 

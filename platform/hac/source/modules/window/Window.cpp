@@ -103,4 +103,13 @@ namespace love
 
         return !sleepDisabled;
     }
+
+    Window::SystemTheme Window::getSystemTheme() const
+    {
+        ColorSetId colorSet;
+        if (R_FAILED(setsysGetColorSetId(&colorSet)))
+            return THEME_UNKNOWN;
+
+        return (colorSet == ColorSetId_Dark) ? THEME_DARK : THEME_LIGHT;
+    }
 } // namespace love

@@ -105,7 +105,9 @@ namespace love
                 { GAMEPAD_BUTTON_RIGHTSHOULDER, VPAD_BUTTON_R       },
 
                 { GAMEPAD_BUTTON_LEFTSTICK,     VPAD_BUTTON_STICK_L },
-                { GAMEPAD_BUTTON_RIGHTSTICK,    VPAD_BUTTON_STICK_R }
+                { GAMEPAD_BUTTON_RIGHTSTICK,    VPAD_BUTTON_STICK_R },
+
+                { GAMEPAD_BUTTON_MISC1,         VPAD_BUTTON_TV      }
             );
             // clang-format on
 

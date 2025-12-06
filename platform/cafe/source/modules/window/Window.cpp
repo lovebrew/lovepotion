@@ -79,4 +79,9 @@ namespace love
 
         return enabled;
     }
+
+    Window::SystemTheme Window::getSystemTheme() const
+    {
+        return THEME_LIGHT;
+    }
 } // namespace love
