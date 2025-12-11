@@ -63,6 +63,10 @@ namespace love
 
             virtual std::vector<float> getSensorData(Sensor::SensorType type) const override;
 
+            PowerType getPowerInfo(int& percent) const override;
+
+            ConnectionType getConnectionState() const override;
+
             Vector2 getPosition() const;
 
             Vector2 getAngle() const;

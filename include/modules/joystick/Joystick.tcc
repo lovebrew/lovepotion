@@ -90,7 +90,7 @@ namespace love
             };
         };
 
-        enum PowerState
+        enum PowerType
         {
             POWER_UNKNOWN,
             POWER_ON_BATTERY,
@@ -99,7 +99,7 @@ namespace love
             POWER_CHARGED
         };
 
-        enum ConnectionState
+        enum ConnectionType
         {
             CONNECTION_UNKNOWN,
             CONNECTION_WIRED,
@@ -209,9 +209,9 @@ namespace love
 
         virtual std::vector<float> getSensorData(Sensor::SensorType type) const = 0;
 
-        virtual PowerState getPowerInfo(int& batteryPercent) const = 0;
+        virtual PowerType getPowerInfo(int& batteryPercent) const = 0;
 
-        virtual ConnectionState getConnectionState() const = 0;
+        virtual ConnectionType getConnectionState() const = 0;
 
         // clang-format off
         STRINGMAP_DECLARE(GamepadButtons, GamepadButton,
@@ -276,7 +276,7 @@ namespace love
             { "gamepad", JOYSTICK_TYPE_GAMEPAD }
         );
 
-        STRINGMAP_DECLARE(PowerStates, PowerState,
+        STRINGMAP_DECLARE(PowerStates, PowerType,
             { "unknown",   POWER_UNKNOWN    },
             { "onbattery", POWER_ON_BATTERY },
             { "nobattery", POWER_NO_BATTERY },
@@ -284,7 +284,7 @@ namespace love
             { "charged",   POWER_CHARGED    }
         );
 
-        STRINGMAP_DECLARE(ConnectionStates, ConnectionState,
+        STRINGMAP_DECLARE(ConnectionStates, ConnectionType,
             { "unknown",  CONNECTION_UNKNOWN  },
             { "wired",    CONNECTION_WIRED    },
             { "wireless", CONNECTION_WIRELESS }

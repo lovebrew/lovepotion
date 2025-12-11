@@ -26,6 +26,10 @@ namespace love
 
         void setScissor() override;
 
+        void setStencilState(const StencilState& state) override;
+
+        void setDepthMode(CompareMode mode, bool write) override;
+
         void setFrontFaceWinding(Winding winding) override;
 
         void setColorMask(ColorChannelMask mask) override;
@@ -65,7 +69,7 @@ namespace love
 
         GX2ColorBuffer getInternalBackbuffer() const;
 
-        void copyCurrentScanBuffer();
+        void copyCurrentScanBuffer() const override;
 
         TextureBase* newTexture(const TextureBase::Settings& settings,
                                 const TextureBase::Slices* data = nullptr) override;

@@ -329,9 +329,12 @@ if(NINTENDO_3DS)
 endif()
 
 if (NINTENDO_SWITCH OR NINTENDO_WIIU)
+    find_package(Freetype REQUIRED)
+
     if (NINTENDO_SWITCH)
         add_subdirectory(platform/hac)
     else()
+        wut_create_rpx(${PROJECT_NAME})
         add_subdirectory(platform/cafe)
     endif()
 

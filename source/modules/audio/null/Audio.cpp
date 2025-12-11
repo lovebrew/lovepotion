@@ -12,12 +12,12 @@ namespace love
             Audio::~Audio()
             {}
 
-            SourceBase* Audio::newSource(Decoder* decoder) const
+            SourceBase* Audio::newSource(Decoder*) const
             {
                 return new Source();
             }
 
-            SourceBase* Audio::newSource(SoundData* data) const
+            SourceBase* Audio::newSource(SoundData*) const
             {
                 return new Source();
             }

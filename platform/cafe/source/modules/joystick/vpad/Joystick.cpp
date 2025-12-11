@@ -225,6 +225,17 @@ namespace love
         void Joystick::getVibration(float&, float&) const
         {}
 
+        Joystick::PowerType Joystick::getPowerInfo(int& percent) const
+        {
+            percent = this->status.battery;
+            return POWER_UNKNOWN;
+        }
+
+        Joystick::ConnectionType Joystick::getConnectionState() const
+        {
+            return CONNECTION_WIRELESS;
+        }
+
         bool Joystick::hasSensor(Sensor::SensorType type) const
         {
             switch (type)

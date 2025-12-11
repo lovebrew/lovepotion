@@ -60,7 +60,7 @@ namespace love
         int32_t language = (*(uint32_t*)config.data);
 
         std::string_view result = "Unknown";
-        System::getConstant(language, result);
+        System::getConstant((USCLanguage)language, result);
 
         locales.push_back(std::string(result));
 

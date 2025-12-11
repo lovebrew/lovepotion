@@ -174,7 +174,7 @@ namespace love
         return false;
     }
 
-    Joystick::PowerState Joystick::getPowerInfo(int& percent) const
+    Joystick::PowerType Joystick::getPowerInfo(int& percent) const
     {
         HidPowerInfo info {};
         hidGetNpadPowerInfoSingle(HidNpadIdType(this->id), &info);
@@ -188,7 +188,7 @@ namespace love
         return state;
     }
 
-    Joystick::ConnectionState Joystick::getConnectionState() const
+    Joystick::ConnectionType Joystick::getConnectionState() const
     {
         if (padIsHandheld(&this->state))
             return CONNECTION_WIRED;

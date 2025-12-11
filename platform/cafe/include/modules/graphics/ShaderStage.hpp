@@ -5,6 +5,8 @@
 
 #include <whb/gfx.h>
 
+#include <vector>
+
 namespace love
 {
     class ShaderStage final : public ShaderStageBase, public Volatile

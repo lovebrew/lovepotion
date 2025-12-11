@@ -558,7 +558,7 @@ namespace love
             return false;
         }
 
-        virtual void setStereoscopic(bool enable)
+        virtual void setStereoscopic(bool)
         {}
 
         virtual bool isWideMode() const
@@ -566,13 +566,16 @@ namespace love
             return false;
         }
 
-        virtual void setWideMode(bool enable)
+        virtual void setWideMode(bool)
         {}
 
         virtual float getDepth() const
         {
             return 0.0f;
         }
+
+        virtual void copyCurrentScanBuffer() const
+        {}
 
         PixelFormat getSizedFormat(PixelFormat format);
 

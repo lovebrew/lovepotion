@@ -120,7 +120,7 @@ namespace love
             return running;
         }
 
-        void Buffer::prepare(const void* data, const size_t size, int samples)
+        void Buffer::prepare(const void* data, size_t size, int samples, bool own)
         {
             if (data == nullptr || size == 0 || !this->buffer.data_pcm16)
                 return;
@@ -138,12 +138,6 @@ namespace love
                 AXSetVoiceOffsets(this->buffer.voices[channel], &offsets);
                 DCFlushRange(this->buffer.data_pcm16, size);
             }
-        }
-
-        void Buffer::set(const void* data, int samples)
-        {
-            this->buffer.data_pcm16 = (int16_t*)data;
-            this->buffer.nsamples   = samples;
         }
 
         size_t Buffer::getSampleCount() const

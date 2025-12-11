@@ -66,6 +66,10 @@ namespace love
 
             virtual std::vector<float> getSensorData(Sensor::SensorType type) const override;
 
+            PowerType getPowerInfo(int& percent) const override;
+
+            ConnectionType getConnectionState() const override;
+
             using JoystickBase::getConstant;
 
             enum VPADAxis

@@ -74,7 +74,15 @@ namespace love
 
         void bindTextureToUnit(GX2Texture* texture, GX2Sampler* sampler, int unit);
 
+        void clearDepth(double value);
+
+        void clearStencil(int value);
+
         void setMode(int width, int height);
+
+        void setDepthMode(CompareMode mode, bool write);
+
+        void setStencilState(const StencilState& state);
 
         void copyCurrentScanBuffer();
 
@@ -130,6 +138,28 @@ namespace love
         ENUMMAP_DECLARE(FilterModes, SamplerState::FilterMode, GX2TexXYFilterMode,
             { SamplerState::FILTER_NEAREST, GX2_TEX_XY_FILTER_MODE_POINT  },
             { SamplerState::FILTER_LINEAR,  GX2_TEX_XY_FILTER_MODE_LINEAR }
+        );
+
+        ENUMMAP_DECLARE(CompareModes, CompareMode, GX2CompareFunction,
+            { COMPARE_NEVER,    GX2_COMPARE_FUNC_NEVER     },
+            { COMPARE_LESS,     GX2_COMPARE_FUNC_LESS      },
+            { COMPARE_EQUAL,    GX2_COMPARE_FUNC_EQUAL     },
+            { COMPARE_LEQUAL,   GX2_COMPARE_FUNC_LEQUAL    },
+            { COMPARE_GREATER,  GX2_COMPARE_FUNC_GREATER   },
+            { COMPARE_NOTEQUAL, GX2_COMPARE_FUNC_NOT_EQUAL },
+            { COMPARE_GEQUAL,   GX2_COMPARE_FUNC_GEQUAL    },
+            { COMPARE_ALWAYS,   GX2_COMPARE_FUNC_ALWAYS    }
+        );
+
+        ENUMMAP_DECLARE(StencilModes, StencilAction, GX2StencilFunction,
+            { STENCIL_KEEP,           GX2_STENCIL_FUNCTION_KEEP       },
+            { STENCIL_ZERO,           GX2_STENCIL_FUNCTION_ZERO       },
+            { STENCIL_REPLACE,        GX2_STENCIL_FUNCTION_REPLACE    },
+            { STENCIL_INCREMENT,      GX2_STENCIL_FUNCTION_INCR_CLAMP },
+            { STENCIL_DECREMENT,      GX2_STENCIL_FUNCTION_DECR_CLAMP },
+            { STENCIL_INVERT,         GX2_STENCIL_FUNCTION_INV        },
+            { STENCIL_INCREMENT_WRAP, GX2_STENCIL_FUNCTION_INCR_WRAP  },
+            { STENCIL_DECREMENT_WRAP, GX2_STENCIL_FUNCTION_DECR_WRAP  }
         );
 
         static GX2PrimitiveMode getPrimitiveType(PrimitiveType type)

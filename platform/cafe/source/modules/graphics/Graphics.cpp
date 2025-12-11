@@ -168,7 +168,7 @@ namespace love
         gx2.bindFramebuffer(&gx2.getInternalBackbuffer());
     }
 
-    void Graphics::copyCurrentScanBuffer()
+    void Graphics::copyCurrentScanBuffer() const
     {
         gx2.copyCurrentScanBuffer();
     }
@@ -326,6 +326,18 @@ namespace love
         return new Shader(stages, options);
     }
 
+    void Graphics::setStencilState(const StencilState& state)
+    {
+        this->flushBatchedDraws();
+        gx2.setStencilState(state);
+    }
+
+    void Graphics::setDepthMode(CompareMode mode, bool write)
+    {
+        this->flushBatchedDraws();
+        gx2.setDepthMode(mode, write);
+    }
+
     bool Graphics::setMode(int width, int height, int pixelWidth, int pixelHeight, bool backBufferStencil,
                            bool backBufferDepth, int msaa)
     {
@@ -338,11 +350,13 @@ namespace love
 
         try
         {
+            // clang-format off
             if (this->batchedDrawState.vertexBuffer == nullptr)
             {
-                this->batchedDrawState.indexBuffer  = newIndexBuffer(INIT_INDEX_BUFFER_SIZE);
-                this->batchedDrawState.vertexBuffer = newVertexBuffer(INIT_VERTEX_BUFFER_SIZE);
+                this->batchedDrawState.indexBuffer = createStreamBuffer(BUFFERUSAGE_INDEX, INIT_INDEX_BUFFER_SIZE);
+                this->batchedDrawState.vertexBuffer = createStreamBuffer(BUFFERUSAGE_VERTEX, INIT_VERTEX_BUFFER_SIZE);
             }
+            // clang-format on
         }
         catch (love::Exception&)
         {

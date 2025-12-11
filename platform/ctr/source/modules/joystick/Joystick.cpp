@@ -169,7 +169,7 @@ namespace love
         return false;
     }
 
-    Joystick::PowerState Joystick::getPowerInfo(int& percent) const
+    Joystick::PowerType Joystick::getPowerInfo(int& percent) const
     {
         uint8_t isCharging = 0;
         uint8_t level      = 0;
@@ -189,7 +189,7 @@ namespace love
         return state;
     }
 
-    Joystick::ConnectionState Joystick::getConnectionState() const
+    Joystick::ConnectionType Joystick::getConnectionState() const
     {
         return CONNECTION_WIRED;
     }

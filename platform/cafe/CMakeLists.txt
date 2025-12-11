@@ -29,9 +29,8 @@ dkp_track_assets(${PROJECT_NAME}_cafe_content
         nogame.png
 )
 
-find_package(Freetype REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE
-    Freetype::Freetype bz2 png turbojpeg ddsparse
+    freetype bz2 png turbojpeg ddsparse
     vorbisfile vorbis
 )
 
@@ -44,19 +43,17 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/boot.cpp
     source/seeprom.cpp
     source/common/screen.cpp
-    source/driver/audio/AudioBuffer.cpp
     source/driver/audio/DigitalSound.cpp
-    source/driver/audio/SoundChannel.cpp
     source/driver/display/Framebuffer.cpp
     source/driver/display/GX2.cpp
     source/driver/display/Uniform.cpp
     source/driver/EventQueue.cpp
-    source/modules/audio/Source.cpp
     source/modules/audio/RecordingDevice.cpp
     source/modules/font/SystemFont.cpp
     source/modules/graphics/Graphics.cpp
     source/modules/graphics/Shader.cpp
     source/modules/graphics/ShaderStage.cpp
+    source/modules/graphics/StreamBuffer.cpp
     source/modules/graphics/Texture.cpp
     source/modules/joystick/vpad/Joystick.cpp
     source/modules/joystick/kpad/Joystick.cpp
@@ -66,8 +63,6 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/timer/Timer.cpp
     source/modules/window/Window.cpp
 )
-
-wut_create_rpx(${PROJECT_NAME})
 
 wut_create_wuhb(${PROJECT_NAME}
     NAME       "${APP_TITLE}"

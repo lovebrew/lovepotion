@@ -32,7 +32,7 @@ extern "C"
 
     using SystemLanguage = USCLanguage;
     using SystemRegion   = MCPRegion;
-    using SystemModel    = BSPHardwareVersion;
+    using SystemModel    = BSPHardwareVersions;
 }
 
 namespace love
@@ -61,26 +61,26 @@ namespace love
         using SystemBase::getConstant;
 
         // clang-format off
-        STRINGMAP_DECLARE(SystemModels, BSPHardwareVersion,
-            { "lattea11ev",   BSP_HARDWARE_VERSION_LATTE_A11_EV   } ,
-            { "lattea11cat",  BSP_HARDWARE_VERSION_LATTE_A11_CAT  } ,
-            { "lattea12ev",   BSP_HARDWARE_VERSION_LATTE_A12_EV   } ,
-            { "lattea12cat",  BSP_HARDWARE_VERSION_LATTE_A12_CAT  } ,
-            { "lattea2xev",   BSP_HARDWARE_VERSION_LATTE_A2X_EV   } ,
-            { "lattea2xcat",  BSP_HARDWARE_VERSION_LATTE_A2X_CAT  } ,
-            { "lattea3xev",   BSP_HARDWARE_VERSION_LATTE_A3X_EV   } ,
-            { "lattea3xcat",  BSP_HARDWARE_VERSION_LATTE_A3X_CAT  } ,
-            { "lattea3xcafe", BSP_HARDWARE_VERSION_LATTE_A3X_CAFE } ,
-            { "lattea4xev",   BSP_HARDWARE_VERSION_LATTE_A4X_EV   } ,
-            { "lattea4xcat",  BSP_HARDWARE_VERSION_LATTE_A4X_CAT  } ,
-            { "lattea4xcafe", BSP_HARDWARE_VERSION_LATTE_A4X_CAFE } ,
-            { "lattea5xev",   BSP_HARDWARE_VERSION_LATTE_A5X_EV   } ,
-            { "lattea5xevy",  BSP_HARDWARE_VERSION_LATTE_A5X_EV_Y } ,
-            { "lattea5xcat",  BSP_HARDWARE_VERSION_LATTE_A5X_CAT  } ,
-            { "lattea5xcafe", BSP_HARDWARE_VERSION_LATTE_A5X_CAFE } ,
-            { "latteb1xev",   BSP_HARDWARE_VERSION_LATTE_B1X_EV   } ,
-            { "latteb1xevy",  BSP_HARDWARE_VERSION_LATTE_B1X_EV_Y } ,
-            { "latteb1xcat",  BSP_HARDWARE_VERSION_LATTE_B1X_CAT  } ,
+        STRINGMAP_DECLARE(SystemModels, BSPHardwareVersions,
+            { "lattea11ev",   BSP_HARDWARE_VERSION_LATTE_A11_EV   },
+            { "lattea11cat",  BSP_HARDWARE_VERSION_LATTE_A11_CAT  },
+            { "lattea12ev",   BSP_HARDWARE_VERSION_LATTE_A12_EV   },
+            { "lattea12cat",  BSP_HARDWARE_VERSION_LATTE_A12_CAT  },
+            { "lattea2xev",   BSP_HARDWARE_VERSION_LATTE_A2X_EV   },
+            { "lattea2xcat",  BSP_HARDWARE_VERSION_LATTE_A2X_CAT  },
+            { "lattea3xev",   BSP_HARDWARE_VERSION_LATTE_A3X_EV   },
+            { "lattea3xcat",  BSP_HARDWARE_VERSION_LATTE_A3X_CAT  },
+            { "lattea3xcafe", BSP_HARDWARE_VERSION_LATTE_A3X_CAFE },
+            { "lattea4xev",   BSP_HARDWARE_VERSION_LATTE_A4X_EV   },
+            { "lattea4xcat",  BSP_HARDWARE_VERSION_LATTE_A4X_CAT  },
+            { "lattea4xcafe", BSP_HARDWARE_VERSION_LATTE_A4X_CAFE },
+            { "lattea5xev",   BSP_HARDWARE_VERSION_LATTE_A5X_EV   },
+            { "lattea5xevy",  BSP_HARDWARE_VERSION_LATTE_A5X_EV_Y },
+            { "lattea5xcat",  BSP_HARDWARE_VERSION_LATTE_A5X_CAT  },
+            { "lattea5xcafe", BSP_HARDWARE_VERSION_LATTE_A5X_CAFE },
+            { "latteb1xev",   BSP_HARDWARE_VERSION_LATTE_B1X_EV   },
+            { "latteb1xevy",  BSP_HARDWARE_VERSION_LATTE_B1X_EV_Y },
+            { "latteb1xcat",  BSP_HARDWARE_VERSION_LATTE_B1X_CAT  },
             { "latteb1xcafe", BSP_HARDWARE_VERSION_LATTE_B1X_CAFE }
         );
 

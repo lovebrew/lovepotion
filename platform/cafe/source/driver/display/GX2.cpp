@@ -208,6 +208,24 @@ namespace love
         GX2WaitForFlip();
     }
 
+    void GX2::clearDepth(double value)
+    {
+        if (!this->inFrame)
+            return;
+
+        GX2SetClearDepth(&this->getInternalDepthbuffer(), static_cast<float>(value));
+        GX2SetContextState(this->state);
+    }
+
+    void GX2::clearStencil(int value)
+    {
+        if (!this->inFrame)
+            return;
+
+        GX2SetClearStencil(&this->getInternalDepthbuffer(), static_cast<uint8_t>(value));
+        GX2SetContextState(this->state);
+    }
+
     void GX2::clear(const Color& color)
     {
         if (!this->inFrame)
@@ -412,6 +430,36 @@ namespace love
 
         GX2SetBlendControl(GX2_RENDER_TARGET_0, sourceColor, destColor, operationRGB, true, sourceAlpha,
                            destAlpha, operationA);
+    }
+
+    void GX2::setDepthMode(CompareMode compare, bool write)
+    {
+        const bool enabled = compare != COMPARE_ALWAYS || write;
+
+        GX2CompareFunction func;
+
+        if (!GX2::getConstant(compare, func))
+            return;
+
+        GX2SetDepthOnlyControl(write, enabled, func);
+
+        this->context.depthWrite  = write;
+        this->context.depthTest   = true;
+        this->context.compareMode = func;
+    }
+
+    void GX2::setStencilState(const StencilState& state)
+    {
+        const bool enabled = state.action != STENCIL_KEEP || state.compare != COMPARE_ALWAYS;
+
+        GX2StencilFunction stencilAction = GX2_STENCIL_FUNCTION_KEEP;
+        GX2::getConstant(state.action, stencilAction);
+
+        GX2CompareFunction testFunction = GX2_COMPARE_FUNC_ALWAYS;
+        GX2::getConstant(state.compare, testFunction);
+
+        // GX2SetDepthStencilControl();
+        // GX2SetStencilMask();
     }
 
     GX2 gx2;

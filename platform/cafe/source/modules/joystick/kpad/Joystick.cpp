@@ -319,6 +319,25 @@ namespace love
             return false;
         }
 
+        Joystick::PowerType Joystick::getPowerInfo(int& percent) const
+        {
+            const auto battery = WPADGetBatteryLevel(WPADChan(this->instanceId - 1));
+            percent            = battery * 25.0f;
+
+            if (this->gamepadType != GAMEPAD_TYPE_NINTENDO_WII_U_PRO)
+                return POWER_ON_BATTERY;
+
+            if (!this->status.pro.charging && battery == 4)
+                return POWER_CHARGED;
+
+            return (this->status.pro.charging) ? POWER_CHARGING : POWER_ON_BATTERY;
+        }
+
+        Joystick::ConnectionType Joystick::getConnectionState() const
+        {
+            return CONNECTION_UNKNOWN;
+        }
+
         bool Joystick::isAxisChanged(GamepadAxis axis) const
         {
             if (!this->isConnected())

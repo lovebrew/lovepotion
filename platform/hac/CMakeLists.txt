@@ -34,11 +34,9 @@ dkp_track_assets(${PROJECT_NAME}_hac_romfs
         nogame.png
 )
 
-find_package(Freetype REQUIRED)
-
 target_link_libraries(${PROJECT_NAME} PRIVATE
     deko3d$<$<CONFIG:Debug>:d>
-    Freetype::Freetype bz2 png turbojpeg ddsparse
+    freetype bz2 png turbojpeg ddsparse
     vorbisidec
 )
 
