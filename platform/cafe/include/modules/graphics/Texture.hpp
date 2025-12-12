@@ -31,7 +31,7 @@ namespace love
 
         void generateMipmapsInternal() override;
 
-        void setHandleData(ptrdiff_t data) override
+        void setHandleData(ptrdiff_t) override
         {}
 
       private:

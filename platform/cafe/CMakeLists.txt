@@ -31,7 +31,6 @@ dkp_track_assets(${PROJECT_NAME}_cafe_content
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     freetype bz2 png turbojpeg ddsparse
-    vorbisfile vorbis
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE

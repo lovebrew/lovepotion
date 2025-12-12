@@ -101,17 +101,18 @@ target_include_directories(luasocket PRIVATE
     libraries/lua53
 )
 
-FetchContent_Declare(lua-https
-    GIT_REPOSITORY https://github.com/love2d/lua-https
-    GIT_TAG        main
-)
+if(NINTENDO_WIIU)
+    set(HTTPS_USE_FPIC OFF CACHE BOOL "Disable PIC for lua-https")
+endif()
 
+FetchContent_Declare(lua-https
+    GIT_REPOSITORY https://github.com/lovebrew/lua-https
+    GIT_TAG        optional-fpic
+)
 FetchContent_GetProperties(lua-https)
 if(NOT lua-https_POPULATED)
     FetchContent_MakeAvailable(lua-https)
 endif()
-set(USE_CURL_BACKEND ON)
-
 pkg_check_modules(libcurl REQUIRED IMPORTED_TARGET libcurl)
 
 add_library(love_physfs
@@ -358,6 +359,6 @@ if (NINTENDO_SWITCH OR NINTENDO_WIIU)
 endif()
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
-    ${APP_LIBS} z luabit lua53 ogg modplug https PkgConfig::libcurl luasocket
+    ${APP_LIBS} z luabit lua53 vorbisidec ogg modplug https PkgConfig::libcurl luasocket
     love_physfs wuff noise1234 PkgConfig::lua51 PkgConfig::liblz4
 )
