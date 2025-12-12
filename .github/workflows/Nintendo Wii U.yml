@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build
-        run: catnip -T WiiU -DLIBRARY_LOADER='linktime'
+        run: catnip -T WiiU -DLIBRARY_LOADER='linktime' -DUSE_CURL_BACKEND=ON
 
       - id: commit
         uses: prompt/actions-commit-hash@v3
@@ -39,7 +39,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build
-        run: catnip -T WiiU debug -DLIBRARY_LOADER='linktime'
+        run: catnip -T WiiU debug -DLIBRARY_LOADER='linktime' -DUSE_CURL_BACKEND=ON
 
       - id: commit
         uses: prompt/actions-commit-hash@v3
