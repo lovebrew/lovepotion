@@ -215,13 +215,13 @@ int Wrap_System::setPlayCoins(lua_State* L)
     return 0;
 }
 
-static constexpr std::array<luaL_Reg, 2> platformFunctions =
+static constexpr std::array<luaL_Reg, 2> extensions =
 {{
     { "getPlayCoins", Wrap_System::getPlayCoins },
     { "setPlayCoins", Wrap_System::setPlayCoins }
 }};
 #else
-static constexpr std::array<luaL_Reg, 2> platformFunctions = {};
+static constexpr std::span<const luaL_Reg> extensions;
 #endif
 
 int Wrap_System::open(lua_State* L)
@@ -238,7 +238,7 @@ int Wrap_System::open(lua_State* L)
     module.name              = "system";
     module.type              = &Module::type;
     module.functions         = functions;
-    module.platformFunctions = platformFunctions;
+    module.platformFunctions = extensions;
     module.types             = {};
 
     return luax_register_module(L, module);
