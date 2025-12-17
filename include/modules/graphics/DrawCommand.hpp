@@ -98,8 +98,12 @@ namespace love
         bool pushTransform = true;
     };
 
+#if defined(__WIIU__)
+    constexpr size_t INIT_VERTEX_BUFFER_SIZE = 1024 * (sizeof(Vertex) * 4);
+#else
     constexpr size_t INIT_VERTEX_BUFFER_SIZE = 1024 * 1024 * 1;
-    constexpr size_t INIT_INDEX_BUFFER_SIZE  = sizeof(uint16_t) * LOVE_UINT16_MAX;
+#endif
+    constexpr size_t INIT_INDEX_BUFFER_SIZE = sizeof(uint16_t) * LOVE_UINT16_MAX;
 
     StreamBufferBase* createStreamBuffer(BufferUsage usage, size_t size);
 } // namespace love

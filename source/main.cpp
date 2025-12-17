@@ -47,7 +47,7 @@ static DoneAction runLove(char** argv, int argc, int& result, love::Variant& res
         std::vector<const char*> args(argv, argv + argc);
 
         /* if the game directory exists, add the arg */
-        std::filesystem::path filepath = love::platform::getApplicationPath(argv[0]);
+        std::filesystem::path filepath = love::platform::getApplicationPath(argc > 0 ? argv[0] : "");
         if (std::filesystem::exists(filepath.parent_path().append("game")))
             args.push_back("game");
 

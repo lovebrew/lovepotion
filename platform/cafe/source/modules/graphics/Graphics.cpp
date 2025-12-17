@@ -134,6 +134,12 @@ namespace love
         if (color.hasValue || stencil.hasValue || depth.hasValue)
             this->flushBatchedDraws();
 
+        if (stencil.hasValue)
+            gx2.clearStencil(stencil.value);
+
+        if (depth.hasValue)
+            gx2.clearDepth(depth.value);
+
         if (color.hasValue)
         {
             gammaCorrectColor(color.value);
@@ -353,6 +359,7 @@ namespace love
     void Graphics::setDepthMode(CompareMode mode, bool write)
     {
         this->flushBatchedDraws();
+
         gx2.setDepthMode(mode, write);
     }
 
@@ -421,7 +428,7 @@ namespace love
             return;
 
         this->flushBatchedDraws();
-        // gx2.deInitialize();
+        gx2.deInitialize();
     }
 
     void Graphics::setViewport(int x, int y, int width, int height)

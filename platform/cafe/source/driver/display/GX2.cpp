@@ -2,6 +2,7 @@
 #include "driver/display/Uniform.hpp"
 
 /* keyboard needs GX2 inited first */
+#include "common/debug.hpp"
 #include "modules/graphics/Shader.hpp"
 #include "modules/keyboard/Keyboard.hpp"
 
@@ -30,9 +31,7 @@ namespace love
     {}
 
     GX2::~GX2()
-    {
-        this->deInitialize();
-    }
+    {}
 
     void GX2::deInitialize()
     {
@@ -79,7 +78,7 @@ namespace love
 
     int GX2::onForegroundReleased()
     {
-        GX2DrawDone();
+        // GX2DrawDone();
 
         auto foregroundHeap = MEMGetBaseHeapHandle(MEM_BASE_HEAP_FG);
         auto memOneHeap     = MEMGetBaseHeapHandle(MEM_BASE_HEAP_MEM1);
@@ -213,7 +212,8 @@ namespace love
         if (!this->inFrame)
             return;
 
-        GX2SetClearDepth(&this->getInternalDepthbuffer(), static_cast<float>(value));
+        const auto stencil = this->context.stencilState.value;
+        GX2ClearDepthStencilEx(&this->getInternalDepthbuffer(), value, stencil, GX2_CLEAR_FLAGS_DEPTH);
         GX2SetContextState(this->state);
     }
 
@@ -222,7 +222,7 @@ namespace love
         if (!this->inFrame)
             return;
 
-        GX2SetClearStencil(&this->getInternalDepthbuffer(), static_cast<uint8_t>(value));
+        GX2ClearDepthStencilEx(&this->getInternalDepthbuffer(), 1.0f, value, GX2_CLEAR_FLAGS_STENCIL);
         GX2SetContextState(this->state);
     }
 
@@ -254,6 +254,7 @@ namespace love
         if (bindingModified)
         {
             GX2SetColorBuffer(target, GX2_RENDER_TARGET_0);
+            GX2SetDepthBuffer(&this->getInternalDepthbuffer());
             this->setMode(target->surface.width, target->surface.height);
         }
     }
@@ -458,8 +459,7 @@ namespace love
         GX2CompareFunction testFunction = GX2_COMPARE_FUNC_ALWAYS;
         GX2::getConstant(state.compare, testFunction);
 
-        // GX2SetDepthStencilControl();
-        // GX2SetStencilMask();
+        GX2SetClearStencil(&this->getInternalDepthbuffer(), state.value);
     }
 
     GX2 gx2;

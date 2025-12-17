@@ -36,14 +36,14 @@ namespace love
     namespace platform
     {
         // clang-format off
-        static constexpr std::array<const Service, 6> services =
+        static constexpr std::array<const Service,5> services =
         {{
             { "procUI", BIND(ProcUIInit, OSSavesDone_ReadyToRelease), &ProcUIShutdown },
             { "vpad",   BIND(VPADInit),                               &VPADShutdown   },
             { "kpad",   BIND(KPADInit),                               &KPADShutdown   },
             { "ac",     BIND(ACInitialize),                           &ACFinalize     },
             { "fs",     BIND(FSInit),                                 &FSShutdown     },
-            { "bsp",    BIND(bspInitializeShimInterface),             []() { }        }
+            // { "bsp",    BIND(bspInitializeShimInterface),             []() { }        }
         }};
         // clang-format on
 
@@ -51,27 +51,31 @@ namespace love
 
         std::string getApplicationPath(const std::string& argv0)
         {
-            if (argv0 == "embedded boot.lua")
+            if (isDefaultEnvironment(argv0) || argv0 == "root.rpx")
                 return DEFAULT_PATH;
 
             OSDynLoad_Module module;
             const auto type  = OS_DYNLOAD_EXPORT_FUNC;
             const char* name = "RL_GetPathOfRunningExecutable";
 
-            if (OSDynLoad_Acquire("homebrew_rpx_loader", &module) == OS_DYNLOAD_OK)
+            if (OSDynLoad_Acquire("homebrew_rpx_loader", &module) != OS_DYNLOAD_OK)
+                return DEFAULT_PATH;
+
+            char path[256] = {};
+
+            bool (*RL_GetPathOfRunningExecutable)(char*, uint32_t);
+            auto** function = reinterpret_cast<void**>(&RL_GetPathOfRunningExecutable);
+
+            if (OSDynLoad_FindExport(module, type, name, function) == OS_DYNLOAD_OK)
             {
-                char path[256];
-
-                bool (*RL_GetPathOfRunningExecutable)(char*, uint32_t);
-                auto** function = reinterpret_cast<void**>(&RL_GetPathOfRunningExecutable);
-
-                if (OSDynLoad_FindExport(module, type, name, function) == OS_DYNLOAD_OK)
+                if (RL_GetPathOfRunningExecutable(path, sizeof(path)) == 0)
                 {
-                    if (RL_GetPathOfRunningExecutable(path, sizeof(path)) == 0)
-                        return path;
+                    OSDynLoad_Release(module);
+                    return path;
                 }
             }
 
+            OSDynLoad_Release(module);
             return DEFAULT_PATH;
         }
 
@@ -115,8 +119,6 @@ namespace love
                 errorHandler(buffer);
                 return EXIT_FAILURE;
             }
-
-            return 0;
 
             WPADEnableWiiRemote(true);
             WPADEnableURCC(true);

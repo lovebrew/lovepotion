@@ -270,9 +270,6 @@ int love_initialize(lua_State* L)
 /**
  * @brief Initializes the console output.
  * See: common/debug.hpp
- *
- * Users will need to use telnet on Windows or netcat on Linux/macOS:
- * `telnet/nc 192.168.x.x 8000`
  */
 int love_openConsole(lua_State* L)
 {

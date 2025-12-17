@@ -19,6 +19,12 @@ namespace love
 
         bool run(lua_State* L, int argc, int* nres);
 
+        static constexpr const char* DEFAULT_ARGV0 = "embedded boot.lua";
+        inline bool isDefaultEnvironment(const std::string& argv0)
+        {
+            return (argv0 == DEFAULT_ARGV0 || argv0.empty());
+        }
+
         void shutdown();
     } // namespace platform
 } // namespace love

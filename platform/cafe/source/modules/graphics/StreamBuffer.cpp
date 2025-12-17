@@ -39,10 +39,7 @@ namespace love
             this->buffer.elemSize  = elemSize;
             this->buffer.flags     = flags | BUFFER_CREATE_FLAGS;
 
-            if (!GX2RCreateBuffer(&this->buffer))
-                return false;
-
-            return true;
+            return GX2RCreateBuffer(&this->buffer);
         }
 
         void unloadVolatile()
@@ -50,7 +47,7 @@ namespace love
             if (!GX2RBufferExists(&this->buffer))
                 return;
 
-            GX2RDestroyBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
+            // GX2RDestroyBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
         }
 
         StreamBuffer(const StreamBuffer&) = delete;

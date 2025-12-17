@@ -73,10 +73,12 @@ namespace love
             gfxExit();
         }
 
+        constexpr const char* DEFAULT_PATH = "sdmc:/lovepotion.3dsx";
+
         std::string getApplicationPath(const std::string& argv0)
         {
-            if (argv0 == "embedded boot.lua")
-                return "sdmc:/lovepotion.3dsx";
+            if (isDefaultEnvironment(argv0))
+                return DEFAULT_PATH;
 
             return argv0;
         }

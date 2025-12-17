@@ -20,7 +20,6 @@ namespace love
 {
     namespace audio
     {
-
         // clang-format off
         static AXInitParams AX_INIT_PARAMS =
         {
@@ -49,6 +48,10 @@ namespace love
 
         void Device::close()
         {
+            if (!s_Init)
+                return;
+
+            s_Init = false;
             AXQuit();
         }
 
