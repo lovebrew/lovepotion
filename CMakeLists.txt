@@ -358,7 +358,13 @@ if (NINTENDO_SWITCH OR NINTENDO_WIIU)
     )
 endif()
 
+if (NINTENDO_WIIU)
+    target_link_libraries(${PROJECT_NAME} PRIVATE vorbisfile vorbis)
+else()
+    target_link_libraries(${PROJECT_NAME} PRIVATE vorbisidec)
+endif()
+
 target_link_libraries(${PROJECT_NAME} PRIVATE
-    ${APP_LIBS} z luabit lua53 vorbisidec ogg modplug https PkgConfig::libcurl luasocket
+    ${APP_LIBS} z luabit lua53 ogg modplug https PkgConfig::libcurl luasocket
     love_physfs wuff noise1234 PkgConfig::lua51 PkgConfig::liblz4
 )

@@ -20,9 +20,12 @@ struct AudioBuf
     std::array<AXVoice*, 2> voices;
     int16_t* data_pcm16;
     size_t nsamples;
+    size_t size;
+    int samplerate;
     uint32_t offset;
     bool looping;
     int channels;
+    bool paused;
 };
 #endif
 
@@ -53,10 +56,11 @@ namespace love
         class Buffer final
         {
           public:
-            Buffer()
-            {}
+            Buffer() = default;
 
             Buffer(const size_t size, int channels);
+
+            Buffer clone();
 
             void destroy();
 
@@ -71,6 +75,17 @@ namespace love
             bool isLooping() const;
 
             void setStatus(uint8_t status);
+
+            void setSampleRate(int samplerate);
+
+            void setVolume(float volume);
+
+            float getVolume() const;
+
+            bool isPaused() const
+            {
+                return this->buffer.paused;
+            }
 
             AudioBuf* getHandle()
             {

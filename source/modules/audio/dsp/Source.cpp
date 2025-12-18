@@ -28,6 +28,9 @@ namespace love
 
             audio::Buffer& StaticDataBuffer::getView(const size_t offset, int channels)
             {
+#if defined(__WIIU__)
+                this->view = this->buffer.clone();
+#endif
                 const auto samples = this->nsamples - (offset / channels);
                 this->view.prepare(this->buffer.getData() + offset, this->size, samples, false);
                 this->view.setLooping(this->buffer.isLooping());

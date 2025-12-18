@@ -3,6 +3,7 @@
 #include "common/int.hpp"
 
 #include "driver/DigitalSound.tcc"
+#include "driver/audio/DigitalSoundMix.hpp"
 
 #include <coreinit/cache.h>
 #include <coreinit/event.h>
@@ -101,10 +102,20 @@ namespace love
                 this->buffer.voices[channel] = AXAcquireVoice(0x1F, nullptr, nullptr);
 
                 UniqueVoiceScope scope(this->buffer.voices[channel]);
-                AXSetVoiceType(this->buffer.voices[channel], AX_VOICE_TYPE_UNKNOWN);
+                AXSetVoiceType(this->buffer.voices[channel], AX_VOICE_SRC_TYPE_LINEAR);
             }
 
             this->buffer.channels = channels;
+            this->buffer.paused   = false;
+            this->buffer.size     = size;
+        }
+
+        Buffer Buffer::clone()
+        {
+            Buffer view {};
+            view.buffer = this->buffer;
+
+            return view;
         }
 
         void Buffer::destroy()
@@ -117,16 +128,23 @@ namespace love
 
         bool Buffer::isFinished() const
         {
-            bool running = false;
-            UniqueVoiceScope(this->buffer.voices[0]);
-            running = AXIsVoiceRunning(this->buffer.voices[0]);
-            return running;
+            return !AXIsVoiceRunning(this->buffer.voices[0]);
         }
 
         void Buffer::prepare(const void* data, size_t size, int samples, bool own)
         {
             if (data == nullptr || size == 0 || !this->buffer.data_pcm16)
                 return;
+
+            if (own)
+            {
+                if (!this->buffer.data_pcm16)
+                    return;
+
+                std::memcpy(this->buffer.data_pcm16, data, size);
+            }
+            else
+                this->buffer.data_pcm16 = (int16_t*)data;
 
             for (int channel = 0; channel < this->buffer.channels; channel++)
             {
@@ -137,19 +155,18 @@ namespace love
                 offsets.endOffset     = samples;
                 offsets.loopOffset    = 0;
                 offsets.data          = this->buffer.data_pcm16;
+                offsets.dataType      = AX_VOICE_FORMAT_LPCM16;
 
                 AXSetVoiceOffsets(this->buffer.voices[channel], &offsets);
-                DCFlushRange(this->buffer.data_pcm16, size);
             }
+
+            DCFlushRange(this->buffer.data_pcm16, size);
         }
 
         size_t Buffer::getSampleCount() const
         {
-            UniqueVoiceScope(this->buffer.voices[0]);
-
             AXVoiceOffsets offsets {};
             AXGetVoiceOffsets(this->buffer.voices[0], &offsets);
-
             return offsets.currentOffset;
         }
 
@@ -157,20 +174,17 @@ namespace love
         {
             for (int channel = 0; channel < this->buffer.channels; channel++)
             {
-                UniqueVoiceScope(this->buffer.voices[channel]);
+                UniqueVoiceScope scope(this->buffer.voices[channel]);
 
                 AXVoiceOffsets offsets {};
                 AXGetVoiceOffsets(this->buffer.voices[channel], &offsets);
                 offsets.loopingEnabled = looping;
-
                 AXSetVoiceOffsets(this->buffer.voices[channel], &offsets);
             }
         }
 
         bool Buffer::isLooping() const
         {
-            UniqueVoiceScope(this->buffer.voices[0]);
-
             AXVoiceOffsets offsets {};
             AXGetVoiceOffsets(this->buffer.voices[0], &offsets);
 
@@ -178,50 +192,136 @@ namespace love
         }
 
         void Buffer::setStatus(uint8_t status)
-        {}
+        {
+            for (int channel = 0; channel < this->buffer.channels; channel++)
+            {
+                UniqueVoiceScope scope(this->buffer.voices[channel]);
+                AXSetVoiceState(this->buffer.voices[channel], status);
+            }
+        }
+
+        void Buffer::setSampleRate(int samplerate)
+        {
+            this->buffer.samplerate = samplerate;
+
+            for (int channel = 0; channel < this->buffer.channels; channel++)
+            {
+                UniqueVoiceScope scope(this->buffer.voices[channel]);
+                float ratio = (float)samplerate / (float)AXGetInputSamplesPerSec();
+                AXSetVoiceSrcRatio(this->buffer.voices[channel], ratio);
+            }
+        }
+
+        void Buffer::setVolume(float volume)
+        {
+            AXVoiceVeData data = { .volume = volume * 0x8000 };
+
+            for (int channel = 0; channel < this->buffer.channels; channel++)
+            {
+                UniqueVoiceScope scope(this->buffer.voices[channel]);
+                AXSetVoiceVe(this->buffer.voices[channel], &data);
+            }
+        }
+
+        float Buffer::getVolume() const
+        {
+            return this->buffer.voices[0]->volume / (float)0x8000;
+        }
 
         // #endregion
 
         // #region Channel
 
+        static std::array<Buffer, Channel::MAX_CHANNELS> s_Channels;
+
         bool Channel::reset(size_t id, int channels, int bitdepth, int samplerate, float volume)
         {
+            auto& buffer = s_Channels[id];
+
+            buffer.setStatus(AX_VOICE_STATE_STOPPED);
+            buffer.setSampleRate(samplerate);
+            buffer.setVolume(volume);
+
             return true;
         }
 
         void Channel::setVolume(size_t id, float volume)
-        {}
+        {
+            auto& buffer = s_Channels[id];
+            buffer.setVolume(volume);
+        }
 
         float Channel::getVolume(size_t id)
         {
-            return 0.0f;
+            auto& buffer = s_Channels[id];
+            return buffer.getVolume();
         }
 
         size_t Channel::getSampleOffset(size_t id)
         {
-            return 0;
+            auto& buffer = s_Channels[id];
+            return buffer.getSampleCount();
         }
 
         bool Channel::addBuffer(size_t id, Buffer& buffer)
         {
-            return false;
+            const auto channels = buffer.getHandle()->channels;
+
+            for (int channel = 0; channel < channels; channel++)
+            {
+                auto* voice = buffer.getHandle()->voices[channel];
+                UniqueVoiceScope scope(voice);
+
+                switch (channels)
+                {
+                    case 1:
+                    {
+                        AXSetVoiceDeviceMix(voice, AX_DEVICE_TYPE_TV, 0, MONO_MIX[channel]);
+                        AXSetVoiceDeviceMix(voice, AX_DEVICE_TYPE_DRC, 0, MONO_MIX[channel]);
+                        break;
+                    }
+                    case 2:
+                    {
+                        AXSetVoiceDeviceMix(voice, AX_DEVICE_TYPE_TV, 0, STEREO_MIX[channel]);
+                        AXSetVoiceDeviceMix(voice, AX_DEVICE_TYPE_DRC, 0, STEREO_MIX[channel]);
+                        break;
+                    }
+                    default:
+                        break;
+                }
+
+                AXSetVoiceState(voice, AX_VOICE_STATE_PLAYING);
+            }
+
+            s_Channels[id] = buffer;
+            return true;
         }
 
         void Channel::pause(size_t id, bool paused)
-        {}
+        {
+            auto& buffer = s_Channels[id];
+
+            buffer.getHandle()->paused = paused;
+            buffer.setStatus(paused ? AX_VOICE_STATE_STOPPED : AX_VOICE_STATE_PLAYING);
+        }
 
         bool Channel::isPaused(size_t id)
         {
-            return false;
+            auto& buffer = s_Channels[id];
+            return buffer.isPaused();
         }
 
         bool Channel::isPlaying(size_t id)
         {
-            return false;
+            auto& buffer = s_Channels[id];
+            return !buffer.isFinished();
         }
 
         void Channel::stop(size_t id)
-        {}
+        {
+            auto& buffer = s_Channels[id];
+            buffer.setStatus(AX_VOICE_STATE_STOPPED);
+        }
         // #endregion
     } // namespace audio
 } // namespace love
