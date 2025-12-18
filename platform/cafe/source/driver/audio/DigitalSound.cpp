@@ -212,6 +212,16 @@ namespace love
             }
         }
 
+        bool Buffer::isPaused() const
+        {
+            return this->buffer.paused;
+        }
+
+        void Buffer::setPaused(bool paused)
+        {
+            this->buffer.paused = paused;
+        }
+
         void Buffer::setVolume(float volume)
         {
             AXVoiceVeData data = { .volume = volume * 0x8000 };
@@ -301,7 +311,7 @@ namespace love
         {
             auto& buffer = s_Channels[id];
 
-            buffer.getHandle()->paused = paused;
+            buffer.setPaused(paused);
             buffer.setStatus(paused ? AX_VOICE_STATE_STOPPED : AX_VOICE_STATE_PLAYING);
         }
 

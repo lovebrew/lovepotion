@@ -60,7 +60,9 @@ namespace love
 
             Buffer(const size_t size, int channels);
 
+#if defined(__WIIU__)
             Buffer clone();
+#endif
 
             void destroy();
 
@@ -82,10 +84,11 @@ namespace love
 
             float getVolume() const;
 
-            bool isPaused() const
-            {
-                return this->buffer.paused;
-            }
+#if defined(__WIIU__)
+            bool isPaused() const;
+
+            void setPaused(bool paused);
+#endif
 
             AudioBuf* getHandle()
             {
