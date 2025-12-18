@@ -102,7 +102,7 @@ namespace love
                 this->buffer.voices[channel] = AXAcquireVoice(0x1F, nullptr, nullptr);
 
                 UniqueVoiceScope scope(this->buffer.voices[channel]);
-                AXSetVoiceType(this->buffer.voices[channel], AX_VOICE_SRC_TYPE_LINEAR);
+                AXSetVoiceType(this->buffer.voices[channel], AX_VOICE_TYPE_UNKNOWN);
             }
 
             this->buffer.channels = channels;
@@ -209,6 +209,7 @@ namespace love
                 UniqueVoiceScope scope(this->buffer.voices[channel]);
                 float ratio = (float)samplerate / (float)AXGetInputSamplesPerSec();
                 AXSetVoiceSrcRatio(this->buffer.voices[channel], ratio);
+                AXSetVoiceSrcType(this->buffer.voices[channel], AX_VOICE_SRC_TYPE_LINEAR);
             }
         }
 
