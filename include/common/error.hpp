@@ -54,7 +54,11 @@ namespace love
 // #endregion
 
 // #region Graphics
-#define E_BLEND_MIN_MAX_NOT_SUPPORTED "The 'min' and 'max' blend operations are not supported on this system."
+#define E_BLEND_MIN_MAX_NOT_SUPPORTED   "The 'min' and 'max' blend operations are not supported on this system."
+#define E_NON2D_TEXTURE_TABLE_OF_TABLES "Non-2D textures must use the table-of-tables variant of setCanvas."
+#define E_ONLY_DEPTHSTENCIL_CAN_BE_DEPTHSTENCIL                                                     \
+    "Only depth/stencil textures can be used in the 'depthstencil' field of the table passed into " \
+    "setCanvas."
 // # endregion
 
 // #region Image

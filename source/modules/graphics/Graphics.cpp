@@ -254,10 +254,14 @@ namespace love
             return;
 
         const RenderTargetsStrongRef previous = state.renderTargets;
+
         flushBatchedDraws();
 
         bool gammaCorrect = isGammaCorrect();
-        this->setRenderTargetsInternal(RenderTargets(), this->pixelWidth, this->pixelHeight, gammaCorrect);
+
+        const auto width  = this->getWidth();
+        const auto height = this->getHeight();
+        this->setRenderTargetsInternal(RenderTargets(), width, height, gammaCorrect);
 
         state.renderTargets = RenderTargetsStrongRef();
         this->renderTargetSwitchCount++;
@@ -377,12 +381,80 @@ namespace love
         }
 
         if (targets.depthStencil.texture != nullptr)
-            return;
+        {
+            auto* canvas = targets.depthStencil.texture;
+            auto mipmap  = targets.depthStencil.mipmap;
+            auto slice   = targets.depthStencil.slice;
+
+            if (!canvas->isRenderTarget())
+                throw love::Exception("Texture must be created as a canvas to be used in setCanvas.");
+
+            if (!isPixelFormatDepthStencil(canvas->getPixelFormat()))
+                throw love::Exception(E_ONLY_DEPTHSTENCIL_CAN_BE_DEPTHSTENCIL);
+
+            if (canvas->getPixelWidth(mipmap) != pixelWidth || canvas->getPixelHeight(mipmap) != pixelHeight)
+                throw love::Exception("All textures must have the same pixel dimensions.");
+
+            if (canvas->getRequestedMSAA() != firstTexture->getRequestedMSAA())
+                throw love::Exception("All textures must have the same MSAA value.");
+
+            if (mipmap < 0 || mipmap >= canvas->getMipmapCount())
+                throw love::Exception("Invalid mipmap level: {:d}.", mipmap + 1);
+
+            if (!canvas->isValidSlice(slice, mipmap))
+                throw love::Exception("Invalid slice index: {:d}.", slice + 1);
+        }
 
         flushBatchedDraws();
 
         if (targets.depthStencil.texture == nullptr && targets.temporaryFlags != 0)
-            return;
+        {
+            const auto wantDepth   = (targets.temporaryFlags & TEMPORARY_RT_DEPTH) != 0;
+            const auto wantStencil = (targets.temporaryFlags & TEMPORARY_RT_STENCIL) != 0;
+
+            auto format = PIXELFORMAT_STENCIL8;
+            if (wantDepth && wantStencil)
+            {
+                // clang-format off
+                if (isPixelFormatSupported(PIXELFORMAT_DEPTH24_UNORM_STENCIL8, PIXELFORMATUSAGEFLAGS_RENDERTARGET))
+                    format = PIXELFORMAT_DEPTH24_UNORM_STENCIL8;
+                else if (isPixelFormatSupported(PIXELFORMAT_DEPTH32_FLOAT_STENCIL8, PIXELFORMATUSAGEFLAGS_RENDERTARGET))
+                    format = PIXELFORMAT_DEPTH32_FLOAT_STENCIL8;
+                else
+                    throw love::Exception("Combined depth and stencil buffers are not supported on this system.");
+            }
+            else if (wantDepth)
+            {
+                // clang-format off
+                if (isPixelFormatSupported(PIXELFORMAT_DEPTH24_UNORM, PIXELFORMATUSAGEFLAGS_RENDERTARGET))
+                    format = PIXELFORMAT_DEPTH24_UNORM;
+                else if (isPixelFormatSupported(PIXELFORMAT_DEPTH32_FLOAT, PIXELFORMATUSAGEFLAGS_RENDERTARGET))
+                    format = PIXELFORMAT_DEPTH32_FLOAT;
+                else if (isPixelFormatSupported(PIXELFORMAT_DEPTH16_UNORM, PIXELFORMATUSAGEFLAGS_RENDERTARGET))
+                    format = PIXELFORMAT_DEPTH16_UNORM;
+                else if (isPixelFormatSupported(PIXELFORMAT_DEPTH24_UNORM_STENCIL8, PIXELFORMATUSAGEFLAGS_RENDERTARGET))
+                    format = PIXELFORMAT_DEPTH24_UNORM_STENCIL8;
+                else if (isPixelFormatSupported(PIXELFORMAT_DEPTH32_FLOAT_STENCIL8, PIXELFORMATUSAGEFLAGS_RENDERTARGET))
+                    format = PIXELFORMAT_DEPTH32_FLOAT_STENCIL8;
+                else
+                    throw love::Exception("Depth buffers are not supported on this system.");
+                }
+            else if (wantStencil)
+            {
+                if (isPixelFormatSupported(PIXELFORMAT_STENCIL8, PIXELFORMATUSAGEFLAGS_RENDERTARGET))
+                    format = PIXELFORMAT_STENCIL8;
+                else if (isPixelFormatSupported(PIXELFORMAT_DEPTH24_UNORM_STENCIL8, PIXELFORMATUSAGEFLAGS_RENDERTARGET))
+                    format = PIXELFORMAT_DEPTH24_UNORM_STENCIL8;
+                else if (isPixelFormatSupported(PIXELFORMAT_DEPTH32_FLOAT_STENCIL8, PIXELFORMATUSAGEFLAGS_RENDERTARGET))
+                    format = PIXELFORMAT_DEPTH32_FLOAT_STENCIL8;
+                else
+                    throw love::Exception("Stencil buffers are not supported on this system.");
+            }
+            // clang-format on
+
+            RenderTargets realTargets = targets;
+            this->setRenderTargetsInternal(realTargets, pixelWidth, pixelHeight, hasSRGBTexture);
+        }
         else
             this->setRenderTargetsInternal(targets, pixelWidth, pixelHeight, hasSRGBTexture);
 
@@ -409,7 +481,12 @@ namespace love
         }
 
         if (targets.depthStencil.texture == nullptr && targets.temporaryFlags != 0)
-            return;
+        {
+            OptionalColor color;
+            OptionalInt stencil(0);
+            OptionalDouble depth(1.0);
+            this->clear(color, stencil, depth);
+        }
     }
 
     GraphicsBase::RenderTargets GraphicsBase::getRenderTargets() const

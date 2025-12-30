@@ -1,5 +1,6 @@
 #include "common/Exception.hpp"
 #include "common/config.hpp"
+#include "common/debug.hpp"
 #include "common/int.hpp"
 
 #include "driver/DigitalSound.tcc"
@@ -44,7 +45,7 @@ namespace love
 
         void Device::update()
         {
-            // TODO
+            OSSleepTicks(OSMillisecondsToTicks(3));
         }
 
         void Device::close()
@@ -77,6 +78,10 @@ namespace love
             {
                 AXVoiceBegin(voice);
             }
+
+            UniqueVoiceScope(UniqueVoiceScope&&) = delete;
+
+            UniqueVoiceScope& operator=(UniqueVoiceScope&&) = delete;
 
             ~UniqueVoiceScope()
             {
@@ -121,14 +126,18 @@ namespace love
         void Buffer::destroy()
         {
             for (auto* voice : this->buffer.voices)
-                AXFreeVoice(voice);
+            {
+                if (voice)
+                    AXFreeVoice(voice);
+            }
 
             std::free(this->buffer.data_pcm16);
         }
 
         bool Buffer::isFinished() const
         {
-            return !AXIsVoiceRunning(this->buffer.voices[0]);
+            const auto running = AXIsVoiceRunning(this->buffer.voices[0]);
+            return running == false;
         }
 
         void Buffer::prepare(const void* data, size_t size, int samples, bool own)
@@ -146,6 +155,8 @@ namespace love
             else
                 this->buffer.data_pcm16 = (int16_t*)data;
 
+            DCStoreRange(this->buffer.data_pcm16, size);
+
             for (int channel = 0; channel < this->buffer.channels; channel++)
             {
                 UniqueVoiceScope scope(this->buffer.voices[channel]);
@@ -159,8 +170,6 @@ namespace love
 
                 AXSetVoiceOffsets(this->buffer.voices[channel], &offsets);
             }
-
-            DCFlushRange(this->buffer.data_pcm16, size);
         }
 
         size_t Buffer::getSampleCount() const
@@ -175,11 +184,8 @@ namespace love
             for (int channel = 0; channel < this->buffer.channels; channel++)
             {
                 UniqueVoiceScope scope(this->buffer.voices[channel]);
-
-                AXVoiceOffsets offsets {};
-                AXGetVoiceOffsets(this->buffer.voices[channel], &offsets);
-                offsets.loopingEnabled = looping;
-                AXSetVoiceOffsets(this->buffer.voices[channel], &offsets);
+                const auto loop = looping ? AX_VOICE_LOOP_ENABLED : AX_VOICE_LOOP_DISABLED;
+                AXSetVoiceLoop(this->buffer.voices[channel], loop);
             }
         }
 
@@ -203,11 +209,12 @@ namespace love
         void Buffer::setSampleRate(int samplerate)
         {
             this->buffer.samplerate = samplerate;
+            const auto ratio        = (float)samplerate / (float)AXGetInputSamplesPerSec();
+            LOG("Setting src ratio to %f", ratio);
 
             for (int channel = 0; channel < this->buffer.channels; channel++)
             {
                 UniqueVoiceScope scope(this->buffer.voices[channel]);
-                float ratio = (float)samplerate / (float)AXGetInputSamplesPerSec();
                 AXSetVoiceSrcRatio(this->buffer.voices[channel], ratio);
                 AXSetVoiceSrcType(this->buffer.voices[channel], AX_VOICE_SRC_TYPE_LINEAR);
             }
@@ -225,7 +232,9 @@ namespace love
 
         void Buffer::setVolume(float volume)
         {
-            AXVoiceVeData data = { .volume = volume * 0x8000 };
+            const auto ve      = static_cast<uint16_t>(volume * 0x8000u);
+            AXVoiceVeData data = { .volume = ve, .delta = 0 };
+            LOG("Setting buffer volume to %f (VE: %u)", volume, ve);
 
             for (int channel = 0; channel < this->buffer.channels; channel++)
             {
@@ -247,6 +256,8 @@ namespace love
 
         bool Channel::reset(size_t id, int channels, int bitdepth, int samplerate, float volume)
         {
+            LOG("Resetting channel %zu with %d channels, %d bitdepth, %d samplerate, volume %f", id, channels,
+                bitdepth, samplerate, volume);
             auto& buffer = s_Channels[id];
 
             buffer.setStatus(AX_VOICE_STATE_STOPPED);
@@ -276,40 +287,35 @@ namespace love
 
         bool Channel::addBuffer(size_t id, Buffer& buffer)
         {
+            LOG("Adding buffer to channel %zu", id);
             const auto channels = buffer.getHandle()->channels;
 
+            AXVoiceDeviceMixData mix[6] {};
+            std::memset(mix, 0, sizeof(mix));
+
+            mix[0].bus[0].volume = 0x8000;
+            if (channels == 2)
+                mix[1].bus[0].volume = 0x8000;
+            LOG("Setting voice device mix for channel %d", channels);
             for (int channel = 0; channel < channels; channel++)
             {
                 auto* voice = buffer.getHandle()->voices[channel];
                 UniqueVoiceScope scope(voice);
 
-                switch (channels)
-                {
-                    case 1:
-                    {
-                        AXSetVoiceDeviceMix(voice, AX_DEVICE_TYPE_TV, 0, MONO_MIX[channel]);
-                        AXSetVoiceDeviceMix(voice, AX_DEVICE_TYPE_DRC, 0, MONO_MIX[channel]);
-                        break;
-                    }
-                    case 2:
-                    {
-                        AXSetVoiceDeviceMix(voice, AX_DEVICE_TYPE_TV, 0, STEREO_MIX[channel]);
-                        AXSetVoiceDeviceMix(voice, AX_DEVICE_TYPE_DRC, 0, STEREO_MIX[channel]);
-                        break;
-                    }
-                    default:
-                        break;
-                }
-
-                AXSetVoiceState(voice, AX_VOICE_STATE_PLAYING);
+                AXSetVoiceDeviceMix(voice, AX_DEVICE_TYPE_TV, 0, mix);
+                AXSetVoiceDeviceMix(voice, AX_DEVICE_TYPE_DRC, 0, mix);
             }
-
+            LOG("Setting voice state to playing for channel %d", channels);
+            buffer.setStatus(AX_VOICE_STATE_PLAYING);
+            buffer.setPaused(false);
+            buffer.setSampleRate(buffer.getHandle()->samplerate);
             s_Channels[id] = buffer;
             return true;
         }
 
         void Channel::pause(size_t id, bool paused)
         {
+            LOG("Pausing channel %zu: %s", id, paused ? "true" : "false");
             auto& buffer = s_Channels[id];
 
             buffer.setPaused(paused);
@@ -330,6 +336,7 @@ namespace love
 
         void Channel::stop(size_t id)
         {
+            LOG("Stopping channel %zu", id);
             auto& buffer = s_Channels[id];
             buffer.setStatus(AX_VOICE_STATE_STOPPED);
         }

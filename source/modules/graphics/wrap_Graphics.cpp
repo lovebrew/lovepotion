@@ -1156,6 +1156,42 @@ int Wrap_Graphics::setCanvas(lua_State* L)
 
     if (isTable)
     {
+        lua_rawgeti(L, 1, 1);
+        bool tableOfTables = lua_istable(L, -1);
+        lua_pop(L, 1);
+
+        for (int index = 1; index < (int)luax_objlen(L, 1); index++)
+        {
+            lua_rawgeti(L, 1, index);
+            if (tableOfTables)
+                targets.colors.push_back(checkRenderTarget(L, -1));
+            else
+            {
+                targets.colors.emplace_back(luax_checktexture(L, -1), 0);
+                if (targets.colors.back().texture->getTextureType() != TEXTURE_2D)
+                    return luaL_error(L, E_NON2D_TEXTURE_TABLE_OF_TABLES);
+            }
+            lua_pop(L, 1);
+        }
+
+        uint32_t tempDepthFlag   = GraphicsBase::TEMPORARY_RT_DEPTH;
+        uint32_t tempStencilFlag = GraphicsBase::TEMPORARY_RT_STENCIL;
+
+        lua_getfield(L, 1, "depthstencil");
+        int depthStencilType = lua_type(L, -1);
+        if (depthStencilType == LUA_TTABLE)
+            targets.depthStencil = checkRenderTarget(L, -1);
+        else if (depthStencilType == LUA_TBOOLEAN)
+            targets.temporaryFlags |= luax_toboolean(L, -1) ? (tempDepthFlag | tempStencilFlag) : 0;
+        else if (depthStencilType != LUA_TNONE && depthStencilType != LUA_TNIL)
+            targets.depthStencil.texture = luax_checktexture(L, -1);
+        lua_pop(L, 1);
+
+        if (targets.depthStencil.texture == nullptr && (targets.temporaryFlags & tempDepthFlag) == 0)
+            targets.temporaryFlags |= luax_boolflag(L, 1, "depth", false) ? tempDepthFlag : 0;
+
+        if (targets.depthStencil.texture == nullptr && (targets.temporaryFlags & tempStencilFlag) == 0)
+            targets.temporaryFlags |= luax_boolflag(L, 1, "stencil", false) ? tempStencilFlag : 0;
     }
     else
     {

@@ -9,6 +9,7 @@
 #include "modules/graphics/Font.hpp"
 
 #include "common/Exception.hpp"
+#include "common/debug.hpp"
 
 namespace love
 {
@@ -391,15 +392,14 @@ namespace love
     void Graphics::setRenderTargetsInternal(const RenderTargets& targets, int pixelWidth, int pixelHeight,
                                             bool hasSRGBTexture)
     {
-        const auto& state = this->states.back();
-
-        bool isWindow = targets.getFirstTarget().texture == nullptr;
-
+        const auto& state   = this->states.back();
+        const auto isWindow = targets.getFirstTarget().texture == nullptr;
+        LOG("Setting render targets to %s", isWindow ? "window backbuffer" : "custom render target");
         if (isWindow)
             c3d.bindFramebuffer(c3d.getInternalBackbuffer());
         else
             c3d.bindFramebuffer((C3D_RenderTarget*)targets.getFirstTarget().texture->getRenderTargetHandle());
-
+        LOG("Viewport size: %dx%d", pixelWidth, pixelHeight);
         bool tilt = isWindow ? true : false;
         c3d.setViewport(pixelWidth, pixelHeight, tilt);
 
