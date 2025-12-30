@@ -14,6 +14,7 @@
 
 #include "modules/graphics/Buffer.tcc"
 #include "modules/graphics/Font.tcc"
+#include "modules/graphics/GraphicsReadback.hpp"
 #include "modules/graphics/Shader.tcc"
 #include "modules/graphics/ShaderStage.tcc"
 #include "modules/graphics/TextBatch.hpp"
@@ -505,6 +506,14 @@ namespace love
         virtual void setBlendState(const BlendState& blend) = 0;
 
         void captureScreenshot(const ScreenshotInfo& info);
+
+        ImageData* readbackTexture(TextureBase* texture, int slice, int mipmap, const Rect& rect,
+                                   ImageData* destination, int destinationX, int destinationY);
+
+        // virtual GraphicsReadbackBase* newReadbackInternal(GraphicsReadbackBase::ReadbackMethod type,
+        //                                                   TextureBase* texture, int slice, int mipmap,
+        //                                                   const Rect& rect, ImageData* destination,
+        //                                                   int destinationX, int destinationY) = 0;
 
         const BlendState& getBlendState() const
         {

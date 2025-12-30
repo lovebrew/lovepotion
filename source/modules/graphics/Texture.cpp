@@ -373,6 +373,9 @@ namespace love
 
     void TextureBase::draw(GraphicsBase* graphics, Quad* quad, const Matrix4& matrix)
     {
+        if (this->textureType == TEXTURE_2D_ARRAY)
+            return;
+
         if (!this->readable)
             throw love::Exception("Textures with non-readable formats cannot be drawn.");
 

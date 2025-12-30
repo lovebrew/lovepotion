@@ -4,7 +4,6 @@
 #include "modules/graphics/ParticleSystem.hpp"
 #include "modules/graphics/Polyline.hpp"
 #include "modules/graphics/SpriteBatch.hpp"
-
 #include "modules/window/Window.tcc"
 
 #include "common/Console.hpp"
@@ -98,9 +97,18 @@ namespace love
         this->flushBatchedDraws();
 
         auto& state = this->states.back();
+        int width   = this->getWidth();
+        int height  = this->getHeight();
+
+        const auto& target = state.renderTargets.getFirstTarget();
+        if (target.texture.get())
+        {
+            width  = target.texture->getWidth(target.mipmap);
+            height = target.texture->getHeight(target.mipmap);
+        }
 
         state.useCustomProjection = false;
-        this->updateDeviceProjection(Matrix4::ortho(0.0f, 0, 0, 0.0f, -10.0f, 10.0f));
+        this->updateDeviceProjection(Matrix4::ortho(0.0f, width, height, 0.0f, -10.0f, 10.0f));
     }
 
     void GraphicsBase::reset()
@@ -266,13 +274,13 @@ namespace love
         state.renderTargets = RenderTargetsStrongRef();
         this->renderTargetSwitchCount++;
 
+        this->resetProjection();
+
         for (const auto& target : previous.colors)
         {
-            if (target.texture && target.texture->getMipmapsMode() == TextureBase::MIPMAPS_AUTO &&
-                target.mipmap == 0)
-            {
+            const auto isAutoMipmap = target.texture->getMipmapsMode() == TextureBase::MIPMAPS_AUTO;
+            if (target.texture && isAutoMipmap && target.mipmap == 0)
                 target.texture->generateMipmaps();
-            }
         }
     }
 
@@ -504,6 +512,22 @@ namespace love
         targets.temporaryFlags = current.temporaryFlags;
 
         return targets;
+    }
+
+    ImageData* GraphicsBase::readbackTexture(TextureBase* texture, int slice, int mipmap, const Rect& rect,
+                                             ImageData* destination, int destinationX, int destinationY)
+    {
+        return nullptr;
+        // StrongRef<GraphicsReadbackBase> readback;
+        // readback.set(this->newReadbackInternal(GraphicsReadbackBase::READBACK_IMMEDIATE, texture, slice,
+        //                                        mipmap, rect, destination, destinationX, destinationY));
+
+        // auto* imagedata = readback->getImageData();
+        // if (imagedata == nullptr)
+        //     throw love::Exception("love.graphics.readbackTexture failed.");
+
+        // imagedata->retain();
+        // return imagedata;
     }
 
     void GraphicsBase::setScissor(const Rect& scissor)

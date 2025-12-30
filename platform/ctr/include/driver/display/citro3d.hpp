@@ -53,7 +53,7 @@ namespace love
 
         void setBlendState(const BlendState& state);
 
-        void setViewport(int width, int height, bool tilt);
+        void setViewport(const Rect& viewport, bool tilt);
 
         void setScissor(const Rect& scissor);
 

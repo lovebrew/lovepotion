@@ -25,7 +25,7 @@ namespace love
 
         ptrdiff_t getHandle() const override;
 
-        void updateBuiltinUniforms(GraphicsBase* graphics, C3D_Mtx mdlvMtx, const C3D_Mtx& projMtx);
+        void updateBuiltinUniforms(GraphicsBase* graphics, C3D_Mtx& mdlvMtx, const C3D_Mtx& projMtx);
 
       private:
         void mapActiveUniforms();

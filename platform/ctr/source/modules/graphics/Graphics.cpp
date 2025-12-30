@@ -142,8 +142,6 @@ namespace love
             gammaCorrectColor(color.value);
             c3d.clear(color.value);
         }
-
-        c3d.bindFramebuffer(c3d.getInternalBackbuffer());
     }
 
     C3D_RenderTarget* Graphics::getInternalBackbuffer() const
@@ -198,6 +196,8 @@ namespace love
             throw love::Exception("present cannot be called while a render target is active.");
 
         c3d.present();
+
+        c3d.bindFramebuffer(c3d.getInternalBackbuffer());
 
         this->drawCalls        = 0;
         this->drawCallsBatched = 0;
@@ -394,14 +394,14 @@ namespace love
     {
         const auto& state   = this->states.back();
         const auto isWindow = targets.getFirstTarget().texture == nullptr;
-        LOG("Setting render targets to %s", isWindow ? "window backbuffer" : "custom render target");
+
         if (isWindow)
             c3d.bindFramebuffer(c3d.getInternalBackbuffer());
         else
             c3d.bindFramebuffer((C3D_RenderTarget*)targets.getFirstTarget().texture->getRenderTargetHandle());
-        LOG("Viewport size: %dx%d", pixelWidth, pixelHeight);
+
         bool tilt = isWindow ? true : false;
-        c3d.setViewport(pixelWidth, pixelHeight, tilt);
+        c3d.setViewport({ 0, 0, pixelWidth, pixelHeight }, tilt);
 
         if (state.scissor)
             c3d.setScissor(state.scissorRect);
@@ -409,7 +409,7 @@ namespace love
 
     void Graphics::setViewport(int x, int y, int width, int height)
     {
-        c3d.setViewport(width, height, true);
+        c3d.setViewport({ x, y, width, height }, true);
     }
 
     TextureBase* Graphics::newTexture(const TextureBase::Settings& settings, const TextureBase::Slices* data)

@@ -194,7 +194,8 @@ namespace love
         if (bindingModified)
         {
             C3D_FrameDrawOn(framebuffer);
-            this->setViewport(framebuffer->frameBuf.height, framebuffer->frameBuf.width, framebuffer->linked);
+            this->setViewport({ 0, 0, framebuffer->frameBuf.height, framebuffer->frameBuf.width },
+                              framebuffer->linked);
         }
     }
 
@@ -217,18 +218,18 @@ namespace love
         }
     }
 
-    void citro3d::setViewport(int width, int height, bool tilt)
+    void citro3d::setViewport(const Rect& v, bool tilt)
     {
         this->context.dirtyProjection = true;
 
-        if (height == GSP_SCREEN_WIDTH && tilt)
+        if (v.h == GSP_SCREEN_WIDTH && tilt)
         {
-            if (width == GSP_SCREEN_HEIGHT_TOP || width == GSP_SCREEN_HEIGHT_TOP_2X)
+            if (v.w == GSP_SCREEN_HEIGHT_TOP || v.w == GSP_SCREEN_HEIGHT_TOP_2X)
             {
                 Mtx_Copy(&this->context.projection, &this->targets[0].getProjection());
                 return;
             }
-            else if (width == GSP_SCREEN_HEIGHT_BOTTOM)
+            else if (v.w == GSP_SCREEN_HEIGHT_BOTTOM)
             {
                 const auto index = gfxIs3D() ? 2 : 1;
                 Mtx_Copy(&this->context.projection, &this->targets[index].getProjection());
@@ -236,12 +237,9 @@ namespace love
             }
         }
 
-        // clang-format off
         auto* ortho = tilt ? Mtx_OrthoTilt : Mtx_Ortho;
-        ortho(&this->context.projection, 0.0f, width, height, 0.0f, Framebuffer::Z_NEAR, Framebuffer::Z_FAR, true);
-        // clang-format on
-
-        C3D_SetViewport(0, 0, (uint32_t)width, (uint32_t)height);
+        ortho(&this->context.projection, v.x, v.w, v.h, v.y, Framebuffer::Z_NEAR, Framebuffer::Z_FAR, true);
+        C3D_SetViewport((uint32_t)v.x, (uint32_t)v.y, (uint32_t)v.w, (uint32_t)v.h);
     }
 
     void citro3d::setScissor(const Rect& scissor)

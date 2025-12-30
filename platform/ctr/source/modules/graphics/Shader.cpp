@@ -83,7 +83,7 @@ namespace love
         }
     }
 
-    void Shader::updateBuiltinUniforms(GraphicsBase* graphics, C3D_Mtx mdlvMtx, const C3D_Mtx& projMtx)
+    void Shader::updateBuiltinUniforms(GraphicsBase* graphics, C3D_Mtx& mdlvMtx, const C3D_Mtx& projMtx)
     {
         if (this->hasUniform("mdlvMtx"))
         {
@@ -92,7 +92,10 @@ namespace love
         }
 
         if (this->hasUniform("projMtx"))
+        {
+            updateTransform(mdlvMtx, graphics->getDeviceProjection());
             C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, this->reflection.uniforms["projMtx"]->location, &projMtx);
+        }
     }
 
     void Shader::attach()
