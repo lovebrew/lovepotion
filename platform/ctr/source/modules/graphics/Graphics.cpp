@@ -142,6 +142,9 @@ namespace love
             gammaCorrectColor(color.value);
             c3d.clear(color.value);
         }
+
+        if (!this->isRenderTargetActive())
+            c3d.bindFramebuffer(c3d.getInternalBackbuffer());
     }
 
     C3D_RenderTarget* Graphics::getInternalBackbuffer() const
@@ -184,7 +187,8 @@ namespace love
             c3d.clear(value);
         }
 
-        c3d.bindFramebuffer(c3d.getInternalBackbuffer());
+        if (!this->isRenderTargetActive())
+            c3d.bindFramebuffer(c3d.getInternalBackbuffer());
     }
 
     void Graphics::present(void* screenshotCallbackData)
@@ -196,6 +200,56 @@ namespace love
             throw love::Exception("present cannot be called while a render target is active.");
 
         c3d.present();
+
+        if (!this->pendingScreenshotCallbacks.empty())
+        {
+            u16 width, height;
+            const auto* top     = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, &width, &height);
+            auto* imageModule   = Module::getInstance<Image>(Module::M_IMAGE);
+            uint8_t* screenshot = nullptr;
+
+            size_t row  = 4 * width;
+            size_t size = row * height;
+
+            try
+            {
+                screenshot = new uint8_t[size];
+            }
+            catch (std::exception&)
+            {
+                delete[] screenshot;
+                throw love::Exception(E_OUT_OF_MEMORY);
+            }
+
+            std::memcpy(screenshot, top, size);
+
+            for (int index = 0; index < (int)this->pendingScreenshotCallbacks.size(); index++)
+            {
+                const auto& info = this->pendingScreenshotCallbacks[index];
+                ImageData* image = nullptr;
+
+                try
+                {
+                    image = imageModule->newImageData(width, height, PIXELFORMAT_RGBA8_UNORM, screenshot);
+                }
+                catch (love::Exception&)
+                {
+                    delete[] screenshot;
+                    info.callback(&info, nullptr, nullptr);
+                    for (int j = index + 1; j < (int)this->pendingScreenshotCallbacks.size(); j++)
+                    {
+                        const auto& nextInfo = this->pendingScreenshotCallbacks[j];
+                        nextInfo.callback(&nextInfo, nullptr, nullptr);
+                    }
+                    this->pendingScreenshotCallbacks.clear();
+                    throw;
+                }
+                info.callback(&info, image, screenshotCallbackData);
+                image->release();
+            }
+            delete[] screenshot;
+            this->pendingScreenshotCallbacks.clear();
+        }
 
         c3d.bindFramebuffer(c3d.getInternalBackbuffer());
 

@@ -1,3 +1,4 @@
+#include "common/Reference.hpp"
 #include "common/screen.hpp"
 
 #include "modules/graphics/wrap_Graphics.hpp"
@@ -16,6 +17,9 @@
 #include "modules/image/wrap_CompressedImageData.hpp"
 #include "modules/image/wrap_Image.hpp"
 #include "modules/image/wrap_ImageData.hpp"
+
+#include "modules/thread/Channel.hpp"
+#include "modules/thread/wrap_Channel.hpp"
 
 using namespace love;
 
@@ -1627,6 +1631,122 @@ int Wrap_Graphics::getStats(lua_State* L)
     return 1;
 }
 
+static void screenshotFunctionCallback(const GraphicsBase::ScreenshotInfo* info, ImageData* data, void* gd)
+{
+    if (info == nullptr)
+        return;
+
+    lua_State* L   = (lua_State*)gd;
+    Reference* ref = (Reference*)info->data;
+
+    if (data != nullptr && L != nullptr)
+    {
+        if (ref == nullptr)
+            luaL_error(L, "Internal error in screenshot callback.");
+
+        ref->push(L);
+        delete ref;
+        luax_pushtype(L, data);
+        lua_call(L, 1, 0);
+    }
+    else
+        delete ref;
+}
+
+struct ScreenshotFileInfo
+{
+    std::string filename;
+    FormatHandler::EncodedFormat format;
+};
+
+static void screenshotFileCallback(const GraphicsBase::ScreenshotInfo* info, ImageData* data, void*)
+{
+    if (info == nullptr)
+        return;
+
+    ScreenshotFileInfo* fileInfo = (ScreenshotFileInfo*)info->data;
+    if (data != nullptr && fileInfo != nullptr)
+    {
+        try
+        {
+            data->encode(fileInfo->format, fileInfo->filename.c_str(), true);
+        }
+        catch (love::Exception& e)
+        {
+            std::printf("Screenshot encoding or saving failed: %s\n", e.what());
+        }
+    }
+    delete fileInfo;
+}
+
+static void screenshotChannelCallback(const GraphicsBase::ScreenshotInfo* info, ImageData* data, void* gd)
+{
+    if (info == nullptr)
+        return;
+
+    auto* channel = (Channel*)info->data;
+
+    if (channel != nullptr)
+    {
+        if (data != nullptr)
+            channel->push(Variant(&ImageData::type, data));
+        channel->release();
+    }
+}
+
+int Wrap_Graphics::captureScreenshot(lua_State* L)
+{
+    GraphicsBase::ScreenshotInfo info {};
+    if (lua_isfunction(L, 1))
+    {
+        lua_pushvalue(L, 1);
+        info.data = luax_refif(L, LUA_TFUNCTION);
+        lua_pop(L, 1);
+        info.callback = screenshotFunctionCallback;
+    }
+    else if (lua_isstring(L, 1))
+    {
+        std::string filename = luax_checkstring(L, 1);
+        std::string extension;
+
+        size_t dotpos = filename.rfind('.');
+        if (dotpos != std::string::npos)
+            extension = filename.substr(dotpos + 1);
+
+        std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+
+        FormatHandler::EncodedFormat format;
+        if (!ImageData::getConstant(extension.c_str(), format))
+            return luax_enumerror(L, "encoded image format", ImageData::EncodedFormats, extension.c_str());
+
+        ScreenshotFileInfo* fileInfo = new ScreenshotFileInfo();
+        fileInfo->filename           = filename;
+        fileInfo->format             = format;
+
+        info.data     = fileInfo;
+        info.callback = screenshotFileCallback;
+    }
+    else if (luax_istype(L, 1, Channel::type))
+    {
+        auto* channel = luax_checkchannel(L, 1);
+        channel->retain();
+
+        info.data     = channel;
+        info.callback = screenshotChannelCallback;
+    }
+    else
+        return luax_typeerror(L, 1, "function, string, or Channel");
+
+    luax_catchexcept(
+        L, [&]() { instance()->captureScreenshot(info); },
+        [&](bool except) {
+            if (except)
+                info.callback(&info, nullptr, nullptr);
+        });
+
+    return 0;
+}
+
 int Wrap_Graphics::polygon(lua_State* L)
 {
     int argc = lua_gettop(L) - 1;
@@ -2293,6 +2413,8 @@ static constexpr luaL_Reg functions[] =
 
     { "newTextBatch",           Wrap_Graphics::newTextBatch          },
     { "newSpriteBatch",         Wrap_Graphics::newSpriteBatch        },
+
+    { "captureScreenshot",      Wrap_Graphics::captureScreenshot     },
 
     { "newFont",                Wrap_Graphics::newFont               },
     { "setFont",                Wrap_Graphics::setFont               },

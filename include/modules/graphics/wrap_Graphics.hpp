@@ -91,6 +91,8 @@ namespace Wrap_Graphics
 
     int getScissor(lua_State* L);
 
+    int captureScreenshot(lua_State* L);
+
     int getStackDepth(lua_State* L);
 
     int push(lua_State* L);

@@ -202,10 +202,9 @@ function love.run()
                 love.graphics.setActiveScreen(display_name)
 
                 love.graphics.origin()
-
                 love.graphics.clear(love.graphics.getBackgroundColor())
-                local stereoscopic_depth = get_stereoscopic_depth(display_name)
 
+                local stereoscopic_depth = get_stereoscopic_depth(display_name)
                 if love.draw then love.draw(display_name, stereoscopic_depth) end
                 love.graphics.copyCurrentScanBuffer()
             end
