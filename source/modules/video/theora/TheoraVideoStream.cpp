@@ -277,6 +277,9 @@ namespace love
 
             Y2RU_StopConversion();
 
+            while (isBusy)
+                Y2RU_IsBusyConversion(&isBusy);
+
             switch (this->videoInfo.pixel_fmt)
             {
                 case TH_PF_420:
@@ -313,6 +316,10 @@ namespace love
             // clang-format on
 
             Y2RU_StartConversion();
+
+            Y2RU_GetTransferEndEvent(&this->handle);
+            if (svcWaitSynchronization(this->handle, 6e7))
+                std::printf("y2r:u timed out.\n");
 #endif
 
             {
