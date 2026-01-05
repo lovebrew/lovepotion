@@ -73,43 +73,43 @@ static constexpr std::array<const luaL_Reg, 21> modules =
 
 const char* love_getVersion()
 {
-    return __LOVE_VERSION__;
+    return LOVE_VERSION_STRING;
 }
 
 const char* love_getCodename()
 {
-    return love::CODENAME;
+    return love::VERSION_CODENAME;
 }
 
 static int w_love_getVersion(lua_State* L)
 {
-    lua_pushinteger(L, love::LOVE_FRAMEWORK.major);
-    lua_pushinteger(L, love::LOVE_FRAMEWORK.minor);
-    lua_pushinteger(L, love::LOVE_FRAMEWORK.revision);
+    lua_pushinteger(L, love::VERSION.major);
+    lua_pushinteger(L, love::VERSION.minor);
+    lua_pushinteger(L, love::VERSION.patch);
 
-    lua_pushstring(L, love::CODENAME);
+    lua_pushstring(L, love::VERSION_CODENAME);
 
     return 4;
 }
 
 int love_isVersionCompatible(lua_State* L)
 {
-    love::Version check {};
+    love::Version version {};
 
     if (lua_type(L, 1) == LUA_TSTRING)
-        check = love::Version(luaL_checkstring(L, 1));
+        version = love::Version(luaL_checkstring(L, 1));
     else
     {
         int major    = luaL_checkinteger(L, 1);
         int minor    = luaL_checkinteger(L, 2);
         int revision = luaL_optinteger(L, 3, 0);
 
-        check = love::Version(major, minor, revision);
+        version = love::Version(major, minor, revision);
     }
 
-    for (auto& item : love::COMPATIBILITY)
+    for (auto& item : love::VERSION_COMPATIBILITY)
     {
-        if (check != item)
+        if (version != item)
             continue;
 
         lua_pushboolean(L, true);
@@ -192,19 +192,19 @@ int love_initialize(lua_State* L)
     love::luax_insistpinnedthread(L);
     love::luax_insistglobal(L, "love");
 
-    lua_pushstring(L, __LOVE_VERSION__);
+    lua_pushstring(L, LOVE_VERSION_STRING);
     lua_setfield(L, -2, "_version");
 
-    lua_pushnumber(L, love::LOVE_FRAMEWORK.major);
+    lua_pushnumber(L, love::VERSION.major);
     lua_setfield(L, -2, "_version_major");
 
-    lua_pushnumber(L, love::LOVE_FRAMEWORK.minor);
+    lua_pushnumber(L, love::VERSION.minor);
     lua_setfield(L, -2, "_version_minor");
 
-    lua_pushnumber(L, love::LOVE_FRAMEWORK.revision);
+    lua_pushnumber(L, love::VERSION.patch);
     lua_setfield(L, -2, "_version_revision");
 
-    lua_pushstring(L, love::CODENAME);
+    lua_pushstring(L, love::VERSION_CODENAME);
     lua_setfield(L, -2, "_version_codename");
 
     lua_pushcfunction(L, love_openConsole);
@@ -213,9 +213,9 @@ int love_initialize(lua_State* L)
     lua_register(L, "print", love_print);
 
     lua_newtable(L);
-    for (size_t index = 0; index < love::COMPATIBILITY.size(); index++)
+    for (size_t index = 0; index < love::VERSION_COMPATIBILITY.size(); index++)
     {
-        lua_pushstring(L, love::COMPATIBILITY[index]);
+        lua_pushstring(L, love::VERSION_COMPATIBILITY[index]);
         lua_rawseti(L, -2, index + 1);
     }
     lua_setfield(L, -2, "_version_compat");
