@@ -22,7 +22,8 @@ target_compile_options(${PROJECT_NAME} PRIVATE
     $<$<COMPILE_LANGUAGE:CXX>:-fexceptions -fno-rtti>
 )
 target_compile_definitions(${PROJECT_NAME} PRIVATE
-    __APP_VERSION__="${PROJECT_VERSION}" __LOVE_VERSION__="12.0"
+    LOVE_POTION_VERSION_STRING="${PROJECT_VERSION}"
+    LOVE_VERSION_STRING="12.0"
     $<$<CONFIG:Debug>:__DEBUG__=1>
 )
 
