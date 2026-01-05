@@ -19,6 +19,7 @@
 #include "modules/graphics/ShaderStage.tcc"
 #include "modules/graphics/TextBatch.hpp"
 #include "modules/graphics/Texture.tcc"
+#include "modules/graphics/Video.hpp"
 #include "modules/graphics/vertex.hpp"
 
 #include "modules/graphics/Volatile.hpp"
@@ -37,7 +38,7 @@ namespace love
     class SpriteBatch;
     class ParticleSystem;
     class TextBatch;
-    class Video;
+    class VideoBase;
     class BufferBase;
 
     using OptionalColor = Optional<Color>;
@@ -444,6 +445,8 @@ namespace love
         ColorChannelMask getColorMask() const;
 
         void setBlendMode(BlendMode mode, BlendAlpha alphaMode);
+
+        Video* newVideo(VideoStream* stream, float dpiScale);
 
         Quad* newQuad(Quad::Viewport viewport, double sourceWidth, double sourceHeight) const;
 

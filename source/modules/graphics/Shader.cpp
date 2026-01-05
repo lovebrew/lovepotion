@@ -1,6 +1,7 @@
 #include "common/Exception.hpp"
 
 #include "modules/graphics/Shader.tcc"
+#include "modules/graphics/Texture.tcc"
 
 namespace love
 {
@@ -70,4 +71,7 @@ namespace love
 
         return false;
     }
+
+    void ShaderBase::setVideoTextures(const std::vector<TextureBase*>& textures)
+    {}
 } // namespace love

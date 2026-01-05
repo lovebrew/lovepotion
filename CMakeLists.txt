@@ -191,6 +191,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/common/b64.cpp
     source/common/Data.cpp
     source/common/debug.cpp
+    source/common/delay.cpp
     source/common/float.cpp
     source/common/luax.cpp
     source/common/Matrix.cpp
@@ -259,6 +260,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/graphics/wrap_SpriteBatch.cpp
     source/modules/graphics/Quad.cpp
     source/modules/graphics/Volatile.cpp
+    source/modules/graphics/Video.cpp
     source/modules/graphics/vertex.cpp
     source/modules/graphics/wrap_Graphics.cpp
     source/modules/graphics/wrap_ParticleSystem.cpp
@@ -266,6 +268,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/graphics/wrap_TextBatch.cpp
     source/modules/graphics/wrap_Font.cpp
     source/modules/graphics/wrap_Quad.cpp
+    source/modules/graphics/wrap_Video.cpp
     source/modules/graphics/Texture.cpp
     source/modules/image/CompressedImageData.cpp
     source/modules/image/CompressedSlice.cpp
@@ -309,6 +312,12 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/timer/wrap_Timer.cpp
     source/modules/touch/Touch.cpp
     source/modules/touch/wrap_Touch.cpp
+    source/modules/video/wrap_Video.cpp
+    source/modules/video/wrap_VideoStream.cpp
+    source/modules/video/VideoStream.cpp
+    source/modules/video/theora/OggDemuxer.cpp
+    source/modules/video/theora/TheoraVideoStream.cpp
+    source/modules/video/theora/Video.cpp
     source/modules/window/wrap_Window.cpp
     source/modules/window/Window.cpp
     source/modules/data/misc/Compressor.cpp
@@ -367,5 +376,5 @@ endif()
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     ${APP_LIBS} z luabit lua53 ogg modplug https PkgConfig::libcurl luasocket
-    love_physfs wuff noise1234 PkgConfig::lua51 PkgConfig::liblz4
+    love_physfs wuff noise1234 PkgConfig::lua51 PkgConfig::liblz4 theora
 )

@@ -6,6 +6,7 @@
 
 #include "modules/graphics/Resource.hpp"
 #include "modules/graphics/ShaderStage.tcc"
+#include "modules/graphics/Texture.tcc"
 
 #include <map>
 #include <string>
@@ -101,6 +102,8 @@ namespace love
         static void attachDefault(StandardShader type);
 
         static bool isDefaultActive();
+
+        void setVideoTextures(const std::vector<TextureBase*>& textures);
 
       protected:
         struct Reflection

@@ -11,6 +11,7 @@
 #include "modules/graphics/wrap_SpriteBatch.hpp"
 #include "modules/graphics/wrap_TextBatch.hpp"
 #include "modules/graphics/wrap_Texture.hpp"
+#include "modules/graphics/wrap_Video.hpp"
 
 #include "modules/image/Image.hpp"
 #include "modules/image/ImageData.hpp"
@@ -18,8 +19,14 @@
 #include "modules/image/wrap_Image.hpp"
 #include "modules/image/wrap_ImageData.hpp"
 
+#include "modules/video/VideoStream.hpp"
+
 #include "modules/thread/Channel.hpp"
 #include "modules/thread/wrap_Channel.hpp"
+
+static constexpr char wrap_graphics_lua[] = {
+#include "modules/graphics/wrap_Graphics.lua"
+};
 
 using namespace love;
 
@@ -2060,6 +2067,24 @@ int Wrap_Graphics::line(lua_State* L)
     return 0;
 }
 
+int Wrap_Graphics::newVideo(lua_State* L)
+{
+    luax_checkgraphicscreated(L);
+
+    if (!luax_istype(L, 1, VideoStream::type))
+        luax_convobj(L, 1, "video", "newVideoStream");
+
+    auto* stream   = luax_checktype<VideoStream>(L, 1);
+    float dpiScale = (float)luaL_optnumber(L, 2, 1.0f);
+
+    Video* video = nullptr;
+    luax_catchexcept(L, [&]() { video = instance()->newVideo(stream, dpiScale); });
+
+    luax_pushtype(L, video);
+    video->release();
+    return 1;
+}
+
 int Wrap_Graphics::getDefaultFilter(lua_State* L)
 {
     const auto& state = instance()->getDefaultSamplerState();
@@ -2410,6 +2435,7 @@ static constexpr luaL_Reg functions[] =
     { "newQuad",                Wrap_Graphics::newQuad               },
     { "newImage",               Wrap_Graphics::newImage              },
     { "newParticleSystem",      Wrap_Graphics::newParticleSystem     },
+    { "_newVideo",              Wrap_Graphics::newVideo              },
 
     { "newTextBatch",           Wrap_Graphics::newTextBatch          },
     { "newSpriteBatch",         Wrap_Graphics::newSpriteBatch        },
@@ -2441,7 +2467,8 @@ static constexpr lua_CFunction types[] =
     love::open_font,
     love::open_textbatch,
     love::open_spritebatch,
-    love::open_particlesystem
+    love::open_particlesystem,
+    love::open_video
 };
 // clang-format on
 
@@ -2461,5 +2488,14 @@ int Wrap_Graphics::open(lua_State* L)
     module.platformFunctions = platformFunctions;
     module.types             = types;
 
-    return luax_register_module(L, module);
+    int n = luax_register_module(L, module);
+
+    // clang-format off
+    if (luaL_loadbuffer(L, (const char*)wrap_graphics_lua, sizeof(wrap_graphics_lua),"=[love \"wrap_Graphics.lua\"]") == 0)
+        lua_call(L, 0, 0);
+    else
+        lua_error(L);
+    // clang-format on
+
+    return n;
 }

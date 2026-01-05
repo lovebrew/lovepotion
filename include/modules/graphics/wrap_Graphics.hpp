@@ -93,6 +93,8 @@ namespace Wrap_Graphics
 
     int captureScreenshot(lua_State* L);
 
+    int newVideo(lua_State* L);
+
     int getStackDepth(lua_State* L);
 
     int push(lua_State* L);

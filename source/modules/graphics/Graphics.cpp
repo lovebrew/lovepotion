@@ -254,6 +254,11 @@ namespace love
             this->resetProjection();
     }
 
+    Video* GraphicsBase::newVideo(VideoStream* stream, float dpiScale)
+    {
+        return new Video(this, stream, dpiScale);
+    }
+
     void GraphicsBase::setRenderTarget()
     {
         DisplayState& state = this->states.back();
