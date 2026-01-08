@@ -46,9 +46,7 @@ pkg_check_modules(liblz4 REQUIRED IMPORTED_TARGET liblz4)
 pkg_check_modules(lua51 REQUIRED IMPORTED_TARGET lua51)
 
 # lua51
-add_library(luabit
-    libraries/luabit/bit.c
-)
+add_library(luabit libraries/luabit/bit.c)
 target_link_libraries(luabit PRIVATE PkgConfig::lua51)
 
 # lua53-compat
@@ -98,22 +96,29 @@ add_library(luasocket
      ${LUASOCKET_COPY_DIR}/luasocket/libluasocket/usocket.h
 )
 target_link_libraries(luasocket PRIVATE PkgConfig::lua51)
-target_include_directories(luasocket PRIVATE
-    libraries/lua53
-)
+target_include_directories(luasocket PRIVATE libraries/lua53)
 
-if(NINTENDO_WIIU)
-    set(HTTPS_USE_FPIC OFF CACHE BOOL "Disable PIC for lua-https")
-endif()
-
-FetchContent_Declare(lua-https
-    GIT_REPOSITORY https://github.com/lovebrew/lua-https
-    GIT_TAG        optional-fpic
+add_library(luahttps
+    libraries/luahttps/src/common/config.h
+    libraries/luahttps/src/common/Connection.h
+    libraries/luahttps/src/common/ConnectionClient.h
+    libraries/luahttps/src/common/HTTPRequest.cpp
+    libraries/luahttps/src/common/HTTPRequest.h
+    libraries/luahttps/src/common/HTTPS.cpp
+    libraries/luahttps/src/common/HTTPS.h
+    libraries/luahttps/src/common/HTTPSClient.cpp
+    libraries/luahttps/src/common/HTTPSClient.h
+    libraries/luahttps/src/common/LibraryLoader.h
+    libraries/luahttps/src/common/PlaintextConnection.cpp
+    libraries/luahttps/src/common/PlaintextConnection.h
+    libraries/luahttps/src/generic/CurlClient.cpp
+    libraries/luahttps/src/generic/CurlClient.h
+    libraries/luahttps/src/generic/LinktimeLibraryLoader.cpp
+    libraries/luahttps/src/lua/main.cpp
 )
-FetchContent_GetProperties(lua-https)
-if(NOT lua-https_POPULATED)
-    FetchContent_MakeAvailable(lua-https)
-endif()
+target_compile_definitions(luahttps PRIVATE HTTPS_LIBRARY_LOADER_LINKTIME=1)
+target_link_libraries(luahttps PRIVATE PkgConfig::lua51)
+
 pkg_check_modules(libcurl REQUIRED IMPORTED_TARGET libcurl)
 
 add_library(love_physfs
@@ -179,6 +184,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     libraries/lua53
     libraries/noise1234
     libraries/luasocket
+    libraries/luahttps
     libraries/physfs
     libraries/wuff
     libraries/utf8
@@ -366,6 +372,6 @@ else()
 endif()
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
-    ${APP_LIBS} z luabit lua53 ogg modplug https PkgConfig::libcurl luasocket
+    ${APP_LIBS} z luabit lua53 ogg modplug luahttps PkgConfig::libcurl luasocket
     love_physfs wuff noise1234 PkgConfig::lua51 PkgConfig::liblz4
 )
