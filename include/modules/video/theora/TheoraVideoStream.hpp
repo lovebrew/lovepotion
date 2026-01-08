@@ -51,6 +51,12 @@ namespace love
         th_info videoInfo;
         th_dec_ctx* decoder;
 
+        struct VideoCrop
+        {
+            int width;
+            int height;
+        } crop;
+
         Frame* frontBuffer;
         Frame* backBuffer;
 

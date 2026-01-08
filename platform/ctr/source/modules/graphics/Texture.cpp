@@ -4,8 +4,8 @@
 #include "driver/display/citro3d.hpp"
 #include "modules/graphics/DrawCommand.hpp"
 
+#include "common/debug.hpp"
 #include <tex3ds.h>
-
 namespace love
 {
     static void createFramebufferObject(C3D_RenderTarget*& target, C3D_Tex*& texture, uint16_t width,
@@ -281,7 +281,10 @@ namespace love
 
         // copy it directly if the size is the whole thing
         if (rect == Rect(0, 0, mipWidth, mipHeight))
+        {
+            LOG("MEMCPY!");
             std::memcpy(textureData, data, size);
+        }
         else
         {
             switch (this->getPixelFormat())
@@ -303,7 +306,7 @@ namespace love
             }
         }
 
-        C3D_TexFlush(this->texture);
+        // C3D_TexFlush(this->texture);
     }
 
     void Texture::generateMipmapsInternal()

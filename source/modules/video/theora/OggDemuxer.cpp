@@ -23,8 +23,8 @@ namespace love
             if (syncBuffer && !this->streamInited && ogg_stream_check(&this->stream))
                 throw love::Exception("Invalid stream.");
 
-            syncBuffer  = ogg_sync_buffer(&this->sync, 8192);
-            size_t read = this->file->read(syncBuffer, 8192);
+            syncBuffer  = ogg_sync_buffer(&this->sync, DEFAULT_BUFFER_SIZE);
+            size_t read = this->file->read(syncBuffer, DEFAULT_BUFFER_SIZE);
             if (read == 0 && errorEof)
                 return false;
 

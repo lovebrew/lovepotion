@@ -99,6 +99,8 @@ namespace love
                 return EXIT_FAILURE;
             }
 
+            APT_SetAppCpuTimeLimit(30);
+
             return 0;
         }
 

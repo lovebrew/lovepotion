@@ -116,6 +116,11 @@ namespace love
         }
     }
 
+    inline int computeCropping(int offset, int frameSize)
+    {
+        return ((offset + frameSize + 1) & ~1) - (offset & ~1);
+    }
+
     void TheoraVideoStream::parseHeader()
     {
         if (this->headerParsed)
@@ -170,8 +175,34 @@ namespace love
             // clang-format on
         }
 #else
-        const auto size = getPixelFormatSliceSize(PIXELFORMAT_RGBA8_UNORM, this->videoInfo.pic_width,
-                                                  this->videoInfo.pic_height);
+        switch (this->videoInfo.pixel_fmt)
+        {
+            case TH_PF_420:
+                Y2RU_SetInputFormat(INPUT_YUV420_INDIV_8);
+                break;
+            case TH_PF_422:
+                Y2RU_SetInputFormat(INPUT_YUV422_INDIV_8);
+                break;
+            case TH_PF_444:
+                throw love::Exception("YUV444 is not supported by y2r:u.");
+            case TH_PF_RSVD:
+                throw love::Exception("Unknown Chroma sampling.");
+        }
+
+        const auto format = PIXELFORMAT_RGBA8_UNORM;
+        auto size = getPixelFormatSliceSize(format, this->videoInfo.pic_width, this->videoInfo.pic_height);
+
+        this->crop.width  = computeCropping(this->videoInfo.pic_x, this->videoInfo.frame_width);
+        this->crop.height = computeCropping(this->videoInfo.pic_y, this->videoInfo.frame_height);
+
+        Y2RU_SetOutputFormat(OUTPUT_RGB_32);
+        Y2RU_SetRotation(ROTATION_NONE);
+        Y2RU_SetBlockAlignment(BLOCK_8_BY_8);
+        Y2RU_SetTransferEndInterrupt(true);
+        Y2RU_SetInputLineWidth(this->crop.width);
+        Y2RU_SetInputLines(this->crop.height);
+        Y2RU_SetStandardCoefficient(COEFFICIENT_ITU_R_BT_601_SCALING);
+        Y2RU_SetAlpha(0xFF);
 
         for (int index = 0; index < buffers.size(); index++)
         {
@@ -213,8 +244,13 @@ namespace love
         uint32_t framesBehind = 0;
         bool failedSeek       = false;
 
+        int result = 0;
+
         while (!this->demuxer.isEos() && position >= this->nextFrame)
         {
+            if (result == TH_DUPFRAME)
+                continue;
+
             if (framesBehind++ > 5 && !failedSeek)
             {
                 this->seekDecoder(position);
@@ -237,7 +273,7 @@ namespace love
                     th_decode_ctl(this->decoder, TH_DECCTL_SET_GRANPOS, &packet.granulepos, sizeof(packet.granulepos));
                 // clang-format on
 
-            } while (th_decode_packetin(this->decoder, &this->packet, &decoderPosition) != 0);
+            } while ((result = th_decode_packetin(this->decoder, &this->packet, &decoderPosition)) != 0);
 
             this->lastFrame = this->nextFrame;
             this->nextFrame = th_granule_time(this->decoder, decoderPosition);
@@ -271,40 +307,17 @@ namespace love
             }
             // clang-format on
 #else
-            bool isBusy = true;
             if (!buffer[0].data || !buffer[1].data || !buffer[2].data)
                 return;
 
             Y2RU_StopConversion();
 
+            bool isBusy = true;
             while (isBusy)
                 Y2RU_IsBusyConversion(&isBusy);
 
-            switch (this->videoInfo.pixel_fmt)
-            {
-                case TH_PF_420:
-                    Y2RU_SetInputFormat(INPUT_YUV420_INDIV_8);
-                    break;
-                case TH_PF_422:
-                    Y2RU_SetInputFormat(INPUT_YUV422_INDIV_8);
-                    break;
-                default:
-                    break;
-            }
-
-            // clang-format off
-            const auto width  = ((this->videoInfo.pic_x + this->videoInfo.frame_width  + 1) & ~1) - (this->videoInfo.pic_x & ~1);
-            const auto height = ((this->videoInfo.pic_y + this->videoInfo.frame_height + 1) & ~1) - (this->videoInfo.pic_y & ~1);
-            // clang-format on
-
-            Y2RU_SetOutputFormat(OUTPUT_RGB_32);
-            Y2RU_SetRotation(ROTATION_NONE);
-            Y2RU_SetBlockAlignment(BLOCK_8_BY_8);
-            Y2RU_SetTransferEndInterrupt(true);
-            Y2RU_SetInputLineWidth(width);
-            Y2RU_SetInputLines(height);
-            Y2RU_SetStandardCoefficient(COEFFICIENT_ITU_R_BT_601_SCALING);
-            Y2RU_SetAlpha(0xFF);
+            const auto width  = this->crop.width;
+            const auto height = this->crop.height;
 
             // clang-format off
             Y2RU_SetSendingY(buffer[0].data, width * height, width, buffer[0].stride - width);

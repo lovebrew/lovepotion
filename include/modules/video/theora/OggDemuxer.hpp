@@ -17,6 +17,7 @@ namespace love
         };
 
         static constexpr double REWIND_THRESHOLD = 0.01;
+        static constexpr int DEFAULT_BUFFER_SIZE = 4096;
 
         OggDemuxer(FileBase* file);
 

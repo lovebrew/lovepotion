@@ -9,16 +9,10 @@
     #include <coreinit/time.h>
 #endif
 
-#include <chrono>
-
 void love::sleep(double ms)
 {
 #if !defined(__WIIU__)
-    using namespace std::chrono;
-
-    auto time = duration<double, std::milli>(ms);
-    auto ns   = duration_cast<nanoseconds>(time);
-    svcSleepThread((int64_t)ns.count());
+    svcSleepThread(NS_TO_MS * ms);
 #else
     OSSleepTicks(OSMillisecondsToTicks(ms));
 #endif

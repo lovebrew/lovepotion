@@ -66,16 +66,14 @@ namespace love
 
 #if !defined(__3DS__)
         const std::array<uint8_t*, 3> data = { frame->yPlane, frame->cbPlane, frame->crPlane };
-        const auto count                   = this->data.size();
 #else
-        const std::array<uint8_t*, 3> data = { frame->data, frame->data, frame->data };
-        const auto count                   = 1;
+        const std::array<uint8_t*, 1> data = { frame->data };
 #endif
 
         TextureBase::Settings settings {};
         const auto format = Console::is(Console::CTR) ? PIXELFORMAT_RGBA8_UNORM : PIXELFORMAT_R8_UNORM;
 
-        for (int index = 0; index < count; index++)
+        for (int index = 0; index < data.size(); index++)
         {
             settings.width  = widths[index];
             settings.height = heights[index];
