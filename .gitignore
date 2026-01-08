@@ -1,13 +1,7 @@
-build
 .vscode
-*.zip
-*.log
-logs/
-target/
+.zed
+
+build
 *.3dsx
 *.nro
 *.wuhb
-*.py
-__pycache__/
-todo.md
-.zed
