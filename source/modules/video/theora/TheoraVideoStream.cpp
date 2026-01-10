@@ -220,14 +220,16 @@ namespace love
 
     void TheoraVideoStream::seekDecoder(double target)
     {
-        auto getTime = [this](int64_t position) { return th_granule_time(this->decoder, position); };
-        bool success = this->demuxer.seek(this->packet, target, getTime);
+        bool success = this->demuxer.seek(this->packet, target, [this](int64_t position) {
+            return th_granule_time(this->decoder, position);
+        });
 
         if (!success)
             return;
 
         this->lastFrame = this->nextFrame = -1;
-        th_decode_ctl(this->decoder, TH_DECCTL_SET_GRANPOS, &packet.granulepos, sizeof(packet.granulepos));
+        int position                      = this->packet.granulepos;
+        th_decode_ctl(this->decoder, TH_DECCTL_SET_GRANPOS, &position, sizeof(position));
     }
 
     void TheoraVideoStream::threadedFillBackBuffer(double dt)
@@ -244,13 +246,11 @@ namespace love
         uint32_t framesBehind = 0;
         bool failedSeek       = false;
 
-        int result = 0;
-
         while (!this->demuxer.isEos() && position >= this->nextFrame)
         {
-            if (result == TH_DUPFRAME)
-                continue;
+            ogg_int64_t decoderPosition;
 
+#if !defined(__3DS__)
             if (framesBehind++ > 5 && !failedSeek)
             {
                 this->seekDecoder(position);
@@ -261,22 +261,37 @@ namespace love
             th_decode_ycbcr_out(this->decoder, buffer);
             hasFrame = true;
 
-            ogg_int64_t decoderPosition;
-
             do
             {
-                if (this->demuxer.readPacket(packet))
+                if (this->demuxer.readPacket(this->packet))
                     return;
 
                 // clang-format off
                 if (this->packet.granulepos > 0)
-                    th_decode_ctl(this->decoder, TH_DECCTL_SET_GRANPOS, &packet.granulepos, sizeof(packet.granulepos));
+                    th_decode_ctl(this->decoder, TH_DECCTL_SET_GRANPOS, &this->packet.granulepos, sizeof(this->packet.granulepos));
                 // clang-format on
 
-            } while ((result = th_decode_packetin(this->decoder, &this->packet, &decoderPosition)) != 0);
+            } while (th_decode_packetin(this->decoder, &this->packet, &decoderPosition) != 0);
 
             this->lastFrame = this->nextFrame;
             this->nextFrame = th_granule_time(this->decoder, decoderPosition);
+#else
+            if (this->demuxer.readPacket(this->packet))
+                break;
+
+            // clang-format off
+            if (this->packet.granulepos >= 0)
+                th_decode_ctl(this->decoder, TH_DECCTL_SET_GRANPOS, &this->packet.granulepos, sizeof(this->packet.granulepos));
+            // clang-format on
+
+            if (th_decode_packetin(this->decoder, &this->packet, &decoderPosition) == 0)
+            {
+                th_decode_ycbcr_out(this->decoder, buffer);
+                hasFrame        = true;
+                this->lastFrame = this->nextFrame;
+                this->nextFrame = th_granule_time(this->decoder, decoderPosition);
+            }
+#endif
         }
 
         if (hasFrame)
@@ -325,7 +340,8 @@ namespace love
             Y2RU_SetSendingV(buffer[2].data, (width / 2) * (height / 2), width / 2, buffer[2].stride - (width >> 1));
 
             const auto formatSize = getPixelFormatBlockSize(PIXELFORMAT_RGBA8_UNORM);
-            Y2RU_SetReceiving(this->backBuffer->data, width * height * formatSize, width * 8 * formatSize, (NextPo2(width) - width) * 8 * formatSize);
+            const auto gap = (NextPo2(width) - width) * 8 * formatSize;
+            Y2RU_SetReceiving(this->backBuffer->data, width * height * formatSize, width * 8 * formatSize, gap);
             // clang-format on
 
             Y2RU_StartConversion();

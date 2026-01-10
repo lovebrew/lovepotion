@@ -61,6 +61,9 @@ namespace love
         PIXELFORMAT_RG32_INT,
         PIXELFORMAT_RG32_UINT,
 
+        // 3-channel normal formats
+        PIXELFORMAT_RGB8_UNORM,
+
         // 4-channel normal formats
         PIXELFORMAT_RGBA8_UNORM,
         PIXELFORMAT_RGBA8_sRGB,
@@ -304,6 +307,8 @@ namespace love
         { "rg32f",  PIXELFORMAT_RG32_FLOAT },
         { "rg32i",  PIXELFORMAT_RG32_INT   },
         { "rg32ui", PIXELFORMAT_RG32_UINT  },
+
+        { "rgb8", PIXELFORMAT_RGB8_UNORM },
 
         { "rgba8",     PIXELFORMAT_RGBA8_UNORM  },
         { "srgba8",    PIXELFORMAT_RGBA8_sRGB   },

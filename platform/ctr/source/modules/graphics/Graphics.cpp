@@ -251,8 +251,6 @@ namespace love
             this->pendingScreenshotCallbacks.clear();
         }
 
-        c3d.bindFramebuffer(c3d.getInternalBackbuffer());
-
         this->drawCalls        = 0;
         this->drawCallsBatched = 0;
 

@@ -350,8 +350,11 @@ namespace love
 
     void citro3d::bindTextureToUnit(TextureType target, C3D_Tex* texture, int unit)
     {
-        C3D_TexBind(0, texture);
-        this->context.boundTexture = texture;
+        if (this->context.boundTexture != texture)
+        {
+            this->context.boundTexture = texture;
+            C3D_TexBind(0, texture);
+        }
     }
 
     void citro3d::bindTextureToUnit(TextureBase* texture, int unit)

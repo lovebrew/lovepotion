@@ -55,19 +55,17 @@ namespace love
         this->vertices[3].s = 1.0f;
         this->vertices[3].t = 1.0f;
 
-#if defined(__3DS__)
-        for (int index = 0; index < this->vertices.size(); index++)
-            this->vertices[index].t = 1.0f - this->vertices[index].t;
-#endif
-
         auto* frame                      = (const VideoStream::Frame*)stream->getFrontBuffer();
         const std::array<int, 3> widths  = { frame->yw, frame->cw, frame->cw };
         const std::array<int, 3> heights = { frame->yh, frame->ch, frame->ch };
 
-#if !defined(__3DS__)
-        const std::array<uint8_t*, 3> data = { frame->yPlane, frame->cbPlane, frame->crPlane };
-#else
+#if defined(__3DS__)
+        for (int index = 0; index < this->vertices.size(); index++)
+            this->vertices[index].t = 1.0f - this->vertices[index].t;
+
         const std::array<uint8_t*, 1> data = { frame->data };
+#else
+        const std::array<uint8_t*, 3> data = { frame->yPlane, frame->cbPlane, frame->crPlane };
 #endif
 
         TextureBase::Settings settings {};
@@ -136,16 +134,12 @@ namespace love
             stream[index].t     = this->vertices[index].t;
             stream[index].color = graphics->getColor();
         }
-
-        graphics->flushBatchedDraws();
     }
 
     void Video::update()
     {
         bool changed = this->stream->swapBuffers();
         this->stream->fillBackBuffer();
-
-        const auto format = Console::is(Console::CTR) ? PIXELFORMAT_RGBA8_UNORM : PIXELFORMAT_R8_UNORM;
 
         if (changed)
         {
@@ -156,8 +150,16 @@ namespace love
 
 #if !defined(__3DS__)
             const std::array<uint8_t*, 3> data = { frame->yPlane, frame->cbPlane, frame->crPlane };
+
+            for (int index = 0; index < 3; index++)
+            {
+                size_t bpp  = getPixelFormatBlockSize(PIXELFORMAT_R8_UNORM);
+                size_t size = bpp * widths[index] * heights[index];
+                Rect rect   = { 0, 0, widths[index], heights[index] };
+                this->textures[index]->replacePixels(data[index], size, 0, 0, rect, false);
+            }
 #else
-            size_t size = getPixelFormatSliceSize(format, widths[0], heights[0]);
+            size_t size = getPixelFormatSliceSize(PIXELFORMAT_RGBA8_UNORM, widths[0], heights[0]);
             Rect rect   = { 0, 0, widths[0], heights[0] };
             this->textures[0]->replacePixels(frame->data, size, 0, 0, rect, false);
 #endif

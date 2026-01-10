@@ -281,10 +281,7 @@ namespace love
 
         // copy it directly if the size is the whole thing
         if (rect == Rect(0, 0, mipWidth, mipHeight))
-        {
-            LOG("MEMCPY!");
             std::memcpy(textureData, data, size);
-        }
         else
         {
             switch (this->getPixelFormat())
