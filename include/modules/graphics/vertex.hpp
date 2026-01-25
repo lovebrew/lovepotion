@@ -289,13 +289,12 @@ namespace love
         {
             Resource* buffer;
             size_t offset;
-            int vertexCount;
         } info[MAX];
 
-        void set(uint32_t index, Resource* r, size_t offset, int vertexCount)
+        void set(uint32_t index, Resource* r, size_t offset)
         {
             useBits |= (1u << index);
-            info[index] = { r, offset, vertexCount };
+            info[index] = { r, offset };
         }
 
         void disable(uint32_t index)
@@ -424,11 +423,65 @@ namespace love
 
     IndexDataType getIndexDataTypeFromMax(size_t maxValue);
 
+    IndexDataType getIndexDataType(DataFormat format);
+
     DataFormat getIndexDataFormat(IndexDataType type);
 
     size_t getIndexDataSize(IndexDataType type);
 
     // clang-format off
+    STRINGMAP_DECLARE(DataFormats, DataFormat,
+        { "float",     DATAFORMAT_FLOAT      },
+        { "floatvec2", DATAFORMAT_FLOAT_VEC2 },
+        { "floatvec3", DATAFORMAT_FLOAT_VEC3 },
+        { "floatvec4", DATAFORMAT_FLOAT_VEC4 },
+
+        { "floatmat2x2", DATAFORMAT_FLOAT_MAT2X2 },
+        { "floatmat2x3", DATAFORMAT_FLOAT_MAT2X3 },
+        { "floatmat2x4", DATAFORMAT_FLOAT_MAT2X4 },
+
+        { "floatmat3x2", DATAFORMAT_FLOAT_MAT3X2 },
+        { "floatmat3x3", DATAFORMAT_FLOAT_MAT3X3 },
+        { "floatmat3x4", DATAFORMAT_FLOAT_MAT3X4 },
+
+        { "floatmat4x2", DATAFORMAT_FLOAT_MAT4X2 },
+        { "floatmat4x3", DATAFORMAT_FLOAT_MAT4X3 },
+        { "floatmat4x4", DATAFORMAT_FLOAT_MAT4X4 },
+
+        { "int32",     DATAFORMAT_INT32      },
+        { "int32vec2", DATAFORMAT_INT32_VEC2 },
+        { "int32vec3", DATAFORMAT_INT32_VEC3 },
+        { "int32vec4", DATAFORMAT_INT32_VEC4 },
+
+        { "uint32",     DATAFORMAT_UINT32      },
+        { "uint32vec2", DATAFORMAT_UINT32_VEC2 },
+        { "uint32vec3", DATAFORMAT_UINT32_VEC3 },
+        { "uint32vec4", DATAFORMAT_UINT32_VEC4 },
+
+        { "snorm8vec4", DATAFORMAT_SNORM8_VEC4 },
+        { "unorm8vec4", DATAFORMAT_UNORM8_VEC4 },
+        { "int8vec4",   DATAFORMAT_INT8_VEC4   },
+        { "uint8vec4",  DATAFORMAT_UINT8_VEC4  },
+
+        { "snorm16vec2", DATAFORMAT_SNORM16_VEC2 },
+        { "snorm16vec4", DATAFORMAT_SNORM16_VEC4 },
+
+        { "unorm16vec2", DATAFORMAT_UNORM16_VEC2 },
+        { "unorm16vec4", DATAFORMAT_UNORM16_VEC4 },
+
+        { "int16vec2", DATAFORMAT_INT16_VEC2 },
+        { "int16vec4", DATAFORMAT_INT16_VEC4 },
+
+        { "uint16",     DATAFORMAT_UINT16      },
+        { "uint16vec2", DATAFORMAT_UINT16_VEC2 },
+        { "uint16vec4", DATAFORMAT_UINT16_VEC4 },
+
+        { "bool",     DATAFORMAT_BOOL      },
+        { "boolvec2", DATAFORMAT_BOOL_VEC2 },
+        { "boolvec3", DATAFORMAT_BOOL_VEC3 },
+        { "boolvec4", DATAFORMAT_BOOL_VEC4 },
+    );
+
     STRINGMAP_DECLARE(PrimitiveTypes, PrimitiveType,
         { "triangles", PRIMITIVE_TRIANGLES      },
         { "strip",     PRIMITIVE_TRIANGLE_STRIP },
@@ -458,11 +511,24 @@ namespace love
         { "uint32", INDEX_UINT32 }
     );
 
-    STRINGMAP_DECLARE(BufferUsages, BufferDataUsage,
+    STRINGMAP_DECLARE(BufferDataUsages, BufferDataUsage,
         { "stream",   BUFFERDATAUSAGE_STREAM   },
         { "dynamic",  BUFFERDATAUSAGE_DYNAMIC  },
         { "static",   BUFFERDATAUSAGE_STATIC   },
         { "readback", BUFFERDATAUSAGE_READBACK }
+    );
+
+    STRINGMAP_DECLARE(BufferUsages, BufferUsage,
+        { "vertex",            BUFFERUSAGE_VERTEX             },
+        { "index",             BUFFERUSAGE_INDEX              },
+        { "texel",             BUFFERUSAGE_TEXEL              },
+        { "shaderstorage",     BUFFERUSAGE_SHADER_STORAGE     },
+        { "indirectarguments", BUFFERUSAGE_INDIRECT_ARGUMENTS }
+    );
+
+    STRINGMAP_DECLARE(AttributeSteps, AttributeStep,
+        { "pervertex",   STEP_PER_VERTEX   },
+        { "perinstance", STEP_PER_INSTANCE }
     );
     // clang-format on
 } // namespace love

@@ -291,6 +291,19 @@ namespace love
         return maxValue > LOVE_UINT16_MAX ? INDEX_UINT32 : INDEX_UINT16;
     }
 
+    IndexDataType getIndexDataType(DataFormat format)
+    {
+        switch (format)
+        {
+            case DATAFORMAT_UINT16:
+                return INDEX_UINT16;
+            case DATAFORMAT_UINT32:
+                return INDEX_UINT32;
+            default:
+                return INDEX_MAX_ENUM;
+        }
+    }
+
     DataFormat getIndexDataFormat(IndexDataType type)
     {
         return type == INDEX_UINT32 ? DATAFORMAT_UINT32 : DATAFORMAT_UINT16;

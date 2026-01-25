@@ -12,8 +12,8 @@ namespace love
     class Buffer final : public BufferBase, public Volatile
     {
       public:
-        Buffer(GraphicsBase* graphics, const Settings& settings, const std::vector<DataDeclaration>& format,
-               const void* data, size_t size, size_t length);
+        Buffer(GraphicsBase* graphics, const Settings& settings, const BufferFormat& format, const void* data,
+               size_t size, size_t length);
 
         virtual ~Buffer();
 
@@ -31,7 +31,7 @@ namespace love
 
         ptrdiff_t getHandle() const override
         {
-            return (ptrdiff_t)this->bytes.data();
+            return (ptrdiff_t)std::addressof(this->buffer);
         };
 
         ptrdiff_t getTexelBufferHandle() const override
@@ -48,10 +48,11 @@ namespace love
         bool load(const void* data);
 
         void clearInternal(size_t offset, size_t size) override;
+        C3D_BufInfo buffer;
 
         BufferUsage mapUsage = BUFFERUSAGE_VERTEX;
-        std::vector<uint8_t> bytes;
-        std::vector<uint8_t> staging;
+        uint8_t* bytes       = nullptr;
+        uint8_t* staging     = nullptr;
 
         bool mapped        = false;
         bool ownsMemoryMap = false;

@@ -23,6 +23,7 @@ namespace love
         struct BufferAttribute
         {
             std::string name;
+            StrongRef<BufferBase> buffer;
             StrongRef<Mesh> mesh;
             std::string nameInBuffer;
             int bindingLocationInBuffer = -1;
@@ -67,12 +68,12 @@ namespace love
                              const std::string& attachName, int startIndex = 0,
                              AttributeStep step = STEP_PER_VERTEX);
 
-        void detachAttribute(const std::string& name);
+        bool detachAttribute(const std::string& name);
 
         void attachAttribute(int location, BufferBase* buffer, Mesh* mesh, int attachBindingLocation,
                              int startIndex = 0, AttributeStep step = STEP_PER_VERTEX);
 
-        void detachAttribute(int location);
+        bool detachAttribute(int location);
 
         const std::vector<BufferAttribute>& getAttachedAttributes() const;
 
@@ -88,7 +89,9 @@ namespace love
 
         void setVertexMap();
 
-        void setIndexBuffer(BufferBase* indexBuffer, IndexDataType type);
+        bool getVertexMap(std::vector<uint32_t>& map) const;
+
+        void setIndexBuffer(BufferBase* indexBuffer);
 
         BufferBase* getIndexBuffer() const;
 
@@ -128,7 +131,7 @@ namespace love
 
         int getAttachedAttributeIndex(int location) const;
 
-        void finalizeAttribute(BufferAttribute& attribute);
+        void finalizeAttribute(BufferAttribute& attribute) const;
 
         void updateVertexAttributes(GraphicsBase* graphics);
 

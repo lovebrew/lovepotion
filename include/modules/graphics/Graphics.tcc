@@ -15,6 +15,7 @@
 #include "modules/graphics/Buffer.tcc"
 #include "modules/graphics/Font.tcc"
 #include "modules/graphics/GraphicsReadback.hpp"
+#include "modules/graphics/Mesh.hpp"
 #include "modules/graphics/Shader.tcc"
 #include "modules/graphics/ShaderStage.tcc"
 #include "modules/graphics/TextBatch.hpp"
@@ -456,14 +457,20 @@ namespace love
 
         ParticleSystem* newParticleSystem(TextureBase* texture, int size) const;
 
-        // virtual BufferBase* newBuffer(const BufferBase::Settings& settings,
-        //                               const BufferBase::BufferFormat& format, const void* data, size_t
-        //                               size, size_t length);
+        virtual BufferBase* newBuffer(const BufferBase::Settings& settings,
+                                      const BufferBase::BufferFormat& format, const void* data, size_t size,
+                                      size_t length) = 0;
 
-        // virtual BufferBase* newBuffer(const BufferBase::Settings& settings, DataFormat format,
-        //                               const void* data, size_t size, size_t length);
+        virtual BufferBase* newBuffer(const BufferBase::Settings& settings, DataFormat format,
+                                      const void* data, size_t size, size_t length);
 
-        // Mesh* newMesh(int vertexCount, PrimitiveType mode);
+        Mesh* newMesh(const std::vector<BufferBase::DataDeclaration>& vertexformat, int vertexcount,
+                      PrimitiveType drawmode, BufferDataUsage usage);
+
+        Mesh* newMesh(const std::vector<BufferBase::DataDeclaration>& vertexformat, const void* data,
+                      size_t datasize, PrimitiveType drawmode, BufferDataUsage usage);
+
+        Mesh* newMesh(const std::vector<Mesh::BufferAttribute>& attributes, PrimitiveType drawmode);
 
         TextBatch* newTextBatch(FontBase* font, const std::vector<ColoredString>& text = {});
 

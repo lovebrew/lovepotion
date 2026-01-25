@@ -34,7 +34,6 @@ namespace love
             BufInfo_Init(&this->buffer);
             BufInfo_Add(&this->buffer, this->data, sizeof(Vertex), 3, 0x210);
 
-            C3D_SetBufInfo(&this->buffer);
             return true;
         }
 
@@ -68,7 +67,10 @@ namespace love
 
         ptrdiff_t getHandle() const override
         {
-            return (ptrdiff_t)this->data;
+            if (this->mode != BUFFERUSAGE_VERTEX)
+                return (ptrdiff_t)this->data;
+
+            return (ptrdiff_t)std::addressof(this->buffer);
         }
 
         size_t getSize() const override

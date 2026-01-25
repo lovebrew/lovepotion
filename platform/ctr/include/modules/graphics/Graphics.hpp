@@ -74,6 +74,10 @@ namespace love
         TextureBase* newTexture(const TextureBase::Settings& settings,
                                 const TextureBase::Slices* data = nullptr) override;
 
+        BufferBase* newBuffer(const BufferBase::Settings& settings,
+                              const std::vector<BufferBase::DataDeclaration>& format, const void* data,
+                              size_t size, size_t arraylength) override;
+
         ShaderStageBase* newShaderStageInternal(ShaderStageType stage, const std::string& filepath) override;
 
         ShaderBase* newShaderInternal(StrongRef<ShaderStageBase> stages[SHADERSTAGE_MAX_ENUM],

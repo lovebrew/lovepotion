@@ -471,6 +471,13 @@ namespace love
         return new Texture(this, settings, data);
     }
 
+    BufferBase* Graphics::newBuffer(const Buffer::Settings& settings,
+                                    const std::vector<Buffer::DataDeclaration>& format, const void* data,
+                                    size_t size, size_t arraylength)
+    {
+        return new Buffer(this, settings, format, data, size, arraylength);
+    }
+
     void Graphics::points(Vector2* positions, const Color* colors, int count)
     {
         const auto pointSize = this->states.back().pointSize;
@@ -566,8 +573,12 @@ namespace love
 
     void Graphics::draw(const DrawIndexedCommand& command)
     {
+        VertexAttributes attributes {};
+        this->findVertexAttributes(command.attributesID, attributes);
+
         c3d.prepareDraw(this);
-        c3d.setVertexAttributes(command.texture, command.isFont);
+        c3d.setTexEnvMode(command.texture, command.isFont);
+        c3d.setVertexAttributes(attributes, *command.buffers);
         c3d.bindTextureToUnit(command.texture, 0);
 
         const auto* indices = (const uint16_t*)command.indexBuffer->getHandle();
@@ -582,8 +593,12 @@ namespace love
 
     void Graphics::draw(const DrawCommand& command)
     {
+        VertexAttributes attributes {};
+        this->findVertexAttributes(command.attributesID, attributes);
+
         c3d.prepareDraw(this);
-        c3d.setVertexAttributes(command.texture, command.isFont);
+        c3d.setTexEnvMode(command.texture, command.isFont);
+        c3d.setVertexAttributes(attributes, *command.buffers);
         c3d.bindTextureToUnit(command.texture, 0);
 
         const auto primitiveType = citro3d::getPrimitiveType(command.primitiveType);

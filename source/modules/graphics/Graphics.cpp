@@ -770,15 +770,22 @@ namespace love
         VertexAttributes attributes {};
         BufferBindings buffers {};
 
+        VertexAttributesID attributesID = state.attributesIDs[(int)state.format];
+        if (!this->findVertexAttributes(attributesID, attributes))
+        {
+            attributes.setCommonFormat(state.format, (uint8_t)0);
+            attributesID                           = this->registerVertexAttributes(attributes);
+            state.attributesIDs[(int)state.format] = attributesID;
+        }
+
         size_t usedSizes[2] = { 0, 0 };
 
         if (state.format != CommonFormat::NONE)
         {
-            attributes.setCommonFormat(state.format, (uint8_t)0);
             usedSizes[0] = getFormatStride(state.format) * state.lastVertexCount;
 
             size_t offset = state.vertexBuffer->unmap(usedSizes[0]);
-            buffers.set(0, state.vertexBuffer, offset, state.lastVertexCount);
+            buffers.set(0, state.vertexBuffer, offset);
             state.vertexBufferMap = StreamBufferBase::MapInfo();
         }
 
@@ -795,7 +802,7 @@ namespace love
         {
             usedSizes[1] = sizeof(uint16_t) * state.lastIndexCount;
 
-            DrawIndexedCommand command(&attributes, &buffers, state.indexBuffer);
+            DrawIndexedCommand command(attributesID, &buffers, state.indexBuffer);
             command.primitiveType     = state.primitiveMode;
             command.indexCount        = state.lastIndexCount;
             command.indexType         = INDEX_UINT16;
@@ -808,7 +815,7 @@ namespace love
         }
         else
         {
-            DrawCommand command(&buffers);
+            DrawCommand command(attributesID, &buffers);
             command.primitiveType = state.primitiveMode;
             command.vertexStart   = 0;
             command.vertexCount   = state.lastVertexCount;
@@ -1525,6 +1532,31 @@ namespace love
     ParticleSystem* GraphicsBase::newParticleSystem(TextureBase* texture, int size) const
     {
         return new ParticleSystem(texture, size);
+    }
+
+    BufferBase* GraphicsBase::newBuffer(const BufferBase::Settings& settings, DataFormat format,
+                                        const void* data, size_t size, size_t arraylength)
+    {
+        std::vector<BufferBase::DataDeclaration> dataFormat = { { "", format, 0 } };
+        return newBuffer(settings, dataFormat, data, size, arraylength);
+    }
+
+    Mesh* GraphicsBase::newMesh(const std::vector<BufferBase::DataDeclaration>& vertexformat, int vertexcount,
+                                PrimitiveType drawmode, BufferDataUsage usage)
+    {
+        return new Mesh(this, vertexformat, vertexcount, drawmode, usage);
+    }
+
+    Mesh* GraphicsBase::newMesh(const std::vector<BufferBase::DataDeclaration>& vertexformat,
+                                const void* data, size_t datasize, PrimitiveType drawmode,
+                                BufferDataUsage usage)
+    {
+        return new Mesh(this, vertexformat, data, datasize, drawmode, usage);
+    }
+
+    Mesh* GraphicsBase::newMesh(const std::vector<Mesh::BufferAttribute>& attributes, PrimitiveType drawmode)
+    {
+        return new Mesh(attributes, drawmode);
     }
 
     void GraphicsBase::draw(Drawable* drawable, const Matrix4& matrix)

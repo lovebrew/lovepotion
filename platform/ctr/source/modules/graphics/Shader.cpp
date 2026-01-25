@@ -74,12 +74,12 @@ namespace love
         shaderProgramFree(&this->program);
     }
 
-    static void updateTransform(C3D_Mtx& matrix, const Matrix4& transform)
+    static void updateTransform(C3D_Mtx& out, const Matrix4& in)
     {
         for (int row = 0; row < 4; row++)
         {
             for (int column = 0; column < 4; column++)
-                matrix.m[row * 4 + (3 - column)] = transform.get(row, column);
+                out.m[row * 4 + (3 - column)] = in.get(row, column);
         }
     }
 
@@ -93,7 +93,7 @@ namespace love
 
         if (this->hasUniform("projMtx"))
         {
-            updateTransform(mdlvMtx, graphics->getDeviceProjection());
+            // updateTransform(mdlvMtx, graphics->getDeviceProjection());
             C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, this->reflection.uniforms["projMtx"]->location, &projMtx);
         }
     }

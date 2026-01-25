@@ -3,6 +3,8 @@
 #include "driver/display/citro3d.hpp"
 #include "modules/graphics/Shader.hpp"
 
+#include "common/debug.hpp"
+
 namespace love
 {
     citro3d::citro3d() : context {}
@@ -37,12 +39,14 @@ namespace love
         this->initialized = true;
     }
 
-    void citro3d::updateTexEnvMode(TexEnvMode mode)
+    void citro3d::setTexEnvMode(TextureBase* texture, bool isFont)
     {
-        if (mode == this->context.texEnvMode || mode == TEXENV_MODE_MAX_ENUM)
-            return;
+        TexEnvMode mode = (texture == nullptr) ? TEXENV_MODE_PRIMITIVE : TEXENV_MODE_TEXTURE;
+        if (texture && isFont)
+            mode = TEXENV_MODE_FONT;
 
-        this->context.texEnvMode = mode;
+        if (mode == this->context.texEnvMode)
+            return;
 
         C3D_TexEnv* env = C3D_GetTexEnv(0);
         C3D_TexEnvInit(env);
@@ -68,6 +72,8 @@ namespace love
                 break;
             }
         }
+
+        this->context.texEnvMode = mode;
     }
 
     void citro3d::setupContext()
@@ -170,7 +176,9 @@ namespace love
         const bool enabled = compare != COMPARE_ALWAYS || write;
 
         GPU_TESTFUNC testFunction = GPU_ALWAYS;
-        C3D_DepthTest(enabled, testFunction, enabled ? GPU_WRITE_DEPTH : GPU_WRITE_COLOR);
+        getConstant(compare, testFunction);
+        LOG("GPU_TESTFUNC: %d", testFunction);
+        C3D_DepthTest(enabled, testFunction, enabled ? GPU_WRITE_ALL : GPU_WRITE_COLOR);
     }
 
     C3D_RenderTarget* citro3d::getFramebuffer()
@@ -350,8 +358,11 @@ namespace love
 
     void citro3d::bindTextureToUnit(TextureType target, C3D_Tex* texture, int unit)
     {
-        C3D_TexBind(0, texture);
-        this->context.boundTexture = texture;
+        if (this->context.boundTexture != texture)
+        {
+            this->context.boundTexture = texture;
+            C3D_TexBind(0, texture);
+        }
     }
 
     void citro3d::bindTextureToUnit(TextureBase* texture, int unit)
@@ -365,12 +376,53 @@ namespace love
         this->bindTextureToUnit(textureType, handle, unit);
     }
 
-    void citro3d::setVertexAttributes(TextureBase* texture, bool isFont)
+    GPU_FORMATS citro3d::getVertexComponents(DataFormat type, int& components)
     {
-        if (!texture)
-            return this->updateTexEnvMode(TEXENV_MODE_PRIMITIVE);
+        switch (type)
+        {
+            case DATAFORMAT_FLOAT:
+                components = 1;
+                return GPU_FLOAT;
+            case DATAFORMAT_FLOAT_VEC2:
+                components = 2;
+                return GPU_FLOAT;
+            case DATAFORMAT_FLOAT_VEC3:
+                components = 3;
+                return GPU_FLOAT;
+            case DATAFORMAT_FLOAT_VEC4:
+                components = 4;
+                return GPU_FLOAT;
+            default:
+                throw love::Exception("Unsupported vertex attribute format: {:d}.", (int)type);
+        }
+    }
 
-        isFont ? this->updateTexEnvMode(TEXENV_MODE_FONT) : this->updateTexEnvMode(TEXENV_MODE_TEXTURE);
+    void citro3d::setVertexAttributes(const VertexAttributes& attributes, const BufferBindings& buffers)
+    {
+        uint32_t i       = 0;
+        uint32_t allBits = attributes.enableBits | 3;
+
+        C3D_AttrInfo info {};
+        AttrInfo_Init(&info);
+
+        while (allBits)
+        {
+            uint32_t bit = 1u << i;
+            if (attributes.enableBits & bit)
+            {
+                const auto& attribute = attributes.attributes[i];
+
+                int components    = 0;
+                const auto format = this->getVertexComponents(attribute.getFormat(), components);
+
+                AttrInfo_AddLoader(&info, i, format, components);
+            }
+            i++;
+            allBits >>= 1u;
+        }
+
+        C3D_SetAttrInfo(&info);
+        C3D_SetBufInfo((C3D_BufInfo*)buffers.info[0].buffer->getHandle());
     }
 
     GPU_TEXTURE_MODE_PARAM citro3d::getTextureType(TextureType type)

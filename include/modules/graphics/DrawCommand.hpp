@@ -29,7 +29,7 @@ namespace love
         int indexCount              = 0;
         int instanceCount           = 1;
 
-        const VertexAttributes* attributes;
+        VertexAttributesID attributesID;
         const BufferBindings* buffers;
 
         Resource* indexBuffer = nullptr;
@@ -42,9 +42,9 @@ namespace love
 
         bool isFont = false;
 
-        DrawIndexedCommand(const VertexAttributes* attributes, const BufferBindings* buffers,
+        DrawIndexedCommand(VertexAttributesID attributesID, const BufferBindings* buffers,
                            Resource* indexBuffer) :
-            attributes(attributes),
+            attributesID(attributesID),
             buffers(buffers),
             indexBuffer(indexBuffer)
         {}
@@ -52,10 +52,15 @@ namespace love
 
     struct DrawCommand
     {
-        DrawCommand(const BufferBindings* buffers) : buffers(buffers)
+        DrawCommand(VertexAttributesID attributesID, const BufferBindings* buffers) :
+            attributesID(attributesID),
+            buffers(buffers)
         {}
 
         PrimitiveType primitiveType = PRIMITIVE_TRIANGLES;
+
+        VertexAttributesID attributesID;
+        const BufferBindings* buffers;
 
         int vertexStart   = 0;
         int vertexCount   = 0;
@@ -63,9 +68,7 @@ namespace love
 
         TextureBase* texture = nullptr;
         CullMode cullMode    = CULL_NONE;
-        const BufferBindings* buffers;
-
-        bool isFont = false;
+        bool isFont          = false;
     };
 
     struct BatchedVertexData
@@ -88,6 +91,8 @@ namespace love
 
         int lastVertexCount = 0;
         int lastIndexCount  = 0;
+
+        VertexAttributesID attributesIDs[(int)CommonFormat::COUNT] = {};
 
         StreamBufferBase::MapInfo vertexBufferMap = StreamBufferBase::MapInfo();
         StreamBufferBase::MapInfo indexBufferMap  = StreamBufferBase::MapInfo();

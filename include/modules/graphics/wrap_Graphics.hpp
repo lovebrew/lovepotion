@@ -155,7 +155,9 @@ namespace Wrap_Graphics
 
     int draw(lua_State* L);
 
-    // int newMesh(lua_State* L);
+    int newBuffer(lua_State* L);
+
+    int newMesh(lua_State* L);
 
     int newTextBatch(lua_State* L);
 
@@ -170,6 +172,10 @@ namespace Wrap_Graphics
     int getDefaultFilter(lua_State* L);
 
     int setDefaultFilter(lua_State* L);
+
+    int setDepthMode(lua_State* L);
+
+    int getDepthMode(lua_State* L);
 
     int setStencilMode(lua_State* L);
 
