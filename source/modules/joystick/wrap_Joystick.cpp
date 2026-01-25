@@ -249,7 +249,7 @@ int Wrap_Joystick::isGamepadDown(lua_State* L)
             const char* string = luaL_checkstring(L, -1);
 
             if (!JoystickBase::getConstant(string, button))
-                return luax_enumerror(L, "gamepad button", JoystickBase::GamepadButtons, string);
+                return luax_enumerror(L, "gamepad button", string);
 
             buttons.push_back(button);
             lua_pop(L, 1);
@@ -262,7 +262,7 @@ int Wrap_Joystick::isGamepadDown(lua_State* L)
             const char* string = luaL_checkstring(L, index + 2);
 
             if (!JoystickBase::getConstant(string, button))
-                return luax_enumerror(L, "gamepad button", JoystickBase::GamepadButtons, string);
+                return luax_enumerror(L, "gamepad button", string);
 
             buttons.push_back(button);
         }

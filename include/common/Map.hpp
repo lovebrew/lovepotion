@@ -5,6 +5,7 @@
 #include <utility>
 
 #include <string_view>
+#include <vector>
 
 template<typename Key, typename Value, size_t Size>
 requires(Size > 0)
@@ -35,20 +36,14 @@ class Map
         return it != this->items.end();
     }
 
-    std::string getNames() const
+    constexpr std::array<std::string, Size> getNames() const
     requires(std::same_as<std::remove_cvref_t<Key>, std::string_view>)
     {
-        const auto names = std::ranges::ref_view(this->items) | std::views::keys;
-        std::string result {};
+        std::array<std::string, Size> names;
+        for (size_t i = 0; i < Size; ++i)
+            names[i] = this->items[i].first;
 
-        for (auto name : names)
-        {
-            result.empty() ? result.append("'") : result.append(", '");
-            result.append(name);
-            result.append("'");
-        }
-
-        return result;
+        return names;
     }
 
     constexpr size_t size() const

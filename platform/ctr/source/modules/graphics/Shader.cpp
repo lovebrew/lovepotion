@@ -93,7 +93,7 @@ namespace love
 
         if (this->hasUniform("projMtx"))
         {
-            updateTransform(mdlvMtx, graphics->getDeviceProjection());
+            // updateTransform(mdlvMtx, graphics->getDeviceProjection());
             C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, this->reflection.uniforms["projMtx"]->location, &projMtx);
         }
     }
