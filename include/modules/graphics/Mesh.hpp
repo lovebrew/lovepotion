@@ -8,7 +8,7 @@
 #include "modules/graphics/Buffer.tcc"
 #include "modules/graphics/Drawable.hpp"
 #include "modules/graphics/Texture.tcc"
-#include "modules/graphics/Vertex.hpp"
+#include "modules/graphics/vertex.hpp"
 
 #include <unordered_map>
 #include <vector>
