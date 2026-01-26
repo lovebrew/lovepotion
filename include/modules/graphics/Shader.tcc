@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/Map.hpp"
+#include "common/Matrix.hpp"
 #include "common/Object.hpp"
 #include "common/StrongRef.hpp"
 
@@ -81,6 +82,12 @@ namespace love
             int count;
 
             std::string name;
+        };
+
+        struct BuiltinUniformData
+        {
+            Matrix4 transformMatrix;
+            Matrix4 projectionMatrix;
         };
 
         static ShaderBase* current;

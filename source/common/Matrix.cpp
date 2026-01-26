@@ -394,6 +394,18 @@ namespace love
         return m;
     }
 
+    Matrix4 Matrix4::orthoTilt(float left, float right, float bottom, float top, float near, float far)
+    {
+        Matrix4 m;
+
+        m.setRow(0, { 0.0f, 2 / (top - bottom), 0.0f, (bottom + top) / (bottom - top) });
+        m.setRow(1, { 2.0f / (left - right), 0.0f, 0.0f, (left + right) / (right - left) });
+        m.setRow(2, { 0.0f, 0.0f, 1.0f / (far - near), 0.5 * (near + far) / (near - far) - 0.5f });
+        m.setRow(3, { 0.0f, 0.0f, 0.0f, 1.0f });
+
+        return m;
+    }
+
     Matrix4 Matrix4::perspective(float verticalfov, float aspect, float near, float far)
     {
         Matrix4 m;

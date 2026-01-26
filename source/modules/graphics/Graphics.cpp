@@ -108,7 +108,8 @@ namespace love
         }
 
         state.useCustomProjection = false;
-        this->updateDeviceProjection(Matrix4::ortho(0.0f, width, height, 0.0f, -10.0f, 10.0f));
+        auto* ortho               = Console::is(Console::CTR) ? Matrix4::orthoTilt : Matrix4::ortho;
+        this->updateDeviceProjection(ortho(0.0f, width, height, 0.0f, -10.0f, 10.0f));
     }
 
     void GraphicsBase::reset()

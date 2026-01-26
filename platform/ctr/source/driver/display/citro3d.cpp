@@ -153,6 +153,7 @@ namespace love
         if (!this->inFrame || !this->context.boundFramebuffer)
             return;
 
+        value *= LOVE_UINT32_MAX;
         C3D_RenderTargetClear(this->getFramebuffer(), C3D_CLEAR_DEPTH, 0, value);
     }
 
@@ -183,7 +184,7 @@ namespace love
             mask |= GPU_WRITE_DEPTH;
 
         // clang-format off
-        LOG("[setDepthWrites] Mask: %X (DepthWrite: %d, TestMode %d)", mask, this->context.depthWrites, this->context.testMode);
+        LOG("[setDepthWrites] Mask: %02X (DepthWrite: %d, TestMode %d)", mask, this->context.depthWrites, this->context.testMode);
         // clang-format on
         C3D_DepthTest(this->context.depthWrites, this->context.testMode, (GPU_WRITEMASK)mask);
     }
@@ -207,11 +208,7 @@ namespace love
         }
 
         if (bindingModified)
-        {
             C3D_FrameDrawOn(framebuffer);
-            this->setViewport({ 0, 0, framebuffer->frameBuf.height, framebuffer->frameBuf.width },
-                              framebuffer->linked);
-        }
     }
 
     void citro3d::present()
@@ -235,25 +232,7 @@ namespace love
 
     void citro3d::setViewport(const Rect& v, bool tilt)
     {
-        this->context.dirtyProjection = true;
-
-        if (v.h == GSP_SCREEN_WIDTH && tilt)
-        {
-            if (v.w == GSP_SCREEN_HEIGHT_TOP || v.w == GSP_SCREEN_HEIGHT_TOP_2X)
-            {
-                Mtx_Copy(&this->context.projection, &this->targets[0].getProjection());
-                return;
-            }
-            else if (v.w == GSP_SCREEN_HEIGHT_BOTTOM)
-            {
-                const auto index = gfxIs3D() ? 2 : 1;
-                Mtx_Copy(&this->context.projection, &this->targets[index].getProjection());
-                return;
-            }
-        }
-
-        auto* ortho = tilt ? Mtx_OrthoTilt : Mtx_Ortho;
-        ortho(&this->context.projection, v.x, v.w, v.h, v.y, Framebuffer::Z_NEAR, Framebuffer::Z_FAR, true);
+        this->context.viewport = v;
         C3D_SetViewport((uint32_t)v.x, (uint32_t)v.y, (uint32_t)v.w, (uint32_t)v.h);
     }
 
@@ -298,7 +277,7 @@ namespace love
             write |= GPU_WRITE_DEPTH;
 
         // clang-format off
-        LOG("[setColorMask  ] Mask: %X (DepthWrite: %d, TestMode %d)", write, this->context.depthWrites, this->context.testMode);
+        LOG("[setColorMask  ] Mask: %02X (DepthWrite: %d, TestMode %d)", write, this->context.depthWrites, this->context.testMode);
         // clang-format on
         C3D_DepthTest(this->context.depthWrites, this->context.testMode, (GPU_WRITEMASK)write);
     }
@@ -362,8 +341,8 @@ namespace love
         // clang-format off
         if (Shader::current != nullptr)
         {
-            ((Shader*)Shader::current)->updateBuiltinUniforms(graphics, this->context.modelView, this->context.projection);
-            this->context.dirtyProjection = false;
+            Rect viewport = this->context.viewport;
+            ((Shader*)Shader::current)->updateBuiltinUniforms(graphics, viewport.w, viewport.h);
         }
         // clang-format on
     }

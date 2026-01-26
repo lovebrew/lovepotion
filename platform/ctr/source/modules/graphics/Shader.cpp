@@ -74,7 +74,7 @@ namespace love
         shaderProgramFree(&this->program);
     }
 
-    static void updateTransform(C3D_Mtx& out, const Matrix4& in)
+    static void Mtx_Update(C3D_Mtx& out, const Matrix4& in)
     {
         for (int row = 0; row < 4; row++)
         {
@@ -83,19 +83,23 @@ namespace love
         }
     }
 
-    void Shader::updateBuiltinUniforms(GraphicsBase* graphics, C3D_Mtx& mdlvMtx, const C3D_Mtx& projMtx)
+    void Shader::updateBuiltinUniforms(GraphicsBase* graphics, int width, int height)
     {
-        if (this->hasUniform("mdlvMtx"))
-        {
-            updateTransform(mdlvMtx, graphics->getTransform());
-            C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, this->reflection.uniforms["mdlvMtx"]->location, &mdlvMtx);
-        }
+        BuiltinUniformData data {};
+        data.transformMatrix  = graphics->getTransform();
+        data.projectionMatrix = graphics->getDeviceProjection();
 
-        if (this->hasUniform("projMtx"))
-        {
-            // updateTransform(mdlvMtx, graphics->getDeviceProjection());
-            C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, this->reflection.uniforms["projMtx"]->location, &projMtx);
-        }
+        const auto* modelReflection = this->getUniformInfo("mdlvMtx");
+        C3D_Mtx transform {};
+        Mtx_Identity(&transform);
+        Mtx_Update(transform, data.transformMatrix);
+
+        const auto* projReflection = this->getUniformInfo("projMtx");
+        C3D_Mtx projection {};
+        Mtx_Update(projection, data.projectionMatrix);
+
+        C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, modelReflection->location, &transform);
+        C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, projReflection->location, &projection);
     }
 
     void Shader::attach()

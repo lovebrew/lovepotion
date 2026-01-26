@@ -231,6 +231,11 @@ namespace love
         static Matrix4 ortho(float left, float right, float bottom, float top, float near, float far);
 
         /**
+         * Creates a new orthographic projection matrix, tilted 90° CCW.
+         **/
+        static Matrix4 orthoTilt(float left, float right, float bottom, float top, float near, float far);
+
+        /**
          * Creates a new perspective projection matrix.
          **/
         static Matrix4 perspective(float verticalfov, float aspect, float near, float far);
