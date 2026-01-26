@@ -669,6 +669,10 @@ namespace love
             this->pixelScaleStack.back() = 1.0;
         }
 
+        void validateStencilState(const StencilState& state) const;
+
+        void validateDepthState(bool depthWrite) const;
+
         int getWidth() const;
 
         int getHeight() const;

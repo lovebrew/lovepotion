@@ -795,8 +795,7 @@ namespace love
         if (attributes.isEnabled(ATTRIB_COLOR))
             this->setColor({ 1, 1, 1, 1 });
 
-        if (state.pushTransform)
-            this->pushIdentityTransform();
+        this->pushIdentityTransform();
 
         if (state.lastIndexCount > 0)
         {
@@ -829,8 +828,7 @@ namespace love
         if (usedSizes[1] > 0)
             state.indexBuffer->markUsed(usedSizes[1]);
 
-        if (state.pushTransform)
-            this->popTransform();
+        this->popTransform();
 
         if (attributes.isEnabled(ATTRIB_COLOR))
             this->setColor(originalColor);

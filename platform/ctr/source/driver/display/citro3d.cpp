@@ -23,7 +23,9 @@ namespace love
             throw love::Exception("Failed to initialize citro3d.");
 
         C3D_CullFace(GPU_CULL_NONE);
-        C3D_DepthTest(true, GPU_GEQUAL, GPU_WRITE_ALL);
+
+        this->context.depthWrites = false;
+        this->context.mask        = GPU_WRITE_COLOR;
 
         C3D_AttrInfo* attributes = C3D_GetAttrInfo();
         AttrInfo_Init(attributes);
@@ -173,12 +175,17 @@ namespace love
 
     void citro3d::setDepthWrites(CompareMode compare, bool write)
     {
-        const bool enabled = compare != COMPARE_ALWAYS || write;
+        this->context.depthWrites = compare != COMPARE_ALWAYS || write;
+        getConstant(compare, this->context.testMode);
 
-        GPU_TESTFUNC testFunction = GPU_ALWAYS;
-        getConstant(compare, testFunction);
-        LOG("GPU_TESTFUNC: %d", testFunction);
-        C3D_DepthTest(enabled, testFunction, enabled ? GPU_WRITE_ALL : GPU_WRITE_COLOR);
+        uint8_t mask = this->context.colorMask.get();
+        if (this->context.depthWrites)
+            mask |= GPU_WRITE_DEPTH;
+
+        // clang-format off
+        LOG("[setDepthWrites] Mask: %X (DepthWrite: %d, TestMode %d)", mask, this->context.depthWrites, this->context.testMode);
+        // clang-format on
+        C3D_DepthTest(this->context.depthWrites, this->context.testMode, (GPU_WRITEMASK)mask);
     }
 
     C3D_RenderTarget* citro3d::getFramebuffer()
@@ -284,11 +291,16 @@ namespace love
 
     void citro3d::setColorMask(ColorChannelMask mask)
     {
-        if (this->context.colorMask == mask)
-            return;
-
         this->context.colorMask = mask;
-        C3D_DepthTest(true, GPU_GEQUAL, (GPU_WRITEMASK)mask.get());
+
+        uint8_t write = mask.get();
+        if (this->context.depthWrites)
+            write |= GPU_WRITE_DEPTH;
+
+        // clang-format off
+        LOG("[setColorMask  ] Mask: %X (DepthWrite: %d, TestMode %d)", write, this->context.depthWrites, this->context.testMode);
+        // clang-format on
+        C3D_DepthTest(this->context.depthWrites, this->context.testMode, (GPU_WRITEMASK)write);
     }
 
     void citro3d::setBlendState(const BlendState& state)
@@ -348,7 +360,7 @@ namespace love
     void citro3d::prepareDraw(GraphicsBase* graphics)
     {
         // clang-format off
-        if (Shader::current != nullptr && this->context.dirtyProjection)
+        if (Shader::current != nullptr)
         {
             ((Shader*)Shader::current)->updateBuiltinUniforms(graphics, this->context.modelView, this->context.projection);
             this->context.dirtyProjection = false;

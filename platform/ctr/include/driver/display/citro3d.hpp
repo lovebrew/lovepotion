@@ -196,6 +196,10 @@ namespace love
             std::vector<C3D_Tex*> boundTextures[TEXTURE_MAX_ENUM + 1];
             TexEnvMode texEnvMode = TEXENV_MODE_MAX_ENUM;
             C3D_Tex* boundTexture = nullptr;
+
+            bool depthWrites = false;
+            GPU_TESTFUNC testMode;
+            GPU_WRITEMASK mask;
         } context;
 
         bool isDefaultFramebufferActive() const;
