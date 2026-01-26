@@ -153,8 +153,8 @@ namespace love
         if (!this->inFrame || !this->context.boundFramebuffer)
             return;
 
-        value *= LOVE_UINT32_MAX;
-        C3D_RenderTargetClear(this->getFramebuffer(), C3D_CLEAR_DEPTH, 0, value);
+        const auto clear = uint32_t(std::clamp(value, 0.0, 1.0) * LOVE_UINT32_MAX);
+        C3D_RenderTargetClear(this->getFramebuffer(), C3D_CLEAR_DEPTH, 0, clear);
     }
 
     void citro3d::clearStencil(int value)
