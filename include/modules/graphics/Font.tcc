@@ -26,6 +26,7 @@ namespace love
     {
       public:
         static inline Type type = Type("Font", &Object::type);
+        static const CommonFormat VertexFormat;
 
         using Codepoints  = std::vector<uint32_t>;
         using GlyphVertex = XYf_STf_RGBAf;
@@ -108,6 +109,11 @@ namespace love
 
         uint32_t getTextureCacheID() const;
 
+        VertexAttributesID getVertexAttributesID() const
+        {
+            return vertexAttributesID;
+        }
+
         void unloadVolatile() override;
 
         // clang-format off
@@ -143,6 +149,8 @@ namespace love
             int width;
             int height;
         };
+
+        VertexAttributesID vertexAttributesID;
 
         TextureSize getNextTextureSize() const;
 

@@ -22,6 +22,8 @@ using Location = uint8_t;
 using Location = uint32_t;
 #endif
 
+#include "common/Console.hpp"
+
 namespace love
 {
     class ShaderBase : public Object, public Resource
@@ -92,6 +94,14 @@ namespace love
 
         static ShaderBase* current;
         static ShaderBase* standardShaders[STANDARD_MAX_ENUM];
+
+        static constexpr StandardShader getTextureShader()
+        {
+            if constexpr (Console::is(Console::CTR))
+                return STANDARD_DEFAULT;
+
+            return STANDARD_TEXTURE;
+        }
 
         ShaderBase(StrongRef<ShaderStageBase> stages[], const CompileOptions& options);
 

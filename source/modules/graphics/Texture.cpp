@@ -368,9 +368,6 @@ namespace love
         this->draw(graphics, this->quad, matrix);
     }
 
-    static constexpr ShaderBase::StandardShader shader =
-        (Console::is(Console::CTR) ? ShaderBase::STANDARD_DEFAULT : ShaderBase::STANDARD_TEXTURE);
-
     void TextureBase::draw(GraphicsBase* graphics, Quad* quad, const Matrix4& matrix)
     {
         if (this->textureType == TEXTURE_2D_ARRAY)
@@ -390,7 +387,7 @@ namespace love
         command.indexMode   = TRIANGLEINDEX_QUADS;
         command.vertexCount = 4;
         command.texture     = this;
-        command.shaderType  = shader;
+        command.shaderType  = ShaderBase::getTextureShader();
 
         BatchedVertexData data = graphics->requestBatchedDraw(command);
 
@@ -444,7 +441,7 @@ namespace love
         command.indexMode   = TRIANGLEINDEX_QUADS;
         command.vertexCount = 4;
         command.texture     = this;
-        command.shaderType  = shader;
+        command.shaderType  = ShaderBase::getTextureShader();
 
         auto data             = graphics->requestBatchedDraw(command);
         XYf_STf_RGBAf* stream = (XYf_STf_RGBAf*)data.stream;

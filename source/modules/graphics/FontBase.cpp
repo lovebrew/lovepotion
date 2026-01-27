@@ -13,6 +13,8 @@
 
 namespace love
 {
+    const CommonFormat FontBase::VertexFormat = CommonFormat::XYf_STf_RGBAf;
+
     int FontBase::fontCount = 0;
 
     FontBase::FontBase(Rasterizer* rasterizer, const SamplerState& samplerState) :
@@ -54,6 +56,7 @@ namespace love
         if (this->pixelFormat == PIXELFORMAT_LA8_UNORM && !supported)
             this->pixelFormat = PIXELFORMAT_RGBA8_UNORM;
 
+        this->vertexAttributesID = graphics->registerVertexAttributes(VertexAttributes(VertexFormat, 0));
         ++fontCount;
     }
 
@@ -456,9 +459,6 @@ namespace love
         return drawcommands;
     }
 
-    static constexpr auto shaderType =
-        (Console::is(Console::CTR)) ? ShaderBase::STANDARD_DEFAULT : ShaderBase::STANDARD_TEXTURE;
-
     void FontBase::printv(GraphicsBase* graphics, const Matrix4& matrix,
                           const std::vector<DrawCommand>& drawcommands,
                           const std::vector<GlyphVertex>& vertices)
@@ -476,7 +476,7 @@ namespace love
             command.vertexCount = cmd.vertexCount;
             command.texture     = cmd.texture;
             command.isFont      = true;
-            command.shaderType  = shaderType;
+            command.shaderType  = ShaderBase::getTextureShader();
 
             auto data               = graphics->requestBatchedDraw(command);
             GlyphVertex* vertexdata = (GlyphVertex*)data.stream;

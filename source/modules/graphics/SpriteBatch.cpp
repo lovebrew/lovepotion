@@ -2,6 +2,7 @@
 
 #include "common/Console.hpp"
 
+#include "driver/display/citro3d.hpp"
 #include "modules/graphics/Graphics.tcc"
 #include "modules/graphics/Quad.hpp"
 #include "modules/graphics/Texture.tcc"
@@ -11,6 +12,8 @@
 #include <stddef.h>
 
 #define E_INVALID_SPRITEBATCH_SIZE "Invalid SpriteBatch size: {:d}."
+#define E_SPRITEBATCH_ATTRIBUTE_TOO_FEW_VERTICES \
+    "Buffer with attribute '%s' attached to this SpriteBatch has too few vertices."
 
 namespace love
 {
@@ -21,7 +24,9 @@ namespace love
         size(size),
         next(0),
         color(1.0f, 1.0f, 1.0f, 1.0f),
-        buffer {},
+        attributesID(),
+        arrayBuffer(nullptr),
+        vertexData(nullptr),
         modifiedSprites(),
         rangeStart(-1),
         rangeCount(-1)
@@ -37,14 +42,24 @@ namespace love
         else
             this->vertexFormat = CommonFormat::XYf_STf_RGBAf;
 
-        this->vertexStride = 1;
+        this->vertexStride = getFormatStride(this->vertexFormat);
         size_t vertexSize  = this->vertexStride * 4 * size;
 
-        this->buffer.resize(vertexSize);
+        this->vertexData = (uint8_t*)std::malloc(vertexSize);
+        if (this->vertexData == nullptr)
+            throw love::Exception(E_OUT_OF_MEMORY);
+
+        // clang-format off
+        BufferBase::Settings settings(BUFFERUSAGEFLAG_VERTEX, usage);
+        auto declaration = BufferBase::getCommonFormatDeclaration(this->vertexFormat);
+        this->arrayBuffer.set(graphics->newBuffer(settings, declaration, nullptr, vertexSize, 0), Acquire::NO_RETAIN);
+        // clang-format on
     }
 
     SpriteBatch::~SpriteBatch()
-    {}
+    {
+        std::free(this->vertexData);
+    }
 
     int SpriteBatch::add(const Matrix4& matrix, int index)
     {
@@ -62,24 +77,25 @@ namespace love
         if (index == -1 && this->next >= this->size)
             this->setBufferSize(this->size * 2);
 
-        if constexpr (Console::is(Console::CTR))
-            this->texture->updateQuad(quad);
-
         const Vector2* positions = quad->getVertexPositions();
-        const Vector2* texCoords = quad->getTextureCoordinates();
 
         int spriteIndex = (index == -1) ? this->next : index;
 
-        size_t offset = spriteIndex * this->vertexStride * 4;
-        auto* buffer  = &this->buffer[offset];
+        size_t offset  = spriteIndex * this->vertexStride * 4;
+        auto* vertices = (XYf_STf_RGBAf*)(this->vertexData + offset);
 
-        matrix.transformXY(buffer, positions, 4);
+        matrix.transformXY(vertices, positions, 4);
+
+        if constexpr (Console::is(Console::CTR))
+            this->texture->updateQuad(quad);
+
+        const Vector2* texCoords = quad->getTextureCoordinates();
 
         for (int i = 0; i < 4; i++)
         {
-            buffer[i].s     = texCoords[i].x;
-            buffer[i].t     = texCoords[i].y;
-            buffer[i].color = this->color;
+            vertices[i].s     = texCoords[i].x;
+            vertices[i].t     = texCoords[i].y;
+            vertices[i].color = this->color;
         }
 
         this->modifiedSprites.encapsulate(spriteIndex);
@@ -112,7 +128,10 @@ namespace love
             size_t offset = this->modifiedSprites.getOffset() * this->vertexStride * 4;
             size_t size   = this->modifiedSprites.getSize() * this->vertexStride * 4;
 
-            // fill the buffer at offset
+            if (this->arrayBuffer->getDataUsage() == BUFFERDATAUSAGE_STREAM)
+                this->arrayBuffer->fill(0, this->arrayBuffer->getSize(), this->vertexData);
+            else
+                this->arrayBuffer->fill(offset, size, this->vertexData + offset);
 
             this->modifiedSprites.invalidate();
         }
@@ -155,10 +174,26 @@ namespace love
             return;
 
         size_t vertexSize = this->vertexStride * 4 * newSize;
+        int newNext       = std::min(this->next, newSize);
 
-        this->buffer.resize(vertexSize);
+        void* newData = std::realloc(this->vertexData, vertexSize);
+        if (newData == nullptr)
+            throw love::Exception(E_OUT_OF_MEMORY);
+
+        // clang-format off
+        auto* graphics = Module::getInstance<GraphicsBase>(Module::M_GRAPHICS);
+        BufferBase::Settings settings(this->arrayBuffer->getUsageFlags(), this->arrayBuffer->getDataUsage());
+        auto decl = BufferBase::getCommonFormatDeclaration(this->vertexFormat);
+
+        this->arrayBuffer.set(graphics->newBuffer(settings, decl, nullptr, vertexSize, 0), Acquire::NO_RETAIN);
+        // clang-format on
+
+        this->arrayBuffer->fill(0, this->vertexStride * 4 * newNext, newData);
+        this->vertexData = (uint8_t*)newData;
+
         this->size = newSize;
-        this->next = std::min(this->next, newSize);
+        this->next = newNext;
+        this->attributesID.invalidate();
     }
 
     int SpriteBatch::getBufferSize() const
@@ -191,6 +226,47 @@ namespace love
         return true;
     }
 
+    void SpriteBatch::updateVertexAttributes(GraphicsBase* graphics)
+    {
+        VertexAttributes attributes {};
+        BufferBindings& buffers = this->bufferBindings;
+
+        buffers.set(0, this->arrayBuffer, 0);
+        attributes.setCommonFormat(this->vertexFormat, 0);
+
+        int activeBuffers = 1;
+        for (const auto& it : this->attachedAttributes)
+        {
+            auto* buffer = it.second.buffer.get();
+            int index    = it.second.bindingIndex;
+
+            if (index >= 0)
+            {
+                const auto& member = buffer->getDataMember(it.second.index);
+
+                auto offset = (uint16_t)buffer->getMemberOffset(it.second.index);
+                auto stride = (uint16_t)buffer->getArrayStride();
+
+                int bufferIndex = activeBuffers;
+
+                for (int i = 1; i < activeBuffers; i++)
+                {
+                    if (buffers.info[i].buffer == buffer && attributes.bufferLayouts[i].stride == stride)
+                    {
+                        bufferIndex = i;
+                        break;
+                    }
+                }
+
+                attributes.set(index, member.declaration.format, offset, bufferIndex);
+                attributes.setBufferLayout(bufferIndex, stride);
+                buffers.set(bufferIndex, buffer, 0);
+                activeBuffers = std::max(activeBuffers, bufferIndex + 1);
+            }
+        }
+        this->attributesID = graphics->registerVertexAttributes(attributes);
+    }
+
     static constexpr ShaderBase::StandardShader SHADER_TYPE =
         (Console::is(Console::CTR)) ? ShaderBase::STANDARD_DEFAULT : ShaderBase::STANDARD_TEXTURE;
 
@@ -198,6 +274,26 @@ namespace love
     {
         if (this->next == 0)
             return;
+
+        graphics->flushBatchedDraws();
+        this->flush();
+
+        bool attributesIDNeedsUpdate = !this->attributesID.isValid();
+        for (const auto& it : this->attachedAttributes)
+        {
+            auto* buffer = it.second.buffer.get();
+            if (buffer->getArrayLength() < (size_t)this->next * 4)
+                throw love::Exception(E_SPRITEBATCH_ATTRIBUTE_TOO_FEW_VERTICES, it.first.c_str());
+
+            if (it.second.bindingIndex < 0)
+                attributesIDNeedsUpdate = true;
+
+            if (it.second.mesh.get())
+                it.second.mesh->flush();
+        }
+
+        if (attributesIDNeedsUpdate)
+            this->updateVertexAttributes(graphics);
 
         GraphicsBase::TempTransform transform(graphics, matrix);
 
@@ -212,26 +308,7 @@ namespace love
         if (count <= 0)
             return;
 
-        BatchedDrawCommand command {};
-        command.format        = CommonFormat::XYf_STf_RGBAf;
-        command.indexMode     = TRIANGLEINDEX_QUADS;
-        command.texture       = this->texture;
-        command.vertexCount   = count * 4;
-        command.pushTransform = false;
-        command.shaderType    = SHADER_TYPE;
-
-        auto data = graphics->requestBatchedDraw(command);
-
-        Vertex* stream = (Vertex*)data.stream;
-
-        auto& m_transform = graphics->getTransform();
-        m_transform.transformXY(stream, this->buffer.data() + start, command.vertexCount);
-
-        for (int index = 0; index < command.vertexCount; index++)
-        {
-            stream[index].s     = this->buffer[start * 4 + index].s;
-            stream[index].t     = this->buffer[start * 4 + index].t;
-            stream[index].color = this->buffer[start * 4 + index].color;
-        }
+        c3d.setTexEnvMode(this->texture, false);
+        graphics->drawQuads(start, count, this->attributesID, this->bufferBindings, this->texture);
     }
 } // namespace love

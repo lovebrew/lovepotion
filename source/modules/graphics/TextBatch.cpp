@@ -1,5 +1,6 @@
 #include "common/Console.hpp"
 
+#include "driver/display/citro3d.hpp"
 #include "modules/graphics/Graphics.tcc"
 #include "modules/graphics/TextBatch.hpp"
 
@@ -11,39 +12,60 @@ namespace love
 
     TextBatch::TextBatch(FontBase* font, const std::vector<ColoredString>& text) :
         font(font),
-        vertexAttributes(CommonFormat::XYf_STf_RGBAf, 0),
-        buffer {},
+        vertexAtributesID(font->getVertexAttributesID()),
+        vertexData(nullptr),
         modifiedVertices(),
         vertexOffset(0),
-        textureCacheID((uint32_t)-1)
+        textureCacheID(font->getTextureCacheID())
     {
         this->set(text);
     }
 
     TextBatch::~TextBatch()
-    {}
+    {
+        if (this->vertexData != nullptr)
+            std::free(this->vertexData);
+    }
 
     void TextBatch::uploadVertices(const std::vector<FontBase::GlyphVertex>& vertices, size_t vertexOffset)
     {
-        size_t offset   = vertexOffset * sizeof(FontBase::GlyphVertex);
-        size_t dataSize = vertices.size() * sizeof(FontBase::GlyphVertex);
+        size_t offset = vertexOffset * sizeof(FontBase::GlyphVertex);
+        size_t size   = vertices.size() * sizeof(FontBase::GlyphVertex);
 
-        const auto currentByteSize = this->buffer.size() * sizeof(FontBase::GlyphVertex);
-
-        if (dataSize > 0 && ((offset + dataSize) > currentByteSize))
+        if (size > 0 && (!this->vertexBuffer || (offset + size) > this->vertexBuffer->getSize()))
         {
-            size_t newSize = (size_t(offset + dataSize * 1.5)) / sizeof(FontBase::GlyphVertex);
+            size_t newSize = size_t((offset + size) * 1.5);
+            if (this->vertexBuffer != nullptr)
+                newSize = std::max(size_t(this->vertexBuffer->getSize() * 1.5), newSize);
 
-            if (!this->buffer.empty())
-                newSize = std::max(size_t(this->buffer.size() * 1.5), newSize);
+            // clang-format off
+            auto* graphics = Module::getInstance<GraphicsBase>(Module::M_GRAPHICS);
 
-            this->buffer.resize(newSize);
+            BufferBase::Settings settings(BUFFERUSAGEFLAG_VERTEX, BUFFERDATAUSAGE_DYNAMIC);
+            auto decl = BufferBase::getCommonFormatDeclaration(FontBase::VertexFormat);
+            StrongRef<BufferBase> newBuffer(graphics->newBuffer(settings, decl, nullptr, newSize, 0), Acquire::NO_RETAIN);
+            // clang-format on
+
+            void* newData = nullptr;
+            if (this->vertexData != nullptr)
+                newData = std::realloc(this->vertexData, newSize);
+            else
+                newData = std::malloc(newSize);
+
+            if (newData == nullptr)
+                throw love::Exception(E_OUT_OF_MEMORY);
+            else
+                this->vertexData = (uint8_t*)newData;
+
+            this->vertexBuffer = newBuffer;
+            this->vertexBuffers.set(0, this->vertexBuffer, 0);
+            this->modifiedVertices.encapsulate(0, newSize);
         }
 
-        if (!this->buffer.empty() && dataSize > 0)
+        if (this->vertexData != nullptr && size > 0)
         {
-            std::memcpy(&this->buffer[vertexOffset], &vertices[0], dataSize);
-            this->modifiedVertices = Range(offset, dataSize);
+            std::memcpy(this->vertexData + offset, &vertices[0], size);
+            this->modifiedVertices.encapsulate(offset, size);
         }
     }
 
@@ -76,11 +98,11 @@ namespace love
             newCommands = this->font->generateVerticesFormatted(data.codepoints, constantColor, data.wrap, data.align, vertices, &textInfo);
         // clang-format on
 
-        size_t vertexOffset = this->vertexOffset;
+        size_t vOffset = this->vertexOffset;
 
         if (!data.appendVertices)
         {
-            vertexOffset       = 0;
+            vOffset            = 0;
             this->vertexOffset = 0;
             this->drawCommands.clear();
             this->textData.clear();
@@ -89,32 +111,31 @@ namespace love
         if (data.useMatrix && !vertices.empty())
             data.matrix.transformXY(vertices.data(), vertices.data(), (int)vertices.size());
 
-        this->uploadVertices(vertices, vertexOffset);
+        this->uploadVertices(vertices, vOffset);
 
         if (!newCommands.empty())
         {
-            for (auto& command : newCommands)
-                command.startVertex += vertexOffset;
+            for (auto& cmd : newCommands)
+                cmd.startVertex += vOffset;
 
-            auto firstCommand = newCommands.begin();
-
+            auto firstCmd = newCommands.begin();
+            // clang-format off
             if (!this->drawCommands.empty())
             {
-                auto previous  = this->drawCommands.back();
-                bool sameRange = (previous.startVertex + previous.vertexCount) == firstCommand->startVertex;
-
-                if (previous.texture == firstCommand->texture && sameRange)
+                auto prevCmd = this->drawCommands.back();
+                if (prevCmd.texture == firstCmd->texture && (prevCmd.startVertex + prevCmd.vertexCount) == firstCmd->startVertex)
                 {
-                    previous.vertexCount += firstCommand->vertexCount;
-                    ++firstCommand;
+                    this->drawCommands.back().vertexCount += firstCmd->vertexCount;
+                    ++firstCmd;
                 }
             }
-
-            this->drawCommands.insert(this->drawCommands.end(), firstCommand, newCommands.end());
+            // clang-format on
+            this->drawCommands.insert(this->drawCommands.end(), firstCmd, newCommands.end());
         }
 
-        this->vertexOffset += vertices.size();
+        this->vertexOffset = vOffset + vertices.size();
         this->textData.push_back(data);
+        this->textData.back().textInfo = textInfo;
 
         if (this->font->getTextureCacheID() != this->textureCacheID)
             this->regenerateVertices();
@@ -163,7 +184,8 @@ namespace love
     void TextBatch::setFont(FontBase* font)
     {
         this->font.set(font);
-        this->textureCacheID = (uint32_t)-1;
+        this->textureCacheID    = (uint32_t)-1;
+        this->vertexAtributesID = font->getVertexAttributesID();
         this->regenerateVertices();
     }
 
@@ -194,12 +216,9 @@ namespace love
         return this->textData[index].textInfo.height;
     }
 
-    static constexpr auto shaderType =
-        Console::is(Console::CTR) ? ShaderBase::STANDARD_DEFAULT : ShaderBase::STANDARD_TEXTURE;
-
     void TextBatch::draw(GraphicsBase* graphics, const Matrix4& matrix)
     {
-        if (this->buffer.empty() || this->drawCommands.empty())
+        if (this->vertexBuffer == nullptr || this->vertexData == nullptr || this->drawCommands.empty())
             return;
 
         graphics->flushBatchedDraws();
@@ -208,36 +227,29 @@ namespace love
             this->regenerateVertices();
 
         if (ShaderBase::isDefaultActive())
-            ShaderBase::attachDefault(ShaderBase::STANDARD_DEFAULT);
-
-        TextureBase* firstTexture = nullptr;
-        if (!this->drawCommands.empty())
-            firstTexture = this->drawCommands[0].texture;
-
-        int totalVertices = 0;
-        for (const auto& command : this->drawCommands)
-            totalVertices = std::max(command.startVertex + command.vertexCount, totalVertices);
+            ShaderBase::attachDefault(ShaderBase::getTextureShader());
 
         if (this->modifiedVertices.isValid())
+        {
+            size_t offset = this->modifiedVertices.getOffset();
+            size_t size   = this->modifiedVertices.getSize();
+
+            if (this->vertexBuffer->getDataUsage() == BUFFERDATAUSAGE_STREAM)
+                this->vertexBuffer->fill(0, this->vertexBuffer->getSize(), this->vertexData);
+            else
+                this->vertexBuffer->fill(offset, size, this->vertexData + offset);
+
             this->modifiedVertices.invalidate();
+        }
 
         GraphicsBase::TempTransform transform(graphics, matrix);
 
-        for (const FontBase::DrawCommand& cmd : this->drawCommands)
+        // clang-format off
+        for (const auto& cmd : this->drawCommands)
         {
-            BatchedDrawCommand command {};
-            command.format        = CommonFormat::XYf_STf_RGBAf;
-            command.indexMode     = TRIANGLEINDEX_QUADS;
-            command.vertexCount   = cmd.vertexCount;
-            command.texture       = cmd.texture;
-            command.shaderType    = shaderType;
-            command.isFont        = true;
-            command.pushTransform = false;
-
-            auto data                         = graphics->requestBatchedDraw(command);
-            FontBase::GlyphVertex* vertexdata = (FontBase::GlyphVertex*)data.stream;
-
-            std::copy_n(&this->buffer[cmd.startVertex], cmd.vertexCount, vertexdata);
+            c3d.setTexEnvMode(cmd.texture, true);
+            graphics->drawQuads(cmd.startVertex / 4, cmd.vertexCount / 4, this->vertexAtributesID, this->vertexBuffers, cmd.texture);
         }
+        // clang-format on
     }
 } // namespace love

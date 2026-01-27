@@ -151,9 +151,14 @@ namespace love
         if (this->mappedType == MAP_READ_ONLY)
             return;
 
-        std::memcpy(this->bytes + offset, this->staging, size);
+        if (this->mappedRange.first == 0 && this->mappedRange.getSize() == this->getSize())
+        {
+            offset = 0;
+            size   = this->getSize();
+        }
+
+        this->fill(offset, size, this->staging);
         linearFree(this->staging);
-        this->staging = nullptr;
     }
 
     bool Buffer::fill(size_t offset, size_t size, const void* data)

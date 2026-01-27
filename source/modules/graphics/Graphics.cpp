@@ -72,6 +72,8 @@ namespace love
         pixelHeight(0),
         drawCallsBatched(0),
         drawCalls(0),
+        quadIndexBuffer(nullptr),
+        fanIndexBuffer(nullptr),
         batchedDrawState(),
         cpuProcessingTime(0.0f),
         gpuDrawingTime(0.0f),
@@ -90,7 +92,30 @@ namespace love
     }
 
     GraphicsBase::~GraphicsBase()
-    {}
+    {
+        if (this->quadIndexBuffer != nullptr)
+            this->quadIndexBuffer->release();
+
+        if (this->fanIndexBuffer != nullptr)
+            this->fanIndexBuffer->release();
+    }
+
+    void GraphicsBase::createQuadIndexBuffer()
+    {
+        if (this->quadIndexBuffer != nullptr)
+            return;
+
+        size_t size = sizeof(uint16_t) * getIndexCount(TRIANGLEINDEX_QUADS, LOVE_UINT16_MAX);
+        BufferBase::Settings settings(BUFFERUSAGEFLAG_INDEX, BUFFERDATAUSAGE_STATIC);
+        this->quadIndexBuffer = newBuffer(settings, DATAFORMAT_UINT16, nullptr, size, 0);
+
+        {
+            BufferBase::Mapper map(*this->quadIndexBuffer);
+            fillIndices(TRIANGLEINDEX_QUADS, 0, LOVE_UINT16_MAX, (uint16_t*)map.data);
+        }
+
+        this->quadIndexBuffer->setImmutable(true);
+    }
 
     void GraphicsBase::resetProjection()
     {

@@ -59,8 +59,9 @@ namespace love
     {
       public:
         static constexpr size_t MAX_USER_STACK_DEPTH = 128;
-        static constexpr int MAX_VERTICES_PER_DRAW   = LOVE_UINT16_MAX;
-        static constexpr int MAX_QUADS_PER_DRAW      = MAX_VERTICES_PER_DRAW / 4;
+
+        static constexpr int MAX_VERTICES_PER_DRAW = LOVE_UINT16_MAX;
+        static constexpr int MAX_QUADS_PER_DRAW    = MAX_VERTICES_PER_DRAW / 4;
 
         enum DrawMode
         {
@@ -611,6 +612,9 @@ namespace love
 
         virtual void draw(const DrawCommand& command) = 0;
 
+        virtual void drawQuads(int start, int count, VertexAttributesID attributes,
+                               const BufferBindings& buffers, TextureBase* texture) = 0;
+
         Stats getStats() const;
 
         size_t getStackDepth() const
@@ -772,6 +776,8 @@ namespace love
 
         void setStencilMode(StencilMode mode, int value);
 
+        void createQuadIndexBuffer();
+
         void setStencilMode();
 
         StencilMode getStencilMode(int& value) const;
@@ -851,6 +857,9 @@ namespace love
         int drawCallsBatched;
         int drawCalls;
         int renderTargetSwitchCount;
+
+        BufferBase* quadIndexBuffer;
+        BufferBase* fanIndexBuffer;
 
         BatchedDrawState batchedDrawState;
         std::vector<uint8_t> scratchBuffer;

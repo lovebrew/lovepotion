@@ -31,7 +31,9 @@ namespace love
 
         ptrdiff_t getHandle() const override
         {
-            return (ptrdiff_t)std::addressof(this->buffer);
+            if (this->mapUsage == BUFFERUSAGE_VERTEX)
+                return (ptrdiff_t)std::addressof(this->buffer);
+            return (ptrdiff_t)this->bytes;
         };
 
         ptrdiff_t getTexelBufferHandle() const override
