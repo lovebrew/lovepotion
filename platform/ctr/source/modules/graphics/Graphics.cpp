@@ -101,6 +101,7 @@ namespace love
     void Graphics::setActiveScreen()
     {
         c3d.ensureInFrame();
+        this->resetProjection();
     }
 
     void Graphics::clear(OptionalColor color, OptionalInt stencil, OptionalDouble depth)

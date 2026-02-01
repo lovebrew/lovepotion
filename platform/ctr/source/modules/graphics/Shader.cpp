@@ -91,7 +91,6 @@ namespace love
 
         const auto* modelReflection = this->getUniformInfo("mdlvMtx");
         C3D_Mtx transform {};
-        Mtx_Identity(&transform);
         Mtx_Update(transform, data.transformMatrix);
 
         const auto* projReflection = this->getUniformInfo("projMtx");

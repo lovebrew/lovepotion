@@ -33,17 +33,18 @@ namespace love
         if (this->dataUsage == BUFFERDATAUSAGE_STREAM)
             this->ownsMemoryMap = true;
 
+        std::vector<uint8_t> emptydata;
         if (settings.zeroInitialize && data == nullptr)
         {
             try
             {
 
-                data = (uint8_t*)linearAlloc(size);
-                std::memset((uint8_t*)data, 0, size);
+                emptydata.resize(this->getSize());
+                data = emptydata.data();
             }
             catch (std::exception&)
             {
-                throw love::Exception(E_OUT_OF_MEMORY);
+                data = nullptr;
             }
         }
 
@@ -97,6 +98,11 @@ namespace love
         return true;
     }
 
+    bool Buffer::supportsOrphan() const
+    {
+        return this->dataUsage == BUFFERDATAUSAGE_STREAM || this->dataUsage == BUFFERDATAUSAGE_DYNAMIC;
+    }
+
     void* Buffer::map(MapType map, size_t offset, size_t size)
     {
         if (size == 0)
@@ -125,16 +131,13 @@ namespace love
 
         try
         {
-            this->staging = (uint8_t*)linearAlloc(size);
+            this->staging = (uint8_t*)linearAlloc(this->getSize());
         }
         catch (std::bad_alloc&)
         {
             this->mapped = false;
             return nullptr;
         }
-
-        if (map != MAP_WRITE_INVALIDATE)
-            std::memcpy(this->staging, this->bytes + offset, size);
 
         return (void*)this->staging;
     }
@@ -151,14 +154,15 @@ namespace love
         if (this->mappedType == MAP_READ_ONLY)
             return;
 
-        if (this->mappedRange.first == 0 && this->mappedRange.getSize() == this->getSize())
+        if (this->supportsOrphan() && this->mappedRange.first == 0 &&
+            this->mappedRange.getSize() == this->getSize())
         {
             offset = 0;
             size   = this->getSize();
         }
 
-        this->fill(offset, size, this->staging);
-        linearFree(this->staging);
+        auto* data = this->staging + (offset - this->mappedRange.getOffset());
+        this->fill(offset, size, data);
     }
 
     bool Buffer::fill(size_t offset, size_t size, const void* data)
@@ -171,7 +175,10 @@ namespace love
         if (!Range(0, bufferSize).contains(Range(offset, size)))
             return false;
 
-        std::memcpy(this->bytes + offset, data, size);
+        if (this->supportsOrphan() && size == bufferSize)
+            std::memcpy(this->bytes, data, bufferSize);
+        else
+            std::memcpy(this->bytes + offset, data, size);
 
         return true;
     }

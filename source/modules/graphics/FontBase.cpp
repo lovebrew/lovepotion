@@ -254,11 +254,11 @@ namespace love
 
     static bool sortGlyphs(const FontBase::DrawCommand& left, const FontBase::DrawCommand& right)
     {
-        if constexpr (Console::is(Console::CTR))
-        {
-            const auto result = left.texture - right.texture;
-            return result < 0;
-        }
+        // if constexpr (Console::is(Console::CTR))
+        // {
+        //     const auto result = left.texture->getHandle() - right.texture->getHandle();
+        //     return result < 0;
+        // }
 
         return left.texture < right.texture;
     }
@@ -269,10 +269,11 @@ namespace love
                                                                   float extra_spacing, Vector2 offset,
                                                                   TextShaper::TextInfo* info)
     {
+        // clang-format off
         std::vector<TextShaper::GlyphPosition> glyphPositions {};
         std::vector<IndexedColor> colors;
-        this->shaper->computeGlyphPositions(codepoints, range, offset, extra_spacing, &glyphPositions,
-                                            &colors, info);
+        this->shaper->computeGlyphPositions(codepoints, range, offset, extra_spacing, &glyphPositions, &colors, info);
+        // clang-format on
 
         size_t vertexStartSize = vertices.size();
         vertices.reserve(vertexStartSize + glyphPositions.size() * 4);

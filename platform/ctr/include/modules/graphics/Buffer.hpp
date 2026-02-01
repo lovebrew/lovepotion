@@ -27,6 +27,8 @@ namespace love
 
         bool fill(size_t offset, size_t size, const void* data) override;
 
+        bool supportsOrphan() const;
+
         void copyTo(BufferBase* dest, size_t sourceoffset, size_t destoffset, size_t size) override;
 
         ptrdiff_t getHandle() const override

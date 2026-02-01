@@ -1,10 +1,10 @@
-#include "common/Console.hpp"
-
+#include "modules/graphics/TextBatch.hpp"
 #include "driver/display/citro3d.hpp"
 #include "modules/graphics/Graphics.tcc"
-#include "modules/graphics/TextBatch.hpp"
 
 #include <algorithm>
+
+#include "common/debug.hpp"
 
 namespace love
 {
@@ -29,12 +29,13 @@ namespace love
 
     void TextBatch::uploadVertices(const std::vector<FontBase::GlyphVertex>& vertices, size_t vertexOffset)
     {
-        size_t offset = vertexOffset * sizeof(FontBase::GlyphVertex);
-        size_t size   = vertices.size() * sizeof(FontBase::GlyphVertex);
+        size_t offset   = vertexOffset * sizeof(FontBase::GlyphVertex);
+        size_t dataSize = vertices.size() * sizeof(FontBase::GlyphVertex);
 
-        if (size > 0 && (!this->vertexBuffer || (offset + size) > this->vertexBuffer->getSize()))
+        if (dataSize > 0 && (!this->vertexBuffer || (offset + dataSize) > this->vertexBuffer->getSize()))
         {
-            size_t newSize = size_t((offset + size) * 1.5);
+            size_t newSize = size_t((offset + dataSize) * 1.5);
+
             if (this->vertexBuffer != nullptr)
                 newSize = std::max(size_t(this->vertexBuffer->getSize() * 1.5), newSize);
 
@@ -62,10 +63,10 @@ namespace love
             this->modifiedVertices.encapsulate(0, newSize);
         }
 
-        if (this->vertexData != nullptr && size > 0)
+        if (this->vertexData != nullptr && dataSize > 0)
         {
-            std::memcpy(this->vertexData + offset, &vertices[0], size);
-            this->modifiedVertices.encapsulate(offset, size);
+            std::memcpy(this->vertexData + offset, &vertices[0], dataSize);
+            this->modifiedVertices.encapsulate(offset, dataSize);
         }
     }
 
@@ -116,7 +117,7 @@ namespace love
         if (!newCommands.empty())
         {
             for (auto& cmd : newCommands)
-                cmd.startVertex += vOffset;
+                cmd.startVertex += (int)vOffset;
 
             auto firstCmd = newCommands.begin();
             // clang-format off
@@ -244,12 +245,12 @@ namespace love
 
         GraphicsBase::TempTransform transform(graphics, matrix);
 
+        if (!this->drawCommands.empty())
+            c3d.setTexEnvMode(this->drawCommands[0].texture, true);
+
         // clang-format off
         for (const auto& cmd : this->drawCommands)
-        {
-            c3d.setTexEnvMode(cmd.texture, true);
             graphics->drawQuads(cmd.startVertex / 4, cmd.vertexCount / 4, this->vertexAtributesID, this->vertexBuffers, cmd.texture);
-        }
         // clang-format on
     }
 } // namespace love
