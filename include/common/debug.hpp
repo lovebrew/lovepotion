@@ -3,7 +3,6 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netinet/in.h>
-#include <signal.h>
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <unistd.h>

@@ -609,25 +609,6 @@ namespace love
         ++this->drawCalls;
     }
 
-    static void advanceVertexOffsets(const VertexAttributes& attributes, BufferBindings& buffers, int count)
-    {
-        uint32_t touchedBuffers = 0;
-        for (size_t index = 0; index < VertexAttributes::MAX; index++)
-        {
-            if (!attributes.isEnabled(index))
-                continue;
-
-            auto& attribute    = attributes.attributes[index];
-            uint32_t bufferBit = 1u << attribute.bufferIndex;
-            if ((touchedBuffers & bufferBit) == 0)
-            {
-                touchedBuffers |= bufferBit;
-                const auto layout = attributes.bufferLayouts[attribute.bufferIndex];
-                buffers.info[attribute.bufferIndex].offset += layout.stride * count;
-            }
-        }
-    }
-
     void Graphics::drawQuads(int start, int count, VertexAttributesID attributesID,
                              const BufferBindings& buffers, TextureBase* texture)
     {

@@ -1,7 +1,6 @@
-#include "common/luax.hpp"
-#include "common/version.hpp"
-
 #include "boot.hpp"
+#include "common/Variant.hpp"
+#include "common/luax.hpp"
 #include "modules/love/love.hpp"
 
 #include <filesystem>
@@ -14,21 +13,29 @@ extern "C"
 #include <lualib.h>
 }
 
-#include "common/Exception.hpp"
-
 enum DoneAction
 {
     DONE_QUIT,
     DONE_RESTART
 };
 
-static DoneAction runLove(char** argv, int argc, int& result, love::Variant& restartValue)
+static int love_preload(lua_State* L, lua_CFunction f, const char* name)
+{
+    lua_getglobal(L, "package");
+    lua_getfield(L, -1, "preload");
+    lua_pushcfunction(L, f);
+    lua_setfield(L, -2, name);
+    lua_pop(L, 2);
+    return 0;
+}
+
+static DoneAction runlove(char** argv, int argc, int& result, love::Variant& restartValue)
 {
     lua_State* L = luaL_newstate();
     luaL_openlibs(L);
     luaopen_bit(L);
 
-    love::luax_preload(L, love_initialize, "love");
+    love_preload(L, love_initialize, "love");
 
     {
         lua_newtable(L);
@@ -132,7 +139,7 @@ int main(int argc, char** argv)
 
     do
     {
-        action = runLove(argv, argc, result, restartValue);
+        action = runlove(argv, argc, result, restartValue);
     } while (action != DONE_QUIT);
 
     love::platform::shutdown();
