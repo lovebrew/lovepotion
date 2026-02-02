@@ -242,8 +242,8 @@ int Wrap_Buffer::isBufferType(lua_State* L)
     const char* type = luaL_checkstring(L, 2);
 
     BufferUsage bufferUsage = BUFFERUSAGE_MAX_ENUM;
-    // if (!getConstant(type, bufferUsage))
-    //     return luax_enumerror(L, "buffer type", BufferUsages, type);
+    if (!getConstant(type, bufferUsage))
+        return luax_enumerror(L, "buffer type", BufferUsages, type);
 
     luax_pushboolean(L, (self->getUsageFlags() & (1 << bufferUsage)) != 0);
     return 1;
@@ -272,7 +272,7 @@ static constexpr luaL_Reg functions[] =
     { "getSize",          Wrap_Buffer::getSize          },
     { "getFormat",        Wrap_Buffer::getFormat        },
     { "isBufferType",     Wrap_Buffer::isBufferType     },
-    { "getDebugName",     Wrap_Buffer::getDebugName     },
+    { "getDebugName",     Wrap_Buffer::getDebugName     }
 };
 // clang-format on
 

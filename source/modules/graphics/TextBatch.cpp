@@ -31,7 +31,7 @@ namespace love
     {
         size_t offset   = vertexOffset * sizeof(FontBase::GlyphVertex);
         size_t dataSize = vertices.size() * sizeof(FontBase::GlyphVertex);
-
+        LOG("Offset %zu, Size: %zu", offset, dataSize);
         if (dataSize > 0 && (!this->vertexBuffer || (offset + dataSize) > this->vertexBuffer->getSize()))
         {
             size_t newSize = size_t((offset + dataSize) * 1.5);
@@ -116,6 +116,7 @@ namespace love
 
         if (!newCommands.empty())
         {
+            LOG("Offset %zu", vOffset);
             for (auto& cmd : newCommands)
                 cmd.startVertex += (int)vOffset;
 
@@ -137,7 +138,7 @@ namespace love
         this->vertexOffset = vOffset + vertices.size();
         this->textData.push_back(data);
         this->textData.back().textInfo = textInfo;
-
+        LOG("Vertex Offset: %zu", this->vertexOffset);
         if (this->font->getTextureCacheID() != this->textureCacheID)
             this->regenerateVertices();
     }

@@ -139,6 +139,8 @@ namespace Wrap_Graphics
 
     int getFont(lua_State* L);
 
+    int getQuadIndexBuffer(lua_State* L);
+
     int polygon(lua_State* L);
 
     int rectangle(lua_State* L);

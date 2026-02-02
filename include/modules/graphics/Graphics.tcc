@@ -405,6 +405,11 @@ namespace love
             return this->states.back().font.get();
         }
 
+        BufferBase* getQuadIndexBuffer()
+        {
+            return this->quadIndexBuffer;
+        }
+
         const SamplerState& getDefaultSamplerState() const
         {
             return this->states.back().defaultSamplerState;

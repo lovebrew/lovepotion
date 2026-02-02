@@ -641,18 +641,15 @@ namespace love
         const auto* indices = (uint16_t*)this->quadIndexBuffer->getHandle();
 
         BufferBindings buffersCopy = buffers;
-        if (start > 0)
-            advanceVertexOffsets(attributes, buffersCopy, start * 4);
+        c3d.setVertexAttributes(attributes, buffersCopy);
 
         for (int quadIndex = 0; quadIndex < count; quadIndex += MAX_QUADS_PER_DRAW)
         {
-            c3d.setVertexAttributes(attributes, buffersCopy);
             int quadCount = std::min(MAX_QUADS_PER_DRAW, count - quadIndex);
-            C3D_DrawElements(GPU_TRIANGLES, quadCount * 6, C3D_UNSIGNED_SHORT, indices);
-            ++drawCalls;
 
-            if (count > MAX_QUADS_PER_DRAW)
-                advanceVertexOffsets(attributes, buffersCopy, quadCount * 4);
+            const auto offset = (start + quadIndex) * 6;
+            C3D_DrawElements(GPU_TRIANGLES, quadCount * 6, C3D_UNSIGNED_SHORT, &indices[offset]);
+            ++drawCalls;
         }
     }
 

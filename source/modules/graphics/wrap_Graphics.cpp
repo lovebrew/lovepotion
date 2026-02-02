@@ -1837,6 +1837,12 @@ int Wrap_Graphics::setFont(lua_State* L)
     return 0;
 }
 
+int Wrap_Graphics::getQuadIndexBuffer(lua_State*L)
+{
+    luax_pushtype(L, instance()->getQuadIndexBuffer());
+    return 1;
+}
+
 int Wrap_Graphics::getFont(lua_State* L)
 {
     luax_checkgraphicscreated(L);
@@ -2870,6 +2876,8 @@ static constexpr luaL_Reg functions[] =
 
     { "setDepthMode",           Wrap_Graphics::setDepthMode          },
     { "getDepthMode",           Wrap_Graphics::getDepthMode          },
+
+    { "getQuadIndexBuffer",     Wrap_Graphics::getQuadIndexBuffer    },
 
     { "newFont",                Wrap_Graphics::newFont               },
     { "setFont",                Wrap_Graphics::setFont               },
