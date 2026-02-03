@@ -232,7 +232,9 @@ namespace love
 
     void deko3d::setVertexAttributes(bool isTexture)
     {
-        vertex::Attributes attributes {};
+        uint32_t i       = 0;
+        uint32_t allBits = attributes.enableBits | 3;
+
         vertex::getAttributes(isTexture, attributes);
 
         this->commandBuffer.bindVtxAttribState(attributes.attributeState);
