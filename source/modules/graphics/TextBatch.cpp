@@ -1,5 +1,9 @@
 #include "modules/graphics/TextBatch.hpp"
-#include "driver/display/citro3d.hpp"
+
+#if defined(__3DS__)
+    #include "driver/display/citro3d.hpp"
+#endif
+
 #include "modules/graphics/Graphics.tcc"
 
 #include <algorithm>
@@ -246,8 +250,10 @@ namespace love
 
         GraphicsBase::TempTransform transform(graphics, matrix);
 
+#if defined(__3DS__)
         if (!this->drawCommands.empty())
             c3d.setTexEnvMode(this->drawCommands[0].texture, true);
+#endif
 
         // clang-format off
         for (const auto& cmd : this->drawCommands)

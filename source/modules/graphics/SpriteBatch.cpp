@@ -2,7 +2,10 @@
 
 #include "common/Console.hpp"
 
-#include "driver/display/citro3d.hpp"
+#if defined(__3DS__)
+    #include "driver/display/citro3d.hpp"
+#endif
+
 #include "modules/graphics/Graphics.tcc"
 #include "modules/graphics/Quad.hpp"
 #include "modules/graphics/Texture.tcc"
@@ -308,7 +311,9 @@ namespace love
         if (count <= 0)
             return;
 
+#if defined(__3DS__)
         c3d.setTexEnvMode(this->texture, false);
+#endif
         graphics->drawQuads(start, count, this->attributesID, this->bufferBindings, this->texture);
     }
 } // namespace love

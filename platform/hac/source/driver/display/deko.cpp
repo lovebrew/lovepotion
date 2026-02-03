@@ -1,10 +1,16 @@
 #include "driver/display/deko.hpp"
+#include "common/Exception.hpp"
 #include "driver/graphics/Attributes.hpp"
 
 #include "modules/graphics/Shader.hpp"
 #include "modules/graphics/Texture.hpp"
+#include "modules/graphics/vertex.hpp"
 
+#include <deko3d.h>
 #include <glm/gtc/type_ptr.hpp>
+#include <vector>
+
+#include "common/debug.hpp"
 
 namespace love
 {
@@ -137,7 +143,7 @@ namespace love
         this->commandBuffer.clearColor(0, DkColorMask_RGBA, color.r, color.g, color.b, color.a);
     }
 
-    void deko3d::clearDepthStencil(int depth, double stencil)
+    void deko3d::clearDepthStencil(int stencil, double depth)
     {
         if (!this->inFrame)
             return;
@@ -230,15 +236,53 @@ namespace love
             this->commandBuffer.bindIdxBuffer(DkIdxFormat_Uint16, address);
     }
 
-    void deko3d::setVertexAttributes(bool isTexture)
+    static DkVtxAttribType getVertexComponents(DataFormat format, DkVtxAttribSize& size)
+    {
+        switch (format)
+        {
+            case DATAFORMAT_FLOAT_VEC2:
+                size = DkVtxAttribSize_2x32;
+                return DkVtxAttribType_Float;
+            case DATAFORMAT_FLOAT_VEC3:
+                size = DkVtxAttribSize_3x32;
+                return DkVtxAttribType_Float;
+            case DATAFORMAT_FLOAT_VEC4:
+                size = DkVtxAttribSize_4x32;
+                return DkVtxAttribType_Float;
+            default:
+                throw love::Exception("Unsupported Vertex Component: {:d}", (int)format);
+        }
+    }
+
+    void deko3d::setVertexAttributes(const VertexAttributes& attributes, const BufferBindings& buffers)
     {
         uint32_t i       = 0;
         uint32_t allBits = attributes.enableBits | 3;
 
-        vertex::getAttributes(isTexture, attributes);
+        std::vector<DkVtxAttribState> attributeState {};
 
-        this->commandBuffer.bindVtxAttribState(attributes.attributeState);
-        this->commandBuffer.bindVtxBufferState(attributes.bufferState);
+        LOG("---");
+        while (allBits)
+        {
+            uint32_t bit = 1u << i;
+            if (attributes.enableBits & bit)
+            {
+                DkVtxAttribSize size  = DkVtxAttribSize(-1);
+                const auto& attribute = attributes.attributes[i];
+                const auto format     = getVertexComponents(attribute.getFormat(), size);
+                LOG("Attribute: %d, Offset: %u", attribute.getFormat(), attribute.offsetFromVertex);
+                attributeState.push_back({ 0, 0, (uint32_t)attribute.offsetFromVertex, size, format, 0 });
+            }
+            i++;
+            allBits >>= 1u;
+        }
+        LOG("---\n");
+
+        auto handle = (vertex::BufferHandle*)buffers.info[0].buffer->getHandle();
+        this->bindBuffer(BUFFERUSAGE_VERTEX, handle->memory.getGpuAddr(), handle->memory.getSize());
+
+        this->commandBuffer.bindVtxAttribState(attributeState);
+        this->commandBuffer.bindVtxBufferState(handle->state);
     }
 
     void deko3d::setStencilState(const StencilState& state)
@@ -268,10 +312,14 @@ namespace love
 
     void deko3d::setDepthWrites(CompareMode compare, bool write)
     {
+        const auto enable = compare != COMPARE_ALWAYS || write;
+
         DkCompareOp compareOp;
         if (!deko3d::getConstant(compare, compareOp))
             return;
 
+        LOG("[setDepthWrites] %d: %d", compare, write);
+        this->context.depthStencil.setDepthTestEnable(enable);
         this->context.depthStencil.setDepthCompareOp(compareOp);
         this->context.depthStencil.setDepthWriteEnable(write);
     }

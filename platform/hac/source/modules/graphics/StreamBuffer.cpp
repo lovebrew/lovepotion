@@ -2,24 +2,31 @@
 #include "modules/graphics/Volatile.hpp"
 
 #include "driver/display/deko.hpp"
+#include "modules/graphics/vertex.hpp"
+#include <deko3d.h>
+
+#include "driver/graphics/Attributes.hpp"
 
 namespace love
 {
     class StreamBuffer final : public StreamBufferBase
     {
       private:
-        static constexpr int SLICE_COUNT = MAX_RENDERTARGETS;
+        static constexpr int SLICE_COUNT = 1;
 
       public:
         StreamBuffer(BufferUsage usage, size_t size) : StreamBufferBase(usage, size), handle {}, sliceSize(0)
         {
             this->sliceSize = ((size / SLICE_COUNT) + DK_CMDMEM_ALIGNMENT - 1) & ~(DK_CMDMEM_ALIGNMENT - 1);
 
-            auto& pool   = d3d.getMemoryPool(deko3d::MEMORYPOOL_DATA);
-            this->handle = pool.allocate(SLICE_COUNT * this->sliceSize, alignof(uint8_t));
+            auto& pool          = d3d.getMemoryPool(deko3d::MEMORYPOOL_DATA);
+            this->handle.memory = pool.allocate(SLICE_COUNT * this->sliceSize, alignof(uint8_t));
 
-            if (!this->handle)
+            if (!this->handle.memory)
                 throw love::Exception(E_OUT_OF_MEMORY);
+
+            if (usage == BUFFERUSAGE_VERTEX)
+                this->handle.state = { sizeof(Vertex), 0 };
         }
 
         StreamBuffer(const StreamBuffer&) = delete;
@@ -28,7 +35,7 @@ namespace love
 
         ~StreamBuffer()
         {
-            this->handle.destroy();
+            this->handle.memory.destroy();
         }
 
         size_t getSize() const override
@@ -40,15 +47,15 @@ namespace love
         {
             MapInfo info {};
 
-            if (!this->handle)
+            if (!this->handle.memory)
                 return info;
 
             const size_t offset = (this->frameIndex * this->sliceSize) + this->frameGPUReadOffset;
 
-            if (offset >= this->handle.getSize())
+            if (offset >= this->handle.memory.getSize())
                 return info;
 
-            auto* cpuAddr = (uint8_t*)this->handle.getCpuAddr();
+            auto* cpuAddr = (uint8_t*)this->handle.memory.getCpuAddr();
 
             info.data = cpuAddr + offset;
             info.size = this->sliceSize - this->frameGPUReadOffset;
@@ -58,11 +65,11 @@ namespace love
 
         size_t unmap(size_t /* usedSize */) override
         {
-            if (!this->handle)
+            if (!this->handle.memory)
                 return 0;
 
-            const auto offset = (this->frameIndex * this->sliceSize);
-            d3d.bindBuffer(this->mode, this->handle.getGpuAddr() + offset, this->sliceSize);
+            // const auto offset = (this->frameIndex * this->sliceSize);
+            // d3d.bindBuffer(this->mode, this->handle.memory.getGpuAddr() + offset, this->sliceSize);
 
             return this->frameGPUReadOffset;
         }
@@ -80,11 +87,11 @@ namespace love
 
         ptrdiff_t getHandle() const override
         {
-            return (ptrdiff_t)this->handle.getCpuAddr();
+            return (ptrdiff_t)std::addressof(this->handle);
         }
 
       private:
-        CMemPool::Handle handle;
+        vertex::BufferHandle handle;
         uint32_t sliceSize;
     };
 
