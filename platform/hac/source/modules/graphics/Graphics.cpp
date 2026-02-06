@@ -456,7 +456,5 @@ namespace love
             d3d.drawIndexed(DkPrimitive_Triangles, quadIndex * 6, offset, 1);
             ++drawCalls;
         }
-
-        ++drawCalls;
     }
 } // namespace love

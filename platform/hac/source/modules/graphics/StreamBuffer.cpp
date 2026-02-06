@@ -50,14 +50,11 @@ namespace love
             if (!this->handle.memory)
                 return info;
 
-            const size_t offset = (this->frameIndex * this->sliceSize) + this->frameGPUReadOffset;
-
-            if (offset >= this->handle.memory.getSize())
-                return info;
+            // const size_t offset = (this->frameIndex * this->sliceSize) + this->frameGPUReadOffset;
 
             auto* cpuAddr = (uint8_t*)this->handle.memory.getCpuAddr();
 
-            info.data = cpuAddr + offset;
+            info.data = &cpuAddr[this->frameGPUReadOffset];
             info.size = this->sliceSize - this->frameGPUReadOffset;
 
             return info;

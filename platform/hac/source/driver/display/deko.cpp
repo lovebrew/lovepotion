@@ -39,7 +39,7 @@ namespace love
         if (this->initialized)
             return;
 
-        this->device       = dk::DeviceMaker {}.setFlags(DkDeviceFlags_DepthMinusOneToOne).create();
+        this->device       = dk::DeviceMaker {}.create();
         this->mainQueue    = dk::QueueMaker { this->device }.setFlags(DkQueueFlags_Graphics).create();
         this->textureQueue = dk::QueueMaker { this->device }.setFlags(DkQueueFlags_Graphics).create();
 
@@ -148,7 +148,8 @@ namespace love
         if (!this->inFrame)
             return;
 
-        this->commandBuffer.clearDepthStencil(true, depth, stencil, this->context.stencilState.writeMask);
+        const float depthf = float(depth);
+        this->commandBuffer.clearDepthStencil(true, depthf, this->context.stencilState.writeMask, stencil);
     }
 
     // dk::Image& deko3d::getInternalBackbuffer()
@@ -161,7 +162,7 @@ namespace love
     {
         this->ensureInFrame();
 
-        if (!this->uniform)
+        if (!this->uniform || !shaders[0] || !shaders[1])
             return;
 
         // clang-format off
@@ -261,7 +262,6 @@ namespace love
 
         std::vector<DkVtxAttribState> attributeState {};
 
-        LOG("---");
         while (allBits)
         {
             uint32_t bit = 1u << i;
@@ -270,13 +270,12 @@ namespace love
                 DkVtxAttribSize size  = DkVtxAttribSize(-1);
                 const auto& attribute = attributes.attributes[i];
                 const auto format     = getVertexComponents(attribute.getFormat(), size);
-                LOG("Attribute: %d, Offset: %u", attribute.getFormat(), attribute.offsetFromVertex);
+
                 attributeState.push_back({ 0, 0, (uint32_t)attribute.offsetFromVertex, size, format, 0 });
             }
             i++;
             allBits >>= 1u;
         }
-        LOG("---\n");
 
         auto handle = (vertex::BufferHandle*)buffers.info[0].buffer->getHandle();
         this->bindBuffer(BUFFERUSAGE_VERTEX, handle->memory.getGpuAddr(), handle->memory.getSize());
@@ -318,7 +317,6 @@ namespace love
         if (!deko3d::getConstant(compare, compareOp))
             return;
 
-        LOG("[setDepthWrites] %d: %d", compare, write);
         this->context.depthStencil.setDepthTestEnable(enable);
         this->context.depthStencil.setDepthCompareOp(compareOp);
         this->context.depthStencil.setDepthWriteEnable(write);
@@ -553,8 +551,8 @@ namespace love
 
         if constexpr (std::is_same_v<T, DkViewport>)
         {
-            value.near = -10.0f;
-            value.far  = 10.0f;
+            value.near = 0.0f;
+            value.far  = 1.0f;
         }
 
         return value;
@@ -579,8 +577,9 @@ namespace love
         auto view           = dkRectFromRect<DkViewport>(viewport);
 
         this->commandBuffer.setViewports(0, view);
-        this->transform.projection = glm::ortho(0.0f, view.width, view.height, 0.0f, view.near, view.far);
-        this->context.viewport     = viewport;
+        this->transform.projection =
+            glm::orthoRH_ZO(0.0f, view.width, view.height, 0.0f, Framebuffer::Z_NEAR, Framebuffer::Z_FAR);
+        this->context.viewport = viewport;
     }
 
     deko3d d3d;

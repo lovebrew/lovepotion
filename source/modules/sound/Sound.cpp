@@ -41,8 +41,7 @@ namespace love
         return new SoundData(samples, sampleRate, bitDepth, channels);
     }
 
-    SoundData* Sound::newSoundData(void* data, int samples, int sampleRate, int bitDepth,
-                                   int channels) const
+    SoundData* Sound::newSoundData(void* data, int samples, int sampleRate, int bitDepth, int channels) const
     {
         return new SoundData(data, samples, sampleRate, bitDepth, channels);
     }
@@ -50,13 +49,13 @@ namespace love
     Decoder* Sound::newDecoder(Stream* stream, int bufferSize) const
     {
         // clang-format off
-        std::array<DecoderImpl, 5> possibleDecoders =
+        std::vector<DecoderImpl> possibleDecoders =
         {
             DecoderImplFor<WaveDecoder>(),
             DecoderImplFor<FLACDecoder>(),
             DecoderImplFor<VorbisDecoder>(),
             DecoderImplFor<MP3Decoder>(),
-            DecoderImplFor<ModPlugDecoder>(),
+            DecoderImplFor<ModPlugDecoder>()
         };
         // clang-format on
 
