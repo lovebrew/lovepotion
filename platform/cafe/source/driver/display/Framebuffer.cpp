@@ -120,7 +120,7 @@ namespace love
         this->viewport = { 0, 0, info.width, info.height };
         this->scissor  = { 0, 0, info.width, info.height };
 
-        this->ortho = glm::ortho(0.0f, (float)info.width, (float)info.height, 0.0f, Z_NEAR, Z_FAR);
+        this->ortho = glm::orthoRH_ZO(0.0f, (float)info.width, (float)info.height, 0.0f, Z_NEAR, Z_FAR);
 
         /* glm::value_ptr lets us access the data linearly rather than an XxY matrix */
         uint32_t* dstModel = (uint32_t*)glm::value_ptr(this->uniform->modelView);

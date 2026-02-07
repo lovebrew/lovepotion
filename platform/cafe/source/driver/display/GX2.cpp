@@ -12,6 +12,7 @@
 #include <gx2/event.h>
 #include <gx2/state.h>
 #include <gx2/swap.h>
+#include <gx2r/draw.h>
 
 #include <proc_ui/procui.h>
 
@@ -212,8 +213,9 @@ namespace love
         if (!this->inFrame)
             return;
 
-        const auto stencil = this->context.stencilState.value;
-        GX2ClearDepthStencilEx(&this->getInternalDepthbuffer(), value, stencil, GX2_CLEAR_FLAGS_DEPTH);
+        const auto stencil       = this->context.stencilState.value;
+        this->context.depthClear = value;
+        GX2ClearDepthStencilEx(&this->getInternalDepthbuffer(), (float)value, stencil, GX2_CLEAR_FLAGS_DEPTH);
         GX2SetContextState(this->state);
     }
 
@@ -222,7 +224,8 @@ namespace love
         if (!this->inFrame)
             return;
 
-        GX2ClearDepthStencilEx(&this->getInternalDepthbuffer(), 1.0f, value, GX2_CLEAR_FLAGS_STENCIL);
+        const auto depth = this->context.depthClear;
+        GX2ClearDepthStencilEx(&this->getInternalDepthbuffer(), (float)depth, value, GX2_CLEAR_FLAGS_STENCIL);
         GX2SetContextState(this->state);
     }
 
@@ -313,6 +316,12 @@ namespace love
         }
     }
 
+    void GX2::setVertexAttributes(const VertexAttributes& attributes, const BufferBindings& buffers)
+    {
+        auto* handle = (GX2RBuffer*)buffers.info[0].buffer->getHandle();
+        GX2RSetAttributeBuffer(handle, 0, handle->elemSize, 0);
+    }
+
     void GX2::bindTextureToUnit(TextureBase* texture, int unit)
     {
         if (texture == nullptr)
@@ -355,7 +364,7 @@ namespace love
         if (rect == Rect::EMPTY)
             view = this->targets[love::currentScreen].getViewport();
 
-        GX2SetViewport(view.x, view.y, view.w, view.h, Framebuffer::Z_NEAR, Framebuffer::Z_FAR);
+        GX2SetViewport(view.x, view.y, view.w, view.h, 0.0f, 1.0f);
         this->context.viewport = view;
     }
 
@@ -438,14 +447,17 @@ namespace love
         const bool enabled = compare != COMPARE_ALWAYS || write;
 
         GX2CompareFunction func;
-
         if (!GX2::getConstant(compare, func))
             return;
 
-        GX2SetDepthOnlyControl(write, enabled, func);
+        GX2SetDepthStencilControl(enabled, write, func, this->context.stencilTest, this->context.stencilTest,
+                                  this->context.stencilCompare, this->context.stencilPass,
+                                  GX2_STENCIL_FUNCTION_KEEP, GX2_STENCIL_FUNCTION_KEEP,
+                                  this->context.stencilCompare, this->context.stencilPass,
+                                  GX2_STENCIL_FUNCTION_KEEP, GX2_STENCIL_FUNCTION_KEEP);
 
         this->context.depthWrite  = write;
-        this->context.depthTest   = true;
+        this->context.depthTest   = enabled;
         this->context.compareMode = func;
     }
 
@@ -459,7 +471,15 @@ namespace love
         GX2CompareFunction testFunction = GX2_COMPARE_FUNC_ALWAYS;
         GX2::getConstant(state.compare, testFunction);
 
-        GX2SetClearStencil(&this->getInternalDepthbuffer(), state.value);
+        GX2SetDepthStencilControl(this->context.depthTest, this->context.depthWrite,
+                                  this->context.compareMode, this->context.stencilTest,
+                                  this->context.stencilTest, testFunction, stencilAction,
+                                  GX2_STENCIL_FUNCTION_KEEP, GX2_STENCIL_FUNCTION_KEEP, testFunction,
+                                  stencilAction, GX2_STENCIL_FUNCTION_KEEP, GX2_STENCIL_FUNCTION_KEEP);
+
+        this->context.stencilPass    = stencilAction;
+        this->context.stencilCompare = testFunction;
+        this->context.stencilTest    = enabled;
     }
 
     GX2 gx2;

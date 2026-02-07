@@ -49,6 +49,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/driver/EventQueue.cpp
     source/modules/audio/RecordingDevice.cpp
     source/modules/font/SystemFont.cpp
+    source/modules/graphics/Buffer.cpp
     source/modules/graphics/Graphics.cpp
     source/modules/graphics/Shader.cpp
     source/modules/graphics/ShaderStage.cpp

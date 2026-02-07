@@ -3,6 +3,7 @@
 #include "modules/graphics/Graphics.hpp"
 #include "modules/window/Window.hpp"
 
+#include "modules/graphics/Buffer.hpp"
 #include "modules/graphics/Shader.hpp"
 #include "modules/graphics/ShaderStage.hpp"
 #include "modules/graphics/Texture.hpp"
@@ -12,6 +13,8 @@
 #include <gx2/event.h>
 #include <gx2/state.h>
 #include <gx2r/draw.h>
+
+#include "common/debug.hpp"
 
 namespace love
 {
@@ -318,6 +321,13 @@ namespace love
             gx2.setScissor(state.scissorRect);
     }
 
+    BufferBase* Graphics::newBuffer(const Buffer::Settings& settings,
+                                    const std::vector<Buffer::DataDeclaration>& format, const void* data,
+                                    size_t size, size_t arraylength)
+    {
+        return new Buffer(this, settings, format, data, size, arraylength);
+    }
+
     TextureBase* Graphics::newTexture(const TextureBase::Settings& settings, const TextureBase::Slices* data)
     {
         return new Texture(this, settings, data);
@@ -372,6 +382,7 @@ namespace love
         this->initCapabilities();
 
         // gx2.setupContext();
+        this->createQuadIndexBuffer();
 
         try
         {
@@ -438,9 +449,13 @@ namespace love
 
     void Graphics::draw(const DrawIndexedCommand& command)
     {
+        VertexAttributes attributes {};
+        this->findVertexAttributes(command.attributesID, attributes);
+
         gx2.prepareDraw(this);
+        gx2.setVertexAttributes(attributes, *command.buffers);
         gx2.bindTextureToUnit(command.texture, 0);
-        // gx2.setCullMode(command.cullMode);
+        gx2.setCullMode(command.cullMode);
 
         const auto mode              = GX2::getPrimitiveType(command.primitiveType);
         auto* buffer                 = (GX2RBuffer*)command.indexBuffer->getHandle();
@@ -455,7 +470,13 @@ namespace love
 
     void Graphics::draw(const DrawCommand& command)
     {
+        VertexAttributes attributes {};
+        this->findVertexAttributes(command.attributesID, attributes);
+
         gx2.prepareDraw(this);
+        gx2.setVertexAttributes(attributes, *command.buffers);
+        gx2.bindTextureToUnit(command.texture, 0);
+        gx2.setCullMode(command.cullMode);
 
         const auto mode        = GX2::getPrimitiveType(command.primitiveType);
         const auto vertexCount = command.vertexCount;
@@ -463,5 +484,33 @@ namespace love
 
         GX2DrawEx(mode, vertexCount, vertexStart, 1);
         ++this->drawCalls;
+    }
+
+    void Graphics::drawQuads(int start, int count, VertexAttributesID attributesID,
+                             const BufferBindings& buffers, TextureBase* texture)
+    {
+        VertexAttributes attributes {};
+        this->findVertexAttributes(attributesID, attributes);
+
+        gx2.prepareDraw(this);
+        gx2.bindTextureToUnit(texture, 0);
+        gx2.setCullMode(CULL_NONE);
+
+        auto* buffer = (GX2RBuffer*)this->quadIndexBuffer->getHandle();
+
+        BufferBindings buffersCopy = buffers;
+        gx2.setVertexAttributes(attributes, buffersCopy);
+
+        const auto mode      = GX2_PRIMITIVE_MODE_TRIANGLES;
+        const auto indexType = GX2::getIndexType(INDEX_UINT16);
+
+        for (int quadIndex = 0; quadIndex < count; quadIndex += MAX_QUADS_PER_DRAW)
+        {
+            int quadCount = std::min(MAX_QUADS_PER_DRAW, count - quadIndex);
+
+            const auto offset = (start + quadIndex) * 6;
+            GX2RDrawIndexed(mode, buffer, indexType, quadIndex * 6, offset, 0, 1);
+            ++drawCalls;
+        }
     }
 } // namespace love

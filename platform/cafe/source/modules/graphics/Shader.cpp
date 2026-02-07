@@ -113,7 +113,7 @@ namespace love
         this->mapActiveUniforms();
 
         // clang-format off
-        WHBGfxInitShaderAttribute(&this->program, "inPos",      0, POSITION_OFFSET, GX2_ATTRIB_FORMAT_FLOAT_32_32);
+        WHBGfxInitShaderAttribute(&this->program, "inPos",      0, POSITION_OFFSET, GX2_ATTRIB_FORMAT_FLOAT_32_32_32);
         WHBGfxInitShaderAttribute(&this->program, "inTexCoord", 0, TEXCOORD_OFFSET, GX2_ATTRIB_FORMAT_FLOAT_32_32);
         WHBGfxInitShaderAttribute(&this->program, "inColor",    0, COLOR_OFFSET,    GX2_ATTRIB_FORMAT_FLOAT_32_32_32_32);
         // clang-format on
@@ -156,7 +156,7 @@ namespace love
             return;
 
         auto& transform = graphics->getTransform();
-        // uniform->update(transform);
+        uniform->update(transform);
 
         auto* uniformBlock = this->getUniformInfo("Transformation");
 

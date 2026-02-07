@@ -64,6 +64,8 @@ namespace love
 
         void setVertexWinding(Winding winding);
 
+        void setVertexAttributes(const VertexAttributes& attributes, const BufferBindings& buffers);
+
         void setSamplerState(TextureBase* texture, const SamplerState& state);
 
         void ensureInFrame();
@@ -210,6 +212,11 @@ namespace love
             bool depthWrite;
             bool depthTest;
             GX2CompareFunction compareMode;
+            double depthClear;
+            bool stencilTest;
+
+            GX2CompareFunction stencilCompare;
+            GX2StencilFunction stencilPass;
 
             uint32_t writeMask;
 

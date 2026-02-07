@@ -43,12 +43,7 @@ namespace love
         }
 
         void unloadVolatile()
-        {
-            if (!GX2RBufferExists(&this->buffer))
-                return;
-
-            // GX2RDestroyBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
-        }
+        {}
 
         StreamBuffer(const StreamBuffer&) = delete;
 
@@ -73,10 +68,6 @@ namespace love
         size_t unmap(size_t /* usedSize */) override
         {
             GX2RUnlockBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
-
-            if (this->mode == BufferUsage::BUFFERUSAGE_VERTEX)
-                GX2RSetAttributeBuffer(&this->buffer, 0, this->buffer.elemSize, 0);
-
             return this->frameGPUReadOffset;
         }
 

@@ -1,0 +1,248 @@
+#include "modules/graphics/Buffer.hpp"
+
+#include "common/Exception.hpp"
+
+#include "modules/graphics/Graphics.hpp"
+#include "modules/graphics/vertex.hpp"
+
+#include <algorithm>
+#include <cstdlib>
+#include <cstring>
+#include <limits>
+
+#include "common/debug.hpp"
+
+namespace love
+{
+    static inline GX2RResourceFlags getBufferUsage(BufferUsage usage)
+    {
+        if (usage == BUFFERUSAGE_VERTEX)
+            return GX2R_RESOURCE_BIND_VERTEX_BUFFER;
+
+        return GX2R_RESOURCE_BIND_INDEX_BUFFER;
+    }
+
+    Buffer::Buffer(GraphicsBase* gfx, const Settings& settings, const BufferFormat& format, const void* data,
+                   size_t size, size_t length) :
+        BufferBase(gfx, settings, format, size, length),
+        buffer {}
+    {
+        size   = this->getSize();
+        length = this->getArrayLength();
+
+        if (this->usage & BUFFERUSAGEFLAG_VERTEX)
+            this->mapUsage = BUFFERUSAGE_VERTEX;
+        else if (this->usage & BUFFERUSAGEFLAG_INDEX)
+            this->mapUsage = BUFFERUSAGE_INDEX;
+
+        if (this->dataUsage == BUFFERDATAUSAGE_STREAM)
+            this->ownsMemoryMap = true;
+
+        std::vector<uint8_t> emptydata;
+        if (settings.zeroInitialize && data == nullptr)
+        {
+            try
+            {
+
+                emptydata.resize(this->getSize());
+                data = emptydata.data();
+            }
+            catch (std::exception&)
+            {
+                data = nullptr;
+            }
+        }
+
+        if (!this->load(data))
+        {
+            this->unloadVolatile();
+            throw love::Exception("Could not create Buffer with {:d} bytes (out of VRAM?)", size);
+        }
+    }
+
+    Buffer::~Buffer()
+    {
+        this->unloadVolatile();
+    }
+
+    bool Buffer::loadVolatile()
+    {
+        if (GX2RBufferExists(&this->buffer))
+            return true;
+
+        return this->load(nullptr);
+    }
+
+    void Buffer::unloadVolatile()
+    {
+        this->mapped = false;
+        // GX2RDestroyBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
+        std::free(this->staging);
+        this->staging = nullptr;
+    }
+
+    static constexpr auto BUFFER_USAGE =
+        GX2R_RESOURCE_USAGE_CPU_READ | GX2R_RESOURCE_USAGE_CPU_WRITE | GX2R_RESOURCE_USAGE_GPU_READ;
+
+    struct TempMesh
+    {
+        float x, y, z;
+        float s, t;
+        float r, g, b, a;
+    };
+
+    bool Buffer::load(const void* data)
+    {
+        this->buffer.elemCount = this->arrayLength;
+        this->buffer.elemSize  = this->arrayStride;
+        this->buffer.flags     = getBufferUsage(this->mapUsage) | BUFFER_USAGE;
+        LOG("Buffer: stride %zu, length %zu", this->arrayStride, this->arrayLength);
+
+        if (!GX2RCreateBuffer(&this->buffer))
+            return false;
+
+        auto* bytes = (uint8_t*)GX2RLockBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
+
+        if (data != nullptr)
+            std::memcpy(bytes, data, this->getSize());
+        else
+            std::memset(bytes, 0, this->getSize());
+
+        if (this->mapUsage == BUFFERUSAGE_VERTEX)
+        {
+            for (size_t i = 0; i < this->arrayLength; i++)
+            {
+                const auto v = ((TempMesh*)bytes)[i];
+
+                std::printf("Vertex %zu:\n", i);
+                std::printf("  Position: %.2f, %.2f, %.2f\n", v.x, v.y, v.z);
+                std::printf("  Texture Coordinates: %f, %f\n", v.s, v.t);
+                std::printf("  Color: %.2f, %.2f, %.2f, %.2f\n", v.r, v.g, v.b, v.a);
+            }
+        }
+
+        GX2RUnlockBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
+
+        return true;
+    }
+
+    bool Buffer::supportsOrphan() const
+    {
+        return this->dataUsage == BUFFERDATAUSAGE_STREAM || this->dataUsage == BUFFERDATAUSAGE_DYNAMIC;
+    }
+
+    void* Buffer::map(MapType map, size_t offset, size_t size)
+    {
+        if (size == 0)
+            return nullptr;
+
+        if (map == MAP_WRITE_INVALIDATE &&
+            (this->isImmutable() || this->dataUsage == BUFFERDATAUSAGE_READBACK))
+        {
+            return nullptr;
+        }
+
+        if (map == MAP_READ_ONLY && this->dataUsage != BUFFERDATAUSAGE_READBACK)
+            return nullptr;
+
+        Range r(offset, size);
+
+        if (!Range(0, this->getSize()).contains(r))
+            return nullptr;
+
+        this->mapped      = true;
+        this->mappedType  = map;
+        this->mappedRange = r;
+
+        if (map == MAP_READ_ONLY)
+        {
+            auto* bytes = (uint8_t*)GX2RLockBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
+            GX2RUnlockBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
+            return (void*)((uint8_t*)bytes + offset);
+        }
+
+        try
+        {
+            this->staging = (uint8_t*)std::malloc(this->getSize());
+        }
+        catch (std::bad_alloc&)
+        {
+            this->mapped = false;
+            return nullptr;
+        }
+
+        return (void*)this->staging;
+    }
+
+    void Buffer::unmap(size_t offset, size_t size)
+    {
+        Range r(offset, size);
+
+        if (!this->mapped || !this->mappedRange.contains(r))
+            return;
+
+        this->mapped = false;
+
+        if (this->mappedType == MAP_READ_ONLY)
+            return;
+
+        if (this->supportsOrphan() && this->mappedRange.first == 0 &&
+            this->mappedRange.getSize() == this->getSize())
+        {
+            offset = 0;
+            size   = this->getSize();
+        }
+
+        auto* data = this->staging + (offset - this->mappedRange.getOffset());
+        this->fill(offset, size, data);
+    }
+
+    bool Buffer::fill(size_t offset, size_t size, const void* data)
+    {
+        if (size == 0 || this->isImmutable() || this->dataUsage == BUFFERDATAUSAGE_READBACK)
+            return false;
+
+        size_t bufferSize = this->getSize();
+
+        if (!Range(0, bufferSize).contains(Range(offset, size)))
+            return false;
+
+        auto* bytes = (uint8_t*)GX2RLockBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
+
+        if (this->supportsOrphan() && size == bufferSize)
+            std::memcpy(bytes, data, bufferSize);
+        else
+            std::memcpy((uint8_t*)bytes + offset, data, size);
+
+        GX2RUnlockBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
+
+        return true;
+    }
+
+    void Buffer::clearInternal(size_t offset, size_t size)
+    {
+        if (size == 0)
+            return;
+
+        try
+        {
+            std::vector<uint8_t> empty(size);
+            this->fill(offset, size, empty.data());
+        }
+        catch (std::bad_alloc&)
+        {
+            throw love::Exception(E_OUT_OF_MEMORY);
+        }
+    }
+
+    void Buffer::copyTo(BufferBase* destination, size_t sourceOffset, size_t destOffset, size_t size)
+    {
+        if (destination == nullptr || size == 0)
+            return;
+
+        auto* bytes     = GX2RLockBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
+        const char* src = (const char*)bytes + sourceOffset;
+        destination->fill(destOffset, size, src);
+        GX2RUnlockBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
+    }
+} // namespace love
