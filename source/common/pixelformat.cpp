@@ -373,4 +373,11 @@ namespace love
     {
         return formatInfo[format].components;
     }
+
+    const char* getConstant(PixelFormat format)
+    {
+        std::string_view name {};
+        getConstant(format, name);
+        return name.data();
+    }
 } // namespace love

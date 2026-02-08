@@ -164,6 +164,19 @@ namespace love
             { STENCIL_DECREMENT_WRAP, GX2_STENCIL_FUNCTION_DECR_WRAP  }
         );
 
+        ENUMMAP_DECLARE(AttributeFormats, DataFormat, GX2AttribFormat,
+            { DATAFORMAT_FLOAT,      GX2_ATTRIB_FORMAT_FLOAT_32          },
+            { DATAFORMAT_FLOAT_VEC2, GX2_ATTRIB_FORMAT_FLOAT_32_32       },
+            { DATAFORMAT_FLOAT_VEC3, GX2_ATTRIB_FORMAT_FLOAT_32_32_32    },
+            { DATAFORMAT_FLOAT_VEC4, GX2_ATTRIB_FORMAT_FLOAT_32_32_32_32 }
+        );
+
+        STRINGMAP_DECLARE(AttributeNames, BuiltinVertexAttribute,
+            { "inPos",      ATTRIB_POS      },
+            { "inTexCoord", ATTRIB_TEXCOORD },
+            { "inColor",    ATTRIB_COLOR    }
+        );
+
         static GX2PrimitiveMode getPrimitiveType(PrimitiveType type)
         {
             switch (type)

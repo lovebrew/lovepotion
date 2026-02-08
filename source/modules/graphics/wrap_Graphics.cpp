@@ -1208,7 +1208,7 @@ static bool luax_isbufferattributetable(lua_State* L, int index)
         return false;
 
     lua_rawgeti(L, index, 1);
-    if (!lua_type(L, -1) != LUA_TTABLE)
+    if (lua_type(L, -1) != LUA_TTABLE)
     {
         lua_pop(L, 1);
         return false;
@@ -1219,6 +1219,72 @@ static bool luax_isbufferattributetable(lua_State* L, int index)
     lua_pop(L, 2);
 
     return isBuffer;
+}
+
+static Mesh::BufferAttribute luax_checkbufferattributetable(lua_State* L, int index)
+{
+    Mesh::BufferAttribute attribute {};
+    attribute.step    = STEP_PER_VERTEX;
+    attribute.enabled = true;
+
+    lua_getfield(L, index, "buffer");
+    attribute.buffer = luax_checkbuffer(L, -1);
+    lua_pop(L, 1);
+
+    lua_getfield(L, index, "location");
+    attribute.bindingLocation = luax_checkint(L, -1);
+    lua_pop(L, 1);
+
+    lua_getfield(L, index, "name");
+    if (!lua_isnoneornil(L, -1))
+        attribute.name = luax_checkstring(L, -1);
+    lua_pop(L, 1);
+
+    lua_getfield(L, index, "step");
+    if (!lua_isnoneornil(L, -1))
+    {
+        const char* string = luaL_checkstring(L, -1);
+        if (!getConstant(string, attribute.step))
+            luax_enumerror(L, "vertex attribute step", AttributeSteps, string);
+    }
+    lua_pop(L, 1);
+
+    lua_getfield(L, index, "locationinbuffer");
+    if (!lua_isnoneornil(L, -1))
+        attribute.bindingLocationInBuffer = luax_checkint(L, -1);
+    else
+        attribute.bindingLocationInBuffer = attribute.bindingLocation;
+    lua_pop(L, 1);
+
+    lua_getfield(L, index, "nameinbuffer");
+    if (!lua_isnoneornil(L, -1))
+        attribute.nameInBuffer = luax_checkstring(L, -1);
+    else
+        attribute.nameInBuffer = attribute.name;
+    lua_pop(L, 1);
+
+    lua_getfield(L, index, "startindex");
+    attribute.startArrayIndex = luaL_optinteger(L, -1, 1) - 1;
+    lua_pop(L, 1);
+
+    return attribute;
+}
+
+static Mesh* newMeshFromBuffers(lua_State* L)
+{
+    std::vector<Mesh::BufferAttribute> attributes {};
+    for (size_t index = 1; index <= luax_objlen(L, 1); index++)
+    {
+        lua_rawgeti(L, 1, index);
+        attributes.push_back(luax_checkbufferattributetable(L, -1));
+        lua_pop(L, 1);
+    }
+
+    auto drawMode = luax_checkmeshdrawmode(L, 2);
+    Mesh* mesh    = nullptr;
+    luax_catchexcept(L, [&]() { mesh = instance()->newMesh(attributes, drawMode); });
+
+    return mesh;
 }
 
 int Wrap_Graphics::newBuffer(lua_State* L)
@@ -1244,11 +1310,6 @@ int Wrap_Graphics::newBuffer(lua_State* L)
     buffer->release();
 
     return 1;
-}
-
-static Mesh* newMeshFromBuffers(lua_State* L)
-{
-    return nullptr;
 }
 
 static Mesh* newStandardMesh(lua_State* L)

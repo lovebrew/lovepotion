@@ -245,14 +245,6 @@ namespace love
 
     static constexpr size_t VERTEX_SIZE = sizeof(Vertex);
 
-    static constexpr size_t POSITION_OFFSET = offsetof(Vertex, x);
-    static constexpr size_t TEXCOORD_OFFSET = offsetof(Vertex, s);
-    static constexpr size_t COLOR_OFFSET    = offsetof(Vertex, color);
-
-    void debugVertices(Vertex* vertices, size_t count);
-
-    void debugIndices(uint16_t* indices, size_t count);
-
     inline CommonFormat getSinglePositionFormat(bool is2D)
     {
         return is2D ? CommonFormat::XYf : CommonFormat::XYZf;
@@ -278,6 +270,8 @@ namespace love
     void fillIndices(TriangleIndexMode mode, uint16_t vertexStart, uint16_t vertexCount, uint16_t* indices);
 
     void fillIndices(TriangleIndexMode mode, uint32_t vertexStart, uint32_t vertexCount, uint32_t* indices);
+
+    const char* getConstant(BuiltinVertexAttribute attribute);
 
     struct BufferBindings
     {

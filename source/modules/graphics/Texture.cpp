@@ -719,6 +719,13 @@ namespace love
         }
     }
 
+    const char* TextureBase::getConstant(SettingType type)
+    {
+        std::string_view name {};
+        getConstant(type, name);
+        return name.data();
+    }
+
     int TextureBase::getSliceCount(int mipmap) const
     {
         switch (this->textureType)

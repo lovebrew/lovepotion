@@ -318,6 +318,31 @@ namespace love
 
     void GX2::setVertexAttributes(const VertexAttributes& attributes, const BufferBindings& buffers)
     {
+        if (ShaderBase::current == nullptr)
+            return;
+
+        for (size_t i = 0; i < ATTRIB_MAX_ENUM; i++)
+        {
+            const auto bit = 1u << i;
+            if (!(attributes.enableBits & bit))
+                continue;
+
+            const auto& attribute  = attributes.attributes[i];
+            const auto& layout     = attributes.bufferLayouts[attribute.bufferIndex];
+            const auto& bufferInfo = buffers.info[attribute.bufferIndex];
+
+            GX2AttribFormat format;
+            if (!GX2::getConstant(attribute.getFormat(), format))
+                continue;
+
+            const auto offset      = (uint32_t)attribute.offsetFromVertex;
+            const auto bufferIndex = (uint32_t)attribute.bufferIndex;
+
+            ((Shader*)ShaderBase::current)->initAttribute(bufferIndex, offset, i, format);
+        }
+
+        ((Shader*)ShaderBase::current)->initFetchShader(attributes.enableBits);
+
         auto* handle = (GX2RBuffer*)buffers.info[0].buffer->getHandle();
         GX2RSetAttributeBuffer(handle, 0, handle->elemSize, 0);
     }

@@ -143,6 +143,21 @@ namespace love
         fillIndicesT(mode, vertexStart, vertexCount, indices);
     }
 
+    const char* getConstant(BuiltinVertexAttribute attribute)
+    {
+        switch (attribute)
+        {
+            case ATTRIB_POS:
+                return "inPos";
+            case ATTRIB_TEXCOORD:
+                return "inTexCoord";
+            case ATTRIB_COLOR:
+                return "inColor";
+            default:
+                return nullptr;
+        }
+    }
+
     void VertexAttributes::setCommonFormat(CommonFormat format, uint8_t bufferindex)
     {
         setBufferLayout(bufferindex, (uint16_t)getFormatStride(format));

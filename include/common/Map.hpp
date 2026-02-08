@@ -78,8 +78,8 @@ using EnumMap = Map<Key, Value, Size>;
 #define STRINGMAP_DECLARE(name, enum_t, ...)                                                                                                          \
     static inline constexpr auto name = StringMap { std::to_array<std::pair<std::string_view, enum_t>>({ __VA_ARGS__ }) };                            \
     static inline constexpr bool getConstant(const char* key, enum_t& out)        { return name.getValue(key, out); }                                 \
-    static inline constexpr bool getConstant(enum_t value, std::string_view& out) { return name.getKey(value, out); }                                 \
-    static inline constexpr const char* getConstant(enum_t value) { std::string_view out {}; return name.getKey(value, out) ? out.data() : nullptr; }
+    static inline constexpr bool getConstant(enum_t value, std::string_view& out) { return name.getKey(value, out); }
+
 
 #define ENUMMAP_DECLARE(name, enum_t_a, enum_t_b, ...)                                                             \
     static inline constexpr auto name = EnumMap { std::to_array<std::pair<enum_t_a, enum_t_b>>({ __VA_ARGS__ }) }; \

@@ -108,19 +108,6 @@ namespace love
         else
             std::memset(bytes, 0, this->getSize());
 
-        if (this->mapUsage == BUFFERUSAGE_VERTEX)
-        {
-            for (size_t i = 0; i < this->arrayLength; i++)
-            {
-                const auto v = ((TempMesh*)bytes)[i];
-
-                std::printf("Vertex %zu:\n", i);
-                std::printf("  Position: %.2f, %.2f, %.2f\n", v.x, v.y, v.z);
-                std::printf("  Texture Coordinates: %f, %f\n", v.s, v.t);
-                std::printf("  Color: %.2f, %.2f, %.2f, %.2f\n", v.r, v.g, v.b, v.a);
-            }
-        }
-
         GX2RUnlockBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
 
         return true;

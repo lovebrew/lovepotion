@@ -41,6 +41,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 target_sources(${PROJECT_NAME} PRIVATE
     source/boot.cpp
     source/seeprom.cpp
+    source/fatal.cpp
     source/common/screen.cpp
     source/driver/audio/DigitalSound.cpp
     source/driver/display/Framebuffer.cpp

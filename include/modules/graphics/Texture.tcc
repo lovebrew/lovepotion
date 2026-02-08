@@ -372,6 +372,8 @@ namespace love
         );
         // clang-format on
 
+        static const char* getConstant(SettingType in);
+
       protected:
         TextureBase(GraphicsBase* graphics, const Settings& settings, const Slices* slices);
 
