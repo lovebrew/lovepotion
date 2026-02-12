@@ -8,20 +8,10 @@
 namespace love
 {
     Framebuffer::Framebuffer() : target {}, depth {}, scanBuffer(nullptr), scanBufferSize(0)
-    {
-        this->uniform = (Uniform*)memalign(GX2_UNIFORM_BLOCK_ALIGNMENT, sizeof(Uniform));
-
-        this->uniform->modelView  = glm::mat4(1.0f);
-        this->uniform->projection = glm::mat4(1.0f);
-
-        this->tmpModel = glm::mat4(1.0f);
-    }
+    {}
 
     void Framebuffer::destroy()
-    {
-        std::free(this->uniform);
-        this->uniform = nullptr;
-    }
+    {}
 
     bool Framebuffer::allocateScanBuffer(MEMHeapHandle handle)
     {
@@ -72,7 +62,7 @@ namespace love
         if (this->depth.surface.image == nullptr)
             return false;
 
-        GX2Invalidate(GX2_INVALIDATE_MODE_CPU, this->depth.surface.image, size);
+        GX2Invalidate(INVALIDATE_DEPTH_BUFFER, this->depth.surface.image, size);
 
         return true;
     }
@@ -119,22 +109,6 @@ namespace love
 
         this->viewport = { 0, 0, info.width, info.height };
         this->scissor  = { 0, 0, info.width, info.height };
-
-        this->ortho = glm::orthoRH_ZO(0.0f, (float)info.width, (float)info.height, 0.0f, Z_NEAR, Z_FAR);
-
-        /* glm::value_ptr lets us access the data linearly rather than an XxY matrix */
-        uint32_t* dstModel = (uint32_t*)glm::value_ptr(this->uniform->modelView);
-        uint32_t* dstProj  = (uint32_t*)glm::value_ptr(this->uniform->projection);
-
-        const size_t count = sizeof(glm::mat4) / sizeof(uint32_t);
-
-        uint32_t* model = (uint32_t*)glm::value_ptr(this->tmpModel);
-        for (size_t index = 0; index < count; index++)
-            dstModel[index] = __builtin_bswap32(model[index]);
-
-        uint32_t* projection = (uint32_t*)glm::value_ptr(this->ortho);
-        for (size_t index = 0; index < count; index++)
-            dstProj[index] = __builtin_bswap32(projection[index]);
     }
 
     void Framebuffer::setScissor(const Rect& scissor)
@@ -154,6 +128,6 @@ namespace love
         else
             this->viewport = viewport;
 
-        GX2SetViewport(this->viewport.x, this->viewport.y, this->viewport.w, this->viewport.h, Z_NEAR, Z_FAR);
+        GX2SetViewport(this->viewport.x, this->viewport.y, this->viewport.w, this->viewport.h, 0.0f, 1.0f);
     }
 } // namespace love

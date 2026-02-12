@@ -106,6 +106,7 @@ namespace love
     void Graphics::setActiveScreen()
     {
         gx2.ensureInFrame();
+        this->resetProjection();
         // gx2.copyCurrentScanBuffer();
     }
 

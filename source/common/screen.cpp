@@ -8,9 +8,12 @@ namespace love
     {
         const auto info = love::getScreenInfo();
 
-        id = (Screen)std::clamp<int8_t>(id, 0, info.size() - 1);
+        if (info.empty())
+            throw love::Exception("No screens available.");
 
-        return info[id];
+        const auto index = (Screen)std::clamp<size_t>(id, 0, info.size() - 1);
+
+        return info[index];
     }
 
     Screen getScreenId(const std::string& name)

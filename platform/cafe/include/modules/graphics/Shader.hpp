@@ -6,8 +6,6 @@
 
 #include <whb/gfx.h>
 
-#include "driver/display/Uniform.hpp"
-
 namespace love
 {
     class Shader final : public ShaderBase, public Volatile
@@ -27,7 +25,7 @@ namespace love
 
         std::string getWarnings() const;
 
-        void updateBuiltinUniforms(GraphicsBase* graphics, Uniform* uniform);
+        void updateBuiltinUniforms(GraphicsBase* graphics);
 
         bool initAttribute(uint32_t bufferIndex, uint32_t offset, uint32_t index, GX2AttribFormat format);
 
@@ -55,5 +53,7 @@ namespace love
         bool attributesDirty;
         std::vector<GX2AttribStream> attributes;
         GX2FetchShader shader;
+
+        GX2RBuffer transformation;
     };
 } // namespace love

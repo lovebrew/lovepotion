@@ -5,7 +5,6 @@
 
 #include "driver/display/Framebuffer.hpp"
 #include "driver/display/Renderer.tcc"
-#include "driver/display/Uniform.hpp"
 
 #include "modules/graphics/vertex.hpp"
 #include <gx2/enum.h>
@@ -235,8 +234,6 @@ namespace love
 
             GX2ColorBuffer* boundFramebuffer = nullptr;
         } context;
-
-        Uniform* uniform;
 
         bool inForeground;
 

@@ -177,6 +177,11 @@ namespace love
         return e;
     }
 
+    float* Matrix4::getElements()
+    {
+        return e;
+    }
+
     void Matrix4::setRow(int r, const Vector4& v)
     {
         e[0 * 4 + r] = v.x;

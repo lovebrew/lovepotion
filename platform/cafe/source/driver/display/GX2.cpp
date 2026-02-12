@@ -1,5 +1,4 @@
 #include "driver/display/GX2.hpp"
-#include "driver/display/Uniform.hpp"
 
 /* keyboard needs GX2 inited first */
 #include "common/debug.hpp"
@@ -40,8 +39,6 @@ namespace love
             this->onForegroundReleased();
 
         GX2Shutdown();
-
-        delete this->uniform;
 
         free(this->state);
         this->state = nullptr;
@@ -150,10 +147,6 @@ namespace love
         this->context.depthTest   = false;
         this->context.depthWrite  = true;
         this->context.compareMode = GX2_COMPARE_FUNC_ALWAYS;
-
-        this->uniform             = (Uniform*)memalign(GX2_UNIFORM_BLOCK_ALIGNMENT, sizeof(Uniform));
-        this->uniform->modelView  = glm::mat4(1.0f);
-        this->uniform->projection = glm::mat4(1.0f);
 
         this->bindFramebuffer(&this->targets[0].get());
 
@@ -266,9 +259,6 @@ namespace love
     {
         this->setViewport({ 0, 0, width, height });
         this->setScissor({ 0, 0, width, height });
-
-        auto* newUniform = this->targets[love::currentScreen].getUniform();
-        std::memcpy(this->uniform, newUniform, sizeof(Uniform));
     }
 
     void GX2::setSamplerState(TextureBase* texture, const SamplerState& state)
@@ -312,7 +302,7 @@ namespace love
         if (Shader::current != nullptr)
         {
             auto* shader = (Shader*)ShaderBase::current;
-            shader->updateBuiltinUniforms(graphics, this->uniform);
+            shader->updateBuiltinUniforms(graphics);
         }
     }
 
@@ -370,7 +360,7 @@ namespace love
         auto* shader = (Shader*)ShaderBase::current;
         auto* info   = shader->getUniformInfo("texture0");
 
-        if (!info)
+        if (info == nullptr)
             return;
 
         GX2SetPixelTexture(texture, unit);
@@ -475,11 +465,7 @@ namespace love
         if (!GX2::getConstant(compare, func))
             return;
 
-        GX2SetDepthStencilControl(enabled, write, func, this->context.stencilTest, this->context.stencilTest,
-                                  this->context.stencilCompare, this->context.stencilPass,
-                                  GX2_STENCIL_FUNCTION_KEEP, GX2_STENCIL_FUNCTION_KEEP,
-                                  this->context.stencilCompare, this->context.stencilPass,
-                                  GX2_STENCIL_FUNCTION_KEEP, GX2_STENCIL_FUNCTION_KEEP);
+        GX2SetDepthOnlyControl(enabled, write, func);
 
         this->context.depthWrite  = write;
         this->context.depthTest   = enabled;

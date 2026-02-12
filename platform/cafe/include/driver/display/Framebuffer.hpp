@@ -3,7 +3,6 @@
 #include "common/screen.hpp"
 
 #include "driver/display/Framebuffer.tcc"
-#include "driver/display/Uniform.hpp"
 
 #include <coreinit/memfrmheap.h>
 
@@ -36,11 +35,6 @@ namespace love
             return this->depth;
         }
 
-        Uniform* getUniform()
-        {
-            return this->uniform;
-        }
-
         bool allocateScanBuffer(MEMHeapHandle handle);
 
         bool invalidateColorBuffer(MEMHeapHandle handle);
@@ -54,17 +48,14 @@ namespace love
         static constexpr auto BUFFER_MODE = GX2_BUFFERING_MODE_DOUBLE;
         static constexpr auto INVALIDATE_COLOR_BUFFER =
             GX2_INVALIDATE_MODE_CPU | GX2_INVALIDATE_MODE_COLOR_BUFFER;
+        static constexpr auto INVALIDATE_DEPTH_BUFFER =
+            GX2_INVALIDATE_MODE_CPU | GX2_INVALIDATE_MODE_DEPTH_BUFFER;
 
         GX2ColorBuffer target;
         GX2DepthBuffer depth;
 
         uint8_t renderMode;
         GX2ScanTarget id;
-
-        Uniform* uniform = nullptr;
-
-        glm::mat4 tmpModel;
-        glm::highp_mat4 ortho;
 
         void* scanBuffer;
         uint32_t scanBufferSize;

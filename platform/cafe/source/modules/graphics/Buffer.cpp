@@ -1,6 +1,7 @@
 #include "modules/graphics/Buffer.hpp"
 
 #include "common/Exception.hpp"
+#include "driver/display/UniqueBuffer.hpp"
 
 #include "modules/graphics/Graphics.hpp"
 #include "modules/graphics/vertex.hpp"
@@ -81,34 +82,30 @@ namespace love
         this->staging = nullptr;
     }
 
-    static constexpr auto BUFFER_USAGE =
-        GX2R_RESOURCE_USAGE_CPU_READ | GX2R_RESOURCE_USAGE_CPU_WRITE | GX2R_RESOURCE_USAGE_GPU_READ;
-
-    struct TempMesh
-    {
-        float x, y, z;
-        float s, t;
-        float r, g, b, a;
-    };
-
     bool Buffer::load(const void* data)
     {
+
+        this->bytes = (uint8_t*)std::malloc(this->getSize());
+        if (this->bytes == nullptr)
+            return false;
+
+        GX2RResourceFlags flags;
+        UniqueBuffer::getConstant(this->mapUsage, flags);
+
         this->buffer.elemCount = this->arrayLength;
         this->buffer.elemSize  = this->arrayStride;
-        this->buffer.flags     = getBufferUsage(this->mapUsage) | BUFFER_USAGE;
-        LOG("Buffer: stride %zu, length %zu", this->arrayStride, this->arrayLength);
+        this->buffer.flags     = flags;
 
         if (!GX2RCreateBuffer(&this->buffer))
             return false;
 
-        auto* bytes = (uint8_t*)GX2RLockBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
-
         if (data != nullptr)
-            std::memcpy(bytes, data, this->getSize());
+            std::memcpy(this->bytes, data, this->getSize());
         else
-            std::memset(bytes, 0, this->getSize());
+            std::memset(this->bytes, 0, this->getSize());
 
-        GX2RUnlockBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
+        UniqueBuffer buffer(&this->buffer);
+        buffer.fill(this->getSize(), this->bytes);
 
         return true;
     }
@@ -142,11 +139,7 @@ namespace love
         this->mappedRange = r;
 
         if (map == MAP_READ_ONLY)
-        {
-            auto* bytes = (uint8_t*)GX2RLockBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
-            GX2RUnlockBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
-            return (void*)((uint8_t*)bytes + offset);
-        }
+            return (void*)((uint8_t*)this->bytes + offset);
 
         try
         {
@@ -194,14 +187,13 @@ namespace love
         if (!Range(0, bufferSize).contains(Range(offset, size)))
             return false;
 
-        auto* bytes = (uint8_t*)GX2RLockBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
-
         if (this->supportsOrphan() && size == bufferSize)
-            std::memcpy(bytes, data, bufferSize);
+            std::memcpy(this->bytes, data, bufferSize);
         else
-            std::memcpy((uint8_t*)bytes + offset, data, size);
+            std::memcpy((uint8_t*)this->bytes + offset, data, size);
 
-        GX2RUnlockBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
+        UniqueBuffer buffer(&this->buffer);
+        buffer.fill(size, this->bytes);
 
         return true;
     }
@@ -227,9 +219,7 @@ namespace love
         if (destination == nullptr || size == 0)
             return;
 
-        auto* bytes     = GX2RLockBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
-        const char* src = (const char*)bytes + sourceOffset;
+        const char* src = (const char*)this->bytes + sourceOffset;
         destination->fill(destOffset, size, src);
-        GX2RUnlockBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
     }
 } // namespace love

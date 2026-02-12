@@ -46,7 +46,6 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/driver/audio/DigitalSound.cpp
     source/driver/display/Framebuffer.cpp
     source/driver/display/GX2.cpp
-    source/driver/display/Uniform.cpp
     source/driver/EventQueue.cpp
     source/modules/audio/RecordingDevice.cpp
     source/modules/font/SystemFont.cpp

@@ -87,6 +87,11 @@ namespace love
          **/
         const float* getElements() const;
 
+        /**
+         * Gets a pointer to the 9 array elements.
+         **/
+        float* getElements();
+
         void setRow(int r, const Vector4& v);
         Vector4 getRow(int r) const;
 

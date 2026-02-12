@@ -2,6 +2,8 @@
 #include "common/config.hpp"
 #include "common/screen.hpp"
 
+#include "driver/display/UniqueBuffer.hpp"
+
 #include "modules/graphics/Shader.hpp"
 #include "modules/graphics/ShaderStage.hpp"
 
@@ -12,6 +14,7 @@
 #include <whb/gfx.h>
 
 #include <malloc.h>
+#include <span>
 
 #include "common/debug.hpp"
 
@@ -67,7 +70,7 @@ namespace love
             info.stageMask = SHADERSTAGE_VERTEX;
             info.active    = true;
             info.count     = 1;
-            LOG("UniformBlock: %s (location %u)", uniform.name, uniform.offset);
+
             this->reflection.localUniforms[info.name] = info;
         }
 
@@ -82,7 +85,7 @@ namespace love
             info.stageMask = SHADERSTAGE_VERTEX;
             info.active    = true;
             info.count     = uniform.count;
-            LOG("VtxUniform: %s (location %u)", uniform.name, uniform.offset);
+
             this->reflection.localUniforms[info.name] = info;
         }
 
@@ -97,7 +100,22 @@ namespace love
             info.stageMask = SHADERSTAGE_PIXEL;
             info.active    = true;
             info.count     = uniform.count;
-            LOG("PixUniform: %s (location %u)", uniform.name, uniform.offset);
+
+            this->reflection.localUniforms[info.name] = info;
+        }
+
+        const auto pixelSamplerVariablesCount = this->program.pixel->samplerVarCount;
+        for (size_t index = 0; index < pixelSamplerVariablesCount; index++)
+        {
+            const auto sampler = this->program.pixel->samplerVars[index];
+
+            UniformInfo info {};
+            info.name      = sampler.name;
+            info.location  = sampler.location;
+            info.stageMask = SHADERSTAGE_PIXEL;
+            info.active    = true;
+            info.count     = 1;
+
             this->reflection.localUniforms[info.name] = info;
         }
 
@@ -124,7 +142,11 @@ namespace love
 
         this->mapActiveUniforms();
 
-        return true;
+        this->transformation.flags     = GX2_BUFFERFLAG_UNIFORM_BLOCK;
+        this->transformation.elemSize  = sizeof(float) * 4 * 4 * 2;
+        this->transformation.elemCount = 1;
+
+        return GX2RCreateBuffer(&this->transformation);
     }
 
     static uint32_t getVertexAttributeLocation(const GX2VertexShader* shader, const char* name)
@@ -162,7 +184,6 @@ namespace love
             case GX2_ATTRIB_FORMAT_SINT_8_8_8_8:
             case GX2_ATTRIB_FORMAT_FLOAT_32_32_32_32:
                 return GX2_SEL_MASK(GX2_SQ_SEL_X, GX2_SQ_SEL_Y, GX2_SQ_SEL_Z, GX2_SQ_SEL_W);
-                break;
             default:
                 return GX2_SEL_MASK(GX2_SQ_SEL_0, GX2_SQ_SEL_0, GX2_SQ_SEL_0, GX2_SQ_SEL_1);
         }
@@ -259,21 +280,34 @@ namespace love
         return warnings;
     }
 
-    void Shader::updateBuiltinUniforms(GraphicsBase* graphics, Uniform* uniform)
+    static void bswap_into(Matrix4& out, const Matrix4& in)
+    {
+        auto src = std::span<const uint32_t>(reinterpret_cast<const uint32_t*>(&in), 16);
+        auto dst = std::span<uint32_t>(reinterpret_cast<uint32_t*>(&out), 16);
+
+        for (size_t index = 0; index < src.size(); index++)
+            dst[index] = std::byteswap(src[index]);
+    }
+
+    void Shader::updateBuiltinUniforms(GraphicsBase* graphics)
     {
         if (current != this)
             return;
 
-        auto& transform = graphics->getTransform();
-        uniform->update(transform);
+        BuiltinUniformData data {};
+        bswap_into(data.transformMatrix, graphics->getTransform());
+        bswap_into(data.projectionMatrix, graphics->getDeviceProjection());
 
-        auto* uniformBlock = this->getUniformInfo("Transformation");
+        auto* transformation = this->getUniformInfo("Transformation");
 
-        if (!uniformBlock)
+        if (transformation == nullptr)
             return;
 
-        GX2Invalidate(INVALIDATE_UNIFORM_BLOCK, uniform, UNIFORM_SIZE);
-        GX2SetVertexUniformBlock(uniformBlock->location, UNIFORM_SIZE, uniform);
+        UniqueBuffer buffer(&this->transformation);
+        buffer.fill(sizeof(BuiltinUniformData), &data);
+
+        /* this is actually (GX2RBuffer*, offset, binding)*/
+        GX2RSetVertexUniformBlock(&this->transformation, transformation->location, 0);
     }
 
     ptrdiff_t Shader::getHandle() const

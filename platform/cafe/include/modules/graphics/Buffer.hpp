@@ -54,6 +54,7 @@ namespace love
         GX2RBuffer buffer;
 
         BufferUsage mapUsage = BUFFERUSAGE_VERTEX;
+        uint8_t* bytes       = nullptr;
         uint8_t* staging     = nullptr;
 
         bool mapped        = false;
