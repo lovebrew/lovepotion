@@ -21,10 +21,6 @@ namespace love
 
         void destroy();
 
-        void setViewport(const Rect& viewport);
-
-        void setScissor(const Rect& scissor);
-
         GX2ColorBuffer& get()
         {
             return this->target;
@@ -43,6 +39,11 @@ namespace love
 
         void copyScanBuffer();
 
+        void setState()
+        {
+            GX2SetContextState(this->state);
+        }
+
       private:
         static constexpr auto FORMAT      = GX2_SURFACE_FORMAT_UNORM_R8_G8_B8_A8;
         static constexpr auto BUFFER_MODE = GX2_BUFFERING_MODE_DOUBLE;
@@ -56,6 +57,8 @@ namespace love
 
         uint8_t renderMode;
         GX2ScanTarget id;
+
+        GX2ContextState* state;
 
         void* scanBuffer;
         uint32_t scanBufferSize;

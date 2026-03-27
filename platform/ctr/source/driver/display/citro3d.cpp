@@ -111,6 +111,14 @@ namespace love
 
     void citro3d::destroyFramebuffers()
     {
+        love::currentScreen = DEFAULT_SCREEN;
+
+        if (this->inFrame)
+        {
+            C3D_FrameEnd(0);
+            this->inFrame = false;
+        }
+
         for (auto& target : this->targets)
             target.destroy();
     }
@@ -183,9 +191,6 @@ namespace love
         if (this->context.depthWrites)
             mask |= GPU_WRITE_DEPTH;
 
-        // clang-format off
-        LOG("[setDepthWrites] Mask: %02X (DepthWrite: %d, TestMode %d)", mask, this->context.depthWrites, this->context.testMode);
-        // clang-format on
         C3D_DepthTest(this->context.depthWrites, this->context.testMode, (GPU_WRITEMASK)mask);
     }
 
@@ -196,6 +201,9 @@ namespace love
 
     void citro3d::bindFramebuffer(C3D_RenderTarget* framebuffer)
     {
+        if (!framebuffer)
+            return;
+
         if (!this->inFrame)
             this->ensureInFrame();
 
@@ -236,6 +244,16 @@ namespace love
         C3D_SetViewport((uint32_t)v.x, (uint32_t)v.y, (uint32_t)v.w, (uint32_t)v.h);
     }
 
+    static void calculateBounds(const Rect& bounds, Rect& out, const int width, const int height)
+    {
+        const auto left   = std::max(0, height - (bounds.y + bounds.h));
+        const auto top    = std::max(0, width - (bounds.x + bounds.w));
+        const auto right  = height - bounds.y;
+        const auto bottom = width - bounds.x;
+
+        out = { left, top, right, bottom };
+    }
+
     void citro3d::setScissor(const Rect& scissor)
     {
         if (!this->context.boundFramebuffer)
@@ -244,7 +262,7 @@ namespace love
         const int width  = this->context.boundFramebuffer->frameBuf.height;
         const int height = this->context.boundFramebuffer->frameBuf.width;
 
-        Framebuffer::calculateBounds(scissor, this->context.scissor, width, height);
+        calculateBounds(scissor, this->context.scissor, width, height);
 
         // clang-format off
         GPU_SCISSORMODE mode = (scissor != Rect::EMPTY) ? GPU_SCISSOR_NORMAL : GPU_SCISSOR_DISABLE;
@@ -276,9 +294,6 @@ namespace love
         if (this->context.depthWrites)
             write |= GPU_WRITE_DEPTH;
 
-        // clang-format off
-        LOG("[setColorMask  ] Mask: %02X (DepthWrite: %d, TestMode %d)", write, this->context.depthWrites, this->context.testMode);
-        // clang-format on
         C3D_DepthTest(this->context.depthWrites, this->context.testMode, (GPU_WRITEMASK)write);
     }
 

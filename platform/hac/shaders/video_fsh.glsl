@@ -1,9 +1,9 @@
 #version 460
 
-layout (location = 0) in vec4 inColor;
-layout (location = 1) in vec2 inTexCoord;
+layout (location = 0) in vec4 VertexColor;
+layout (location = 1) in vec2 VertexTexCoord;
 
-layout (location = 0) out vec4 outColor;
+layout (location = 0) out vec4 VaryingColor;
 
 layout (binding = 0) uniform sampler2D video_y;
 layout (binding = 1) uniform sampler2D video_cb;
@@ -19,14 +19,14 @@ void main()
 {
     vec3 yuv;
 
-    yuv[0] = texture(video_y,  inTexCoord).r;
-    yuv[1] = texture(video_cb, inTexCoord).r;
-    yuv[2] = texture(video_cr, inTexCoord).r;
+    yuv[0] = texture(video_y,  VertexTexCoord).r;
+    yuv[1] = texture(video_cb, VertexTexCoord).r;
+    yuv[2] = texture(video_cr, VertexTexCoord).r;
 
     yuv += yuv_add;
 
-    outColor[0] = dot(yuv, yuv_r);
-    outColor[1] = dot(yuv, yuv_g);
-    outColor[2] = dot(yuv, yuv_b);
-    outColor[3] = 1.0;
+    VaryingColor[0] = dot(yuv, yuv_r);
+    VaryingColor[1] = dot(yuv, yuv_g);
+    VaryingColor[2] = dot(yuv, yuv_b);
+    VaryingColor[3] = 1.0;
 }

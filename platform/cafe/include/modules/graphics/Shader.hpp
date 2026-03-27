@@ -1,5 +1,7 @@
 #pragma once
 
+#include "driver/display/AttributeLayout.hpp"
+
 #include "modules/graphics/Graphics.hpp"
 #include "modules/graphics/Shader.tcc"
 #include "modules/graphics/Volatile.hpp"
@@ -27,9 +29,14 @@ namespace love
 
         void updateBuiltinUniforms(GraphicsBase* graphics);
 
-        bool initAttribute(uint32_t bufferIndex, uint32_t offset, uint32_t index, GX2AttribFormat format);
+        void resetAttributes()
+        {
+            this->layout.reset();
+        }
 
-        bool initFetchShader(size_t enabledBits);
+        bool initAttribute(uint32_t bufferIndex, uint32_t offset, uint32_t index, DataFormat format);
+
+        bool initFetchShader();
 
         ptrdiff_t getHandle() const override;
 
@@ -40,19 +47,15 @@ namespace love
         };
 
       private:
-        static constexpr auto TESSELATION_NONE     = GX2_FETCH_SHADER_TESSELLATION_NONE;
-        static constexpr auto TESSELATION_DISCRETE = GX2_TESSELLATION_MODE_DISCRETE;
-
         Program program;
 
         void mapActiveUniforms();
 
+        GX2AttributeLayout layout;
+        std::unordered_map<size_t, std::string_view> attributes;
+
         static constexpr auto INVALIDATE_UNIFORM_BLOCK =
             GX2_INVALIDATE_MODE_CPU | GX2_INVALIDATE_MODE_UNIFORM_BLOCK;
-
-        bool attributesDirty;
-        std::vector<GX2AttribStream> attributes;
-        GX2FetchShader shader;
 
         GX2RBuffer transformation;
     };

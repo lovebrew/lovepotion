@@ -3,6 +3,7 @@
 #include "common/Map.hpp"
 #include "common/pixelformat.hpp"
 
+#include "driver/display/AttributeLayout.hpp"
 #include "driver/display/Framebuffer.hpp"
 #include "driver/display/Renderer.tcc"
 
@@ -170,28 +171,17 @@ namespace love
             { DATAFORMAT_FLOAT_VEC4, GX2_ATTRIB_FORMAT_FLOAT_32_32_32_32 }
         );
 
-        STRINGMAP_DECLARE(AttributeNames, BuiltinVertexAttribute,
-            { "inPos",      ATTRIB_POS      },
-            { "inTexCoord", ATTRIB_TEXCOORD },
-            { "inColor",    ATTRIB_COLOR    }
+        ENUMMAP_DECLARE(PrimitiveModes, PrimitiveType, GX2PrimitiveMode,
+            { PRIMITIVE_TRIANGLES,      GX2_PRIMITIVE_MODE_TRIANGLES      },
+            { PRIMITIVE_TRIANGLE_STRIP, GX2_PRIMITIVE_MODE_TRIANGLE_STRIP },
+            { PRIMITIVE_TRIANGLE_FAN,   GX2_PRIMITIVE_MODE_TRIANGLE_FAN   },
+            { PRIMITIVE_POINTS,         GX2_PRIMITIVE_MODE_POINTS         }
         );
 
-        static GX2PrimitiveMode getPrimitiveType(PrimitiveType type)
-        {
-            switch (type)
-            {
-                case PRIMITIVE_TRIANGLES:
-                    return GX2_PRIMITIVE_MODE_TRIANGLES;
-                case PRIMITIVE_POINTS:
-                    return GX2_PRIMITIVE_MODE_POINTS;
-                case PRIMITIVE_TRIANGLE_STRIP:
-                    return GX2_PRIMITIVE_MODE_TRIANGLE_STRIP;
-                case PRIMITIVE_TRIANGLE_FAN:
-                    return GX2_PRIMITIVE_MODE_TRIANGLE_FAN;
-                default:
-                    throw love::Exception("Invalid primitive type");
-            }
-        }
+        ENUMMAP_DECLARE(IndexTypes, IndexDataType, GX2IndexType,
+            { INDEX_UINT16, GX2_INDEX_TYPE_U16 },
+            { INDEX_UINT32, GX2_INDEX_TYPE_U32 }
+        );
 
         static GX2IndexType getIndexType(IndexDataType type)
         {
@@ -240,6 +230,8 @@ namespace love
         void* commandBuffer;
         GX2ContextState* state;
         bool dirtyProjection;
+
+        GX2AttributeLayout layout;
     };
 
     extern GX2 gx2;

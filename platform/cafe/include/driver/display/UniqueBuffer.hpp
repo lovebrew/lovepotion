@@ -20,18 +20,20 @@ namespace love
     {
         UniqueBuffer(GX2RBuffer* buffer) :
             buffer(buffer),
-            data((uint8_t*)GX2RLockBufferEx(buffer, GX2R_RESOURCE_BIND_NONE))
+            bytes((uint8_t*)GX2RLockBufferEx(buffer, GX2R_RESOURCE_BIND_NONE))
         {}
 
         UniqueBuffer(const UniqueBuffer&)            = delete;
         UniqueBuffer& operator=(const UniqueBuffer&) = delete;
 
-        void* fill(size_t size, const void* bytes = nullptr)
+        void write(size_t offset, size_t size, const void* bytes)
         {
-            if (bytes == nullptr)
-                return std::memset(this->data, 0, size);
+            std::memcpy(this->bytes + offset, bytes, size);
+        }
 
-            return std::memcpy(this->data, bytes, size);
+        uint8_t* data()
+        {
+            return this->bytes;
         }
 
         ~UniqueBuffer()
@@ -48,6 +50,6 @@ namespace love
 
       private:
         GX2RBuffer* buffer;
-        uint8_t* data;
+        uint8_t* bytes;
     };
 } // namespace love

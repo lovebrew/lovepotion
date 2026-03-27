@@ -15,14 +15,6 @@
 
 namespace love
 {
-    static inline GX2RResourceFlags getBufferUsage(BufferUsage usage)
-    {
-        if (usage == BUFFERUSAGE_VERTEX)
-            return GX2R_RESOURCE_BIND_VERTEX_BUFFER;
-
-        return GX2R_RESOURCE_BIND_INDEX_BUFFER;
-    }
-
     Buffer::Buffer(GraphicsBase* gfx, const Settings& settings, const BufferFormat& format, const void* data,
                    size_t size, size_t length) :
         BufferBase(gfx, settings, format, size, length),
@@ -77,18 +69,12 @@ namespace love
     void Buffer::unloadVolatile()
     {
         this->mapped = false;
-        // GX2RDestroyBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
         std::free(this->staging);
         this->staging = nullptr;
     }
 
     bool Buffer::load(const void* data)
     {
-
-        this->bytes = (uint8_t*)std::malloc(this->getSize());
-        if (this->bytes == nullptr)
-            return false;
-
         GX2RResourceFlags flags;
         UniqueBuffer::getConstant(this->mapUsage, flags);
 
@@ -99,13 +85,10 @@ namespace love
         if (!GX2RCreateBuffer(&this->buffer))
             return false;
 
-        if (data != nullptr)
-            std::memcpy(this->bytes, data, this->getSize());
-        else
-            std::memset(this->bytes, 0, this->getSize());
-
         UniqueBuffer buffer(&this->buffer);
-        buffer.fill(this->getSize(), this->bytes);
+
+        if (data != nullptr)
+            buffer.write(0, this->getSize(), data);
 
         return true;
     }
@@ -138,17 +121,13 @@ namespace love
         this->mappedType  = map;
         this->mappedRange = r;
 
-        if (map == MAP_READ_ONLY)
-            return (void*)((uint8_t*)this->bytes + offset);
-
         try
         {
-            this->staging = (uint8_t*)std::malloc(this->getSize());
+            this->staging = (uint8_t*)std::malloc(size);
         }
-        catch (std::bad_alloc&)
+        catch (std::exception&)
         {
-            this->mapped = false;
-            return nullptr;
+            throw love::Exception(E_OUT_OF_MEMORY);
         }
 
         return (void*)this->staging;
@@ -187,13 +166,12 @@ namespace love
         if (!Range(0, bufferSize).contains(Range(offset, size)))
             return false;
 
-        if (this->supportsOrphan() && size == bufferSize)
-            std::memcpy(this->bytes, data, bufferSize);
-        else
-            std::memcpy((uint8_t*)this->bytes + offset, data, size);
+        UniqueBuffer mapped(&this->buffer);
 
-        UniqueBuffer buffer(&this->buffer);
-        buffer.fill(size, this->bytes);
+        if (this->supportsOrphan() && size == bufferSize)
+            mapped.write(0, bufferSize, data);
+        else
+            mapped.write(offset, size, data);
 
         return true;
     }
@@ -219,7 +197,7 @@ namespace love
         if (destination == nullptr || size == 0)
             return;
 
-        const char* src = (const char*)this->bytes + sourceOffset;
-        destination->fill(destOffset, size, src);
+        UniqueBuffer source(&this->buffer);
+        destination->fill(destOffset, size, source.data() + sourceOffset);
     }
 } // namespace love

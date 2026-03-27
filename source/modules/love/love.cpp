@@ -273,12 +273,13 @@ int love_initialize(lua_State* L)
  */
 int love_openConsole(lua_State* L)
 {
-    std::string error;
+    std::string error {};
+    auto isOpen = g_debugSocket.open(error);
 
-    if (!g_debugSocket.open(error))
-        love::luax_pushboolean(L, false);
-    else
-        love::luax_pushboolean(L, true);
+    if (!error.empty())
+        return luaL_error(L, error.c_str());
+
+    love::luax_pushboolean(L, isOpen);
 
     return 1;
 }

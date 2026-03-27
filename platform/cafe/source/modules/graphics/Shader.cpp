@@ -2,6 +2,7 @@
 #include "common/config.hpp"
 #include "common/screen.hpp"
 
+#include "driver/display/GX2.hpp"
 #include "driver/display/UniqueBuffer.hpp"
 
 #include "modules/graphics/Shader.hpp"
@@ -27,13 +28,9 @@
 namespace love
 {
     Shader::Shader(StrongRef<ShaderStageBase> _stages[SHADERSTAGE_MAX_ENUM], const CompileOptions& options) :
-        ShaderBase(_stages, options),
-        attributesDirty(true),
-        attributes {},
-        shader {}
+        ShaderBase(_stages, options)
     {
         this->loadVolatile();
-        this->attributes.resize(16);
     }
 
     Shader::~Shader()
@@ -140,6 +137,7 @@ namespace love
         if (!this->program.vertex || !this->program.pixel)
             return false;
 
+        this->layout.reset();
         this->mapActiveUniforms();
 
         this->transformation.flags     = GX2_BUFFERFLAG_UNIFORM_BLOCK;
@@ -149,117 +147,10 @@ namespace love
         return GX2RCreateBuffer(&this->transformation);
     }
 
-    static uint32_t getVertexAttributeLocation(const GX2VertexShader* shader, const char* name)
-    {
-        for (uint32_t i = 0; i < shader->attribVarCount; ++i)
-        {
-            if (strcmp(shader->attribVars[i].name, name) == 0)
-                return shader->attribVars[i].location;
-        }
-
-        return -1;
-    }
-
-    static uint32_t getAttributeFormatSelector(GX2AttribFormat format)
-    {
-        switch (format)
-        {
-            case GX2_ATTRIB_FORMAT_UNORM_8:
-            case GX2_ATTRIB_FORMAT_UINT_8:
-            case GX2_ATTRIB_FORMAT_SNORM_8:
-            case GX2_ATTRIB_FORMAT_SINT_8:
-            case GX2_ATTRIB_FORMAT_FLOAT_32:
-                return GX2_SEL_MASK(GX2_SQ_SEL_X, GX2_SQ_SEL_0, GX2_SQ_SEL_0, GX2_SQ_SEL_1);
-            case GX2_ATTRIB_FORMAT_UNORM_8_8:
-            case GX2_ATTRIB_FORMAT_UINT_8_8:
-            case GX2_ATTRIB_FORMAT_SNORM_8_8:
-            case GX2_ATTRIB_FORMAT_SINT_8_8:
-            case GX2_ATTRIB_FORMAT_FLOAT_32_32:
-                return GX2_SEL_MASK(GX2_SQ_SEL_X, GX2_SQ_SEL_Y, GX2_SQ_SEL_0, GX2_SQ_SEL_1);
-            case GX2_ATTRIB_FORMAT_FLOAT_32_32_32:
-                return GX2_SEL_MASK(GX2_SQ_SEL_X, GX2_SQ_SEL_Y, GX2_SQ_SEL_Z, GX2_SQ_SEL_1);
-            case GX2_ATTRIB_FORMAT_UNORM_8_8_8_8:
-            case GX2_ATTRIB_FORMAT_UINT_8_8_8_8:
-            case GX2_ATTRIB_FORMAT_SNORM_8_8_8_8:
-            case GX2_ATTRIB_FORMAT_SINT_8_8_8_8:
-            case GX2_ATTRIB_FORMAT_FLOAT_32_32_32_32:
-                return GX2_SEL_MASK(GX2_SQ_SEL_X, GX2_SQ_SEL_Y, GX2_SQ_SEL_Z, GX2_SQ_SEL_W);
-            default:
-                return GX2_SEL_MASK(GX2_SQ_SEL_0, GX2_SQ_SEL_0, GX2_SQ_SEL_0, GX2_SQ_SEL_1);
-        }
-    }
-
-    bool Shader::initAttribute(uint32_t bufferIndex, uint32_t offset, uint32_t index, GX2AttribFormat format)
-    {
-        const char* name = love::getConstant((BuiltinVertexAttribute)index);
-        if (name == nullptr)
-            return false;
-
-        int32_t location = getVertexAttributeLocation(this->program.vertex, name);
-
-        if (location < 0)
-            return false;
-
-        GX2AttribStream& attribute = this->attributes[index];
-        attribute.location         = location;
-        attribute.buffer           = bufferIndex;
-        attribute.offset           = offset;
-        attribute.format           = format;
-        attribute.type             = GX2_ATTRIB_INDEX_PER_VERTEX;
-        attribute.aluDivisor       = 0;
-        attribute.mask             = getAttributeFormatSelector(format);
-        attribute.endianSwap       = GX2_ENDIAN_SWAP_DEFAULT;
-
-        this->attributesDirty = true;
-        return true;
-    }
-
-    bool Shader::initFetchShader(size_t enabledBits)
-    {
-        if (!this->attributesDirty)
-            return true;
-
-        if (this->attributes.empty())
-            return false;
-
-        std::vector<GX2AttribStream> attribs {};
-        for (size_t index = 0; index < this->attributes.size(); index++)
-        {
-            if (enabledBits & (1u << index))
-                attribs.push_back(this->attributes[index]);
-        }
-        const auto count = attribs.size();
-
-        if (this->shader.program)
-            std::free(this->shader.program);
-
-        const auto size = GX2CalcFetchShaderSizeEx(count, TESSELATION_NONE, TESSELATION_DISCRETE);
-
-        this->shader.size    = size;
-        this->shader.program = memalign(GX2_SHADER_PROGRAM_ALIGNMENT, size);
-
-        if (this->shader.program == nullptr)
-            throw love::Exception(E_OUT_OF_MEMORY);
-
-        // clang-format off
-        GX2InitFetchShaderEx(&this->shader, (uint8_t*)this->shader.program, count, attribs.data(), TESSELATION_NONE, TESSELATION_DISCRETE);
-        GX2Invalidate(GX2_INVALIDATE_MODE_CPU_SHADER, this->shader.program, size);
-        this->attributesDirty = false;
-        // clang-format on
-
-        GX2SetShaderMode(GX2_SHADER_MODE_UNIFORM_BLOCK);
-        GX2SetFetchShader(&this->shader);
-
-        return true;
-    }
-
     void Shader::unloadVolatile()
     {
         WHBGfxFreeVertexShader(this->program.vertex);
         WHBGfxFreePixelShader(this->program.pixel);
-
-        if (this->shader.program)
-            std::free(this->shader.program);
     }
 
     std::string Shader::getWarnings() const
@@ -304,7 +195,7 @@ namespace love
             return;
 
         UniqueBuffer buffer(&this->transformation);
-        buffer.fill(sizeof(BuiltinUniformData), &data);
+        buffer.write(0, sizeof(BuiltinUniformData), &data);
 
         /* this is actually (GX2RBuffer*, offset, binding)*/
         GX2RSetVertexUniformBlock(&this->transformation, transformation->location, 0);
@@ -321,11 +212,11 @@ namespace love
         {
             Graphics::flushBatchedDrawsGlobal();
 
-            GX2SetVertexShader(this->program.vertex);
-            GX2SetPixelShader(this->program.pixel);
-
             current = this;
             shaderSwitches++;
+
+            GX2SetVertexShader(this->program.vertex);
+            GX2SetPixelShader(this->program.pixel);
         }
     }
 } // namespace love

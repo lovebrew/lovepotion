@@ -1,3 +1,5 @@
+#include "common/Exception.hpp"
+
 #include "driver/display/Framebuffer.hpp"
 #include "driver/display/utility.hpp"
 
@@ -79,6 +81,14 @@ namespace love
         initColorBuffer(this->target, info.width, info.height);
         initDepthBuffer(this->depth, info.width, info.height);
 
+        this->state = (GX2ContextState*)memalign(GX2_CONTEXT_STATE_ALIGNMENT, sizeof(GX2ContextState));
+
+        if (!this->state)
+            throw love::Exception("Failed to allocate GX2 context state.");
+
+        GX2SetupContextStateEx(this->state, true);
+        GX2SetContextState(this->state);
+
         if (info.id == GX2_SCAN_TARGET_TV)
         {
             GX2SetTVEnable(true);
@@ -109,25 +119,5 @@ namespace love
 
         this->viewport = { 0, 0, info.width, info.height };
         this->scissor  = { 0, 0, info.width, info.height };
-    }
-
-    void Framebuffer::setScissor(const Rect& scissor)
-    {
-        if (scissor == Rect::EMPTY)
-            this->scissor = { 0, 0, this->width, this->height };
-        else
-            this->scissor = scissor;
-
-        GX2SetScissor(this->scissor.x, this->scissor.y, this->scissor.w, this->scissor.h);
-    }
-
-    void Framebuffer::setViewport(const Rect& viewport)
-    {
-        if (viewport == Rect::EMPTY)
-            this->viewport = { 0, 0, this->width, this->height };
-        else
-            this->viewport = viewport;
-
-        GX2SetViewport(this->viewport.x, this->viewport.y, this->viewport.w, this->viewport.h, 0.0f, 1.0f);
     }
 } // namespace love

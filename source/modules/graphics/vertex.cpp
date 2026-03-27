@@ -147,14 +147,13 @@ namespace love
     {
         switch (attribute)
         {
-            case ATTRIB_POS:
-                return "inPos";
-            case ATTRIB_TEXCOORD:
-                return "inTexCoord";
-            case ATTRIB_COLOR:
-                return "inColor";
             default:
-                return nullptr;
+            case ATTRIB_POS:
+                return "VertexPosition";
+            case ATTRIB_TEXCOORD:
+                return "VertexTexCoord";
+            case ATTRIB_COLOR:
+                return "VertexColor";
         }
     }
 

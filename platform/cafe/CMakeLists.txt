@@ -30,7 +30,7 @@ dkp_track_assets(${PROJECT_NAME}_cafe_content
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
-    freetype bz2 png turbojpeg ddsparse
+    Freetype::Freetype brotlidec brotlicommon bz2 png turbojpeg ddsparse
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
@@ -45,6 +45,8 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/common/screen.cpp
     source/driver/audio/DigitalSound.cpp
     source/driver/display/Framebuffer.cpp
+    source/driver/display/AttributeLayout.cpp
+    source/driver/display/Attribute.cpp
     source/driver/display/GX2.cpp
     source/driver/EventQueue.cpp
     source/modules/audio/RecordingDevice.cpp

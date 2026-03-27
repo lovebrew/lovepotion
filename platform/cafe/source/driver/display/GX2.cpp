@@ -1,10 +1,10 @@
 #include "driver/display/GX2.hpp"
+#include "driver/display/Attribute.hpp"
 
 /* keyboard needs GX2 inited first */
 #include "common/debug.hpp"
 #include "modules/graphics/Shader.hpp"
 #include "modules/keyboard/Keyboard.hpp"
-
 #include <gx2/clear.h>
 #include <gx2/context.h>
 #include <gx2/display.h>
@@ -27,7 +27,7 @@ namespace love
         inForeground(false),
         commandBuffer(nullptr),
         state(nullptr),
-        dirtyProjection(false)
+        layout {}
     {}
 
     GX2::~GX2()
@@ -40,10 +40,10 @@ namespace love
 
         GX2Shutdown();
 
-        free(this->state);
+        std::free(this->state);
         this->state = nullptr;
 
-        free(this->commandBuffer);
+        std::free(this->commandBuffer);
         this->commandBuffer = nullptr;
     }
 
@@ -116,6 +116,8 @@ namespace love
 
         GX2Init(attributes);
 
+        this->createFramebuffers();
+
         this->state = (GX2ContextState*)memalign(GX2_CONTEXT_STATE_ALIGNMENT, sizeof(GX2ContextState));
 
         if (!this->state)
@@ -123,8 +125,6 @@ namespace love
 
         GX2SetupContextStateEx(this->state, false);
         GX2SetContextState(this->state);
-
-        this->createFramebuffers();
 
         GX2SetDepthOnlyControl(false, false, GX2_COMPARE_FUNC_ALWAYS);
         // GX2SetAlphaTest(false, GX2_COMPARE_FUNC_ALWAYS, 0.0f);
@@ -140,15 +140,6 @@ namespace love
 
         if (Keyboard())
             Keyboard()->initialize();
-
-        this->context.winding     = GX2_FRONT_FACE_CCW;
-        this->context.cullBack    = false;
-        this->context.cullFront   = false;
-        this->context.depthTest   = false;
-        this->context.depthWrite  = true;
-        this->context.compareMode = GX2_COMPARE_FUNC_ALWAYS;
-
-        this->bindFramebuffer(&this->targets[0].get());
 
         this->initialized = true;
     }
@@ -184,8 +175,6 @@ namespace love
 
     void GX2::ensureInFrame()
     {
-        GX2SetContextState(this->state);
-
         if (!this->inFrame)
             this->inFrame = true;
     }
@@ -209,7 +198,6 @@ namespace love
         const auto stencil       = this->context.stencilState.value;
         this->context.depthClear = value;
         GX2ClearDepthStencilEx(&this->getInternalDepthbuffer(), (float)value, stencil, GX2_CLEAR_FLAGS_DEPTH);
-        GX2SetContextState(this->state);
     }
 
     void GX2::clearStencil(int value)
@@ -219,23 +207,18 @@ namespace love
 
         const auto depth = this->context.depthClear;
         GX2ClearDepthStencilEx(&this->getInternalDepthbuffer(), (float)depth, value, GX2_CLEAR_FLAGS_STENCIL);
-        GX2SetContextState(this->state);
     }
 
     void GX2::clear(const Color& color)
     {
-        if (!this->inFrame)
+        if (!this->inFrame || !this->context.boundFramebuffer)
             return;
 
         GX2ClearColor(this->getFramebuffer(), color.r, color.g, color.b, color.a);
-        GX2SetContextState(this->state);
     }
 
     void GX2::clearDepthStencil(int depth, uint8_t mask, double stencil)
-    {
-        // GX2ClearDepthStencilEx(&this->getInternalDepthbuffer(), depth, stencil, GX2_CLEAR_FLAGS_BOTH);
-        // GX2SetContextState(this->state);
-    }
+    {}
 
     void GX2::bindFramebuffer(GX2ColorBuffer* target)
     {
@@ -251,7 +234,8 @@ namespace love
         {
             GX2SetColorBuffer(target, GX2_RENDER_TARGET_0);
             GX2SetDepthBuffer(&this->getInternalDepthbuffer());
-            this->setMode(target->surface.width, target->surface.height);
+            GX2SetViewport(0, 0, target->surface.width, target->surface.height, 0.0f, 1.0f);
+            GX2SetScissor(0, 0, target->surface.width, target->surface.height);
         }
     }
 
@@ -308,33 +292,44 @@ namespace love
 
     void GX2::setVertexAttributes(const VertexAttributes& attributes, const BufferBindings& buffers)
     {
-        if (ShaderBase::current == nullptr)
-            return;
+        uint32_t allBits = (attributes.enableBits | GX2AttributeLayout::MAX_ATTRIBUTES);
+        uint32_t i       = 0;
 
-        for (size_t i = 0; i < ATTRIB_MAX_ENUM; i++)
+        while (allBits)
         {
-            const auto bit = 1u << i;
-            if (!(attributes.enableBits & bit))
-                continue;
+            uint32_t bit = 1u << i;
 
-            const auto& attribute  = attributes.attributes[i];
-            const auto& layout     = attributes.bufferLayouts[attribute.bufferIndex];
-            const auto& bufferInfo = buffers.info[attribute.bufferIndex];
+            GX2Attribute attr {};
+            attr.setEnabled(attributes.enableBits & bit);
 
-            GX2AttribFormat format;
-            if (!GX2::getConstant(attribute.getFormat(), format))
-                continue;
+            if (attributes.enableBits & bit)
+            {
+                const auto& attribute = attributes.attributes[i];
+                const auto& layout    = attributes.bufferLayouts[attribute.bufferIndex];
 
-            const auto offset      = (uint32_t)attribute.offsetFromVertex;
-            const auto bufferIndex = (uint32_t)attribute.bufferIndex;
+                uint32_t bufferBit = 1u << attribute.bufferIndex;
+                uint32_t divisor   = (attributes.instanceBits & bufferBit) != 0 ? 1 : 0;
 
-            ((Shader*)ShaderBase::current)->initAttribute(bufferIndex, offset, i, format);
+                const auto components = getDataFormatInfo(attribute.getFormat()).components;
+
+                GX2AttribFormat format;
+                getConstant(attribute.getFormat(), format);
+
+                const auto offset = (uint32_t)attribute.offsetFromVertex;
+
+                attr.update(i, components, format, offset);
+                attr.setDivisor(divisor);
+
+                this->layout.set(i, attr);
+            }
+            i++;
+            allBits >>= 1;
         }
-
-        ((Shader*)ShaderBase::current)->initFetchShader(attributes.enableBits);
 
         auto* handle = (GX2RBuffer*)buffers.info[0].buffer->getHandle();
         GX2RSetAttributeBuffer(handle, 0, handle->elemSize, 0);
+
+        this->layout.bind();
     }
 
     void GX2::bindTextureToUnit(TextureBase* texture, int unit)
@@ -397,10 +392,10 @@ namespace love
     {
         const auto enabled = mode != CullMode::CULL_NONE;
 
-        this->context.cullBack  = (enabled && mode == CullMode::CULL_BACK);
         this->context.cullFront = (enabled && mode == CullMode::CULL_FRONT);
+        this->context.cullBack  = (enabled && mode == CullMode::CULL_BACK);
 
-        GX2SetCullOnlyControl(this->context.winding, this->context.cullBack, this->context.cullFront);
+        GX2SetCullOnlyControl(this->context.winding, this->context.cullFront, this->context.cullBack);
     }
 
     void GX2::setVertexWinding(Winding winding)

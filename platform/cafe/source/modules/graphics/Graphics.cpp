@@ -458,9 +458,14 @@ namespace love
         gx2.bindTextureToUnit(command.texture, 0);
         gx2.setCullMode(command.cullMode);
 
-        const auto mode              = GX2::getPrimitiveType(command.primitiveType);
-        auto* buffer                 = (GX2RBuffer*)command.indexBuffer->getHandle();
-        const auto indexType         = GX2::getIndexType(command.indexType);
+        GX2PrimitiveMode mode;
+        GX2::getConstant(command.primitiveType, mode);
+
+        auto* buffer = (GX2RBuffer*)command.indexBuffer->getHandle();
+
+        GX2IndexType indexType;
+        GX2::getConstant(command.indexType, indexType);
+
         const uint32_t count         = (uint32_t)command.indexCount;
         const uint32_t offset        = (uint32_t)command.indexBufferOffset;
         const uint32_t instanceCount = (uint32_t)command.instanceCount;
@@ -479,11 +484,13 @@ namespace love
         gx2.bindTextureToUnit(command.texture, 0);
         gx2.setCullMode(command.cullMode);
 
-        const auto mode        = GX2::getPrimitiveType(command.primitiveType);
+        GX2PrimitiveMode mode;
+        GX2::getConstant(command.primitiveType, mode);
+
         const auto vertexCount = command.vertexCount;
         const auto vertexStart = command.vertexStart;
 
-        GX2DrawEx(mode, vertexCount, vertexStart, 1);
+        GX2DrawEx(mode, vertexCount, vertexStart, command.instanceCount);
         ++this->drawCalls;
     }
 
@@ -503,7 +510,7 @@ namespace love
         gx2.setVertexAttributes(attributes, buffersCopy);
 
         const auto mode      = GX2_PRIMITIVE_MODE_TRIANGLES;
-        const auto indexType = GX2::getIndexType(INDEX_UINT16);
+        const auto indexType = GX2_INDEX_TYPE_U16;
 
         for (int quadIndex = 0; quadIndex < count; quadIndex += MAX_QUADS_PER_DRAW)
         {

@@ -207,6 +207,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/common/pixelformat.cpp
     source/common/Reference.cpp
     source/common/screen.cpp
+    source/common/delay.cpp
     source/common/Stream.cpp
     source/common/types.cpp
     source/common/Variant.cpp

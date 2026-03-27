@@ -1,9 +1,8 @@
 #pragma once
 
+#include <algorithm>
 #include <span>
 #include <string_view>
-
-#include <algorithm>
 
 #include <stdint.h>
 
@@ -24,7 +23,7 @@ namespace love
     static constexpr inline Screen DEFAULT_SCREEN = (Screen)0;
     inline Screen currentScreen                   = DEFAULT_SCREEN;
 
-    std::span<ScreenInfo> getScreenInfo();
+    std::span<const ScreenInfo> getScreenInfo();
 
     const ScreenInfo& getScreenInfo(Screen id);
 
