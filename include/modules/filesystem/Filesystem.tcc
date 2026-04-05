@@ -19,23 +19,6 @@ namespace love
 {
     class FilesystemBase : public Module
     {
-      private:
-        static bool getContainingDirectory(const std::string& path, std::string& newPath)
-        {
-            size_t index = path.find_last_of("/\\");
-
-            if (index == std::string::npos)
-                return false;
-
-            newPath = path.substr(0, index);
-            return newPath.find_first_of("/\\") != std::string::npos;
-        }
-
-        static bool createDirectoryRaw(const std::string& path)
-        {
-            return mkdir(path.c_str(), S_IRWXU) == 0;
-        }
-
       public:
         enum FileType
         {
@@ -91,6 +74,8 @@ namespace love
         bool getRealPathType(const std::string& path, FileType& type) const;
 
         bool createRealDirectory(const std::string& path);
+
+        std::string canonicalizeRealPath(const std::string& path) const;
 
         std::string getExecutablePath() const
         {

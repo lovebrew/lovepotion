@@ -57,6 +57,27 @@ namespace love
         return output;
     }
 
+    static bool isMounted(const std::string& path)
+    {
+        char** mountedPaths = PHYSFS_getSearchPath();
+        if (mountedPaths == nullptr)
+            return false;
+
+        bool mounted = false;
+        for (char** p = mountedPaths; *p != nullptr; p++)
+        {
+            char* mountedPath = *p;
+            if (strcmp(path.c_str(), mountedPath) == 0)
+            {
+                mounted = true;
+                break;
+            }
+        }
+
+        PHYSFS_freeList(mountedPaths);
+        return mounted;
+    }
+
     Filesystem::Filesystem() :
         FilesystemBase("love.filesystem.physfs"),
         appendIdentityToPath(false),
@@ -129,8 +150,12 @@ namespace love
 
             std::string fullpath = this->getFullCommonPath(path);
 
-            if (!fullpath.empty() && !PHYSFS_canUnmount(fullpath.c_str()))
-                return false;
+            if (!fullpath.empty())
+            {
+                std::string canonPath = this->canonicalizeRealPath(fullpath);
+                if (!PHYSFS_canUnmount(canonPath.c_str()))
+                    return false;
+            }
         }
 
         bool oldMountedCommonPaths[COMMONPATH_MAX_ENUM] = { false };
@@ -179,7 +204,10 @@ namespace love
         if (!this->source.empty())
             return false;
 
-        std::string searchPath = source;
+        std::string searchPath = this->canonicalizeRealPath(source);
+
+        if (isMounted(searchPath))
+            return false;
 
         if (!PHYSFS_mount(searchPath.c_str(), nullptr, 1))
         {
@@ -274,10 +302,15 @@ namespace love
         if (!PHYSFS_isInit() || !archive)
             return false;
 
-        if (permissions == MOUNT_PERMISSIONS_READWRITE)
-            return PHYSFS_mountRW(archive, mountpoint, appendToPath) != 0;
+        std::string canonArchive = this->canonicalizeRealPath(archive);
 
-        return PHYSFS_mount(archive, mountpoint, appendToPath) != 0;
+        if (isMounted(canonArchive))
+            return false;
+
+        if (permissions == MOUNT_PERMISSIONS_READWRITE)
+            return PHYSFS_mountRW(canonArchive.c_str(), mountpoint, appendToPath) != 0;
+
+        return PHYSFS_mount(canonArchive.c_str(), mountpoint, appendToPath) != 0;
     }
 
     bool Filesystem::mountCommonPathInternal(CommonPath path, const char* mountPoint,
@@ -314,6 +347,9 @@ namespace love
     bool Filesystem::mount(Data* data, const char* archive, const char* mountpoint, bool appendToPath)
     {
         if (!PHYSFS_isInit() || !archive)
+            return false;
+
+        if (isMounted(archive))
             return false;
 
         // clang-format off
@@ -362,10 +398,11 @@ namespace love
         realPath += PATH_SEPARATOR;
         realPath += archive;
 
-        if (PHYSFS_getMountPoint(realPath.c_str()) == nullptr)
+        std::string canonPath = this->canonicalizeRealPath(realPath.c_str());
+        if (PHYSFS_getMountPoint(canonPath.c_str()) == nullptr)
             return false;
 
-        return PHYSFS_unmount(realPath.c_str()) != 0;
+        return PHYSFS_unmount(canonPath.c_str()) != 0;
     }
 
     bool Filesystem::unmountFullPath(const char* fullpath)
@@ -373,7 +410,8 @@ namespace love
         if (!PHYSFS_isInit() || !fullpath)
             return false;
 
-        return PHYSFS_unmount(fullpath) != 0;
+        std::string canonPath = this->canonicalizeRealPath(fullpath);
+        return PHYSFS_unmount(canonPath.c_str()) != 0;
     }
 
     bool Filesystem::unmount(CommonPath path)
@@ -448,6 +486,7 @@ namespace love
                 suffix = std::string(PATH_SEPARATOR) + this->saveIdentity;
 
             this->fullPaths[path] = normalize(root + suffix);
+            this->fullPaths[path] = this->canonicalizeRealPath(fullPaths[path].c_str());
 
             return this->fullPaths[path];
         }
@@ -481,6 +520,9 @@ namespace love
             default:
                 break;
         }
+
+        if (!this->fullPaths[path].empty())
+            this->fullPaths[path] = this->canonicalizeRealPath(this->fullPaths[path].c_str());
 
         return this->fullPaths[path];
     }

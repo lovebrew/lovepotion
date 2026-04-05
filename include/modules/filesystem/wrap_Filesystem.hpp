@@ -56,6 +56,8 @@ namespace Wrap_Filesystem
 
     int openNativeFile(lua_State* L);
 
+    int canonicalizeRealPath(lua_State* L);
+
     int getFullCommonPath(lua_State* L);
 
     int getWorkingDirectory(lua_State* L);
@@ -105,6 +107,8 @@ namespace Wrap_Filesystem
     int getCRequirePath(lua_State* L);
 
     int setCRequirePath(lua_State* L);
+
+    int loader(lua_State* L);
 
     int open(lua_State* L);
 } // namespace Wrap_Filesystem

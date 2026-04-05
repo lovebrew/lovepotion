@@ -32,7 +32,7 @@ namespace love
 #define E_FILE_NOT_OPEN_FOR_READING  "File not open for reading."
 #define E_INVALID_READ_SIZE          "Invalid read size."
 #define E_INVALID_WRITE_SIZE         "Invalid write size."
-#define E_NO_FILE_IN_LOVE_DIRS       "\n\tno '{}' in LOVE game directories."
+#define E_NO_FILE_IN_LOVE_DIRS       "\n\tno '%s' in LOVE game directories."
 // #endregion
 
 // #region Data
@@ -54,7 +54,7 @@ namespace love
 // #endregion
 
 // #region Graphics
-#define E_BLEND_MIN_MAX_NOT_SUPPORTED   "The 'min' and 'max' blend operations are not supported on this system."
+#define E_BLEND_MIN_MAX_NOT_SUPPORTED "The 'min' and 'max' blend operations are not supported on this system."
 #define E_NON2D_TEXTURE_TABLE_OF_TABLES "Non-2D textures must use the table-of-tables variant of setCanvas."
 #define E_ONLY_DEPTHSTENCIL_CAN_BE_DEPTHSTENCIL                                                     \
     "Only depth/stencil textures can be used in the 'depthstencil' field of the table passed into " \

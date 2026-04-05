@@ -16,41 +16,38 @@ using namespace love;
 #define instance() (Module::getInstance<Filesystem>(Module::M_FILESYSTEM))
 
 #include <algorithm>
-#include <string_view>
+#include <string>
 
-static void replaceAll(std::string& inout, std::string_view what, std::string_view with)
-{
-    std::string::size_type pos = 0;
-
-    while ((pos = inout.find(what, pos)) != std::string::npos)
-    {
-        inout.replace(pos, what.length(), with);
-        pos += with.length();
-    }
-}
+// clang-format off
+STRINGMAP_DECLARE(CtrPathTranslations, std::string_view,
+    { ".png",  ".t3x"   },
+    { ".jpg",  ".t3x"   },
+    { ".jpeg", ".t3x"   },
+    { ".ttf",  ".bcfnt" },
+    { ".otf",  ".bcfnt" }
+);
+// clang-format on
 
 static std::filesystem::path translatePath(const std::filesystem::path& input)
 {
-    if (!Console::is(Console::CTR))
+    if constexpr (!Console::is(Console::CTR))
         return input;
 
-    static constexpr auto textures = { ".png", ".jpg", ".jpeg" };
-    static constexpr auto fonts    = { ".ttf", ".otf" };
+    auto fileExtension = input.extension();
+    std::string_view extension { fileExtension.c_str() };
+    std::string_view ext {};
 
-    auto path = std::filesystem::path(input);
+    if (!getConstant(extension, ext))
+        return input;
 
-    if (std::find(textures.begin(), textures.end(), input.extension()) != textures.end())
-        return path.replace_extension(".t3x");
-    else if (std::find(fonts.begin(), fonts.end(), input.extension()) != fonts.end())
-        return path.replace_extension(".bcfnt");
+    auto path = input;
 
-    return path;
+    return path.replace_extension(ext);
 }
 
 int Wrap_Filesystem::init(lua_State* L)
 {
     const char* arg0 = luaL_checkstring(L, 1);
-
     luax_catchexcept(L, [&] { instance()->init(arg0); });
 
     return 0;
@@ -284,6 +281,14 @@ int Wrap_Filesystem::openNativeFile(lua_State* L)
     return 1;
 }
 
+int Wrap_Filesystem::canonicalizeRealPath(lua_State* L)
+{
+    const char* path = luaL_checkstring(L, 1);
+    luax_pushstring(L, instance()->canonicalizeRealPath(path));
+
+    return 1;
+}
+
 int Wrap_Filesystem::getFullCommonPath(lua_State* L)
 {
     const char* commonPathStr = luaL_checkstring(L, 1);
@@ -513,7 +518,7 @@ int Wrap_Filesystem::exists(lua_State* L)
 
 int Wrap_Filesystem::load(lua_State* L)
 {
-    std::string filename      = luaL_checkstring(L, 1);
+    std::string filename      = std::string(luaL_checkstring(L, 1));
     Filesystem::LoadMode mode = Filesystem::LOADMODE_ANY;
 
     if (!lua_isnoneornil(L, 2))
@@ -544,7 +549,7 @@ int Wrap_Filesystem::load(lua_State* L)
     status = luaL_loadbufferx(L, (const char*)data->getData(), data->getSize(), filename.c_str(), modeStr);
 #else
     if (mode == Filesystem::LOADMODE_ANY)
-        status = luaL_loadbuffer(L, (const char*)data->getData(), data->getSize(), filename.c_str());
+        status = luaL_loadbuffer(L, (const char*)data->getData(), data->getSize(), ("@" + filename).c_str());
     else
     {
         data->release();
@@ -684,21 +689,20 @@ int Wrap_Filesystem::newFileData(lua_State* L)
 
 int Wrap_Filesystem::getRequirePath(lua_State* L)
 {
-    std::string path;
+    std::stringstream path;
     bool separator = false;
 
-    for (const auto& element : instance()->getRequirePath())
+    for (auto& element : instance()->getRequirePath())
     {
         if (separator)
-            path += ";";
+            path << ";";
         else
             separator = true;
 
-        path += element;
+        path << element;
     }
 
-    luax_pushstring(L, path);
-
+    luax_pushstring(L, path.str());
     return 1;
 }
 
@@ -709,17 +713,11 @@ int Wrap_Filesystem::setRequirePath(lua_State* L)
 
     requirePath.clear();
 
-    size_t startPos = 0;
-    size_t endPos   = element.find(';');
+    std::stringstream path;
+    path << element;
 
-    while (endPos != std::string::npos)
-    {
-        requirePath.push_back(element.substr(startPos, endPos - startPos));
-        startPos = endPos + 1;
-        endPos   = element.find(';', startPos);
-    }
-
-    requirePath.push_back(element.substr(startPos));
+    while (std::getline(path, element, ';'))
+        requirePath.push_back(element);
 
     return 0;
 }
@@ -766,7 +764,23 @@ int Wrap_Filesystem::setCRequirePath(lua_State* L)
     return 0;
 }
 
-static int loader(lua_State* L)
+static void replaceAll(std::string& str, const std::string& substr, const std::string& replacement)
+{
+    std::vector<size_t> locations;
+    size_t pos    = 0;
+    size_t sublen = substr.length();
+
+    while ((pos = str.find(substr, pos)) != std::string::npos)
+    {
+        locations.push_back(pos);
+        pos += sublen;
+    }
+
+    for (int i = (int)locations.size() - 1; i >= 0; i--)
+        str.replace(locations[i], sublen, replacement);
+}
+
+int Wrap_Filesystem::loader(lua_State* L)
 {
     std::string moduleName = luax_checkstring(L, 1);
 
@@ -958,6 +972,7 @@ static constexpr luaL_Reg functions[]
     { "unmount",                 Wrap_Filesystem::unmount                },
     { "unmountFullPath",         Wrap_Filesystem::unmountFullPath        },
     { "unmountCommonPath",       Wrap_Filesystem::unmountCommonPath      },
+    { "canonicalizeRealPath",    Wrap_Filesystem::canonicalizeRealPath   },
     { "getFullCommonPath",       Wrap_Filesystem::getFullCommonPath      },
     { "getInfo",                 Wrap_Filesystem::getInfo                },
     { "setSymlinksEnabled",      Wrap_Filesystem::setSymlinksEnabled     },
@@ -970,8 +985,8 @@ static constexpr luaL_Reg functions[]
 static constexpr lua_CFunction types[] =
 {
     love::open_file,
-    love::open_filedata,
-    love::open_nativefile
+    love::open_nativefile,
+    love::open_filedata
 };
 // clang-format on
 
@@ -984,7 +999,7 @@ int Wrap_Filesystem::open(lua_State* L)
     else
         instance->retain();
 
-    luax_register_searcher(L, loader, 2);
+    luax_register_searcher(L, Wrap_Filesystem::loader, 2);
 
     WrappedModule module {};
     module.instance  = instance;

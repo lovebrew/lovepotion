@@ -140,10 +140,6 @@ function love.boot()
     if not can_has_game then
         local nogame = require("love.nogame")
         nogame()
-
-        print([[LÖVE Potion is an *awesome* framework you can use to make 2D games in Lua.
-https://github.com/lovebrew/lovepotion"
-]])
     end
 end
 

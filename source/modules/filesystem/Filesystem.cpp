@@ -29,6 +29,22 @@ namespace love
         return true;
     }
 
+    static bool getContainingDirectory(const std::string& path, std::string& newPath)
+    {
+        size_t index = path.find_last_of("/\\");
+
+        if (index == std::string::npos)
+            return false;
+
+        newPath = path.substr(0, index);
+        return newPath.find_first_of("/\\") != std::string::npos;
+    }
+
+    static bool createDirectoryRaw(const std::string& path)
+    {
+        return mkdir(path.c_str(), S_IRWXU) == 0;
+    }
+
     bool FilesystemBase::createRealDirectory(const std::string& path)
     {
         FileType type = FILETYPE_MAX_ENUM;
@@ -56,6 +72,18 @@ namespace love
         }
 
         return true;
+    }
+
+    std::string FilesystemBase::canonicalizeRealPath(const std::string& path) const
+    {
+        try
+        {
+            return std::filesystem::weakly_canonical(path).string();
+        }
+        catch (std::exception&)
+        {
+            return path;
+        }
     }
 
     FileData* FilesystemBase::newFileData(const void* data, size_t size, const std::string& filename) const
