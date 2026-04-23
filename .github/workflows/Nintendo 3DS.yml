@@ -1,6 +1,6 @@
 name: Nintendo 3DS
 
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
 
 jobs:
   N3DS-Release:
