@@ -82,6 +82,7 @@ namespace love
         StreamBufferBase* indexBuffer  = nullptr;
 
         PrimitiveType primitiveMode = PRIMITIVE_TRIANGLES;
+        bool indexedDraw            = false;
         CommonFormat format         = CommonFormat::NONE;
         StrongRef<TextureBase> texture;
         ShaderBase::StandardShader shaderType = ShaderBase::STANDARD_DEFAULT;

@@ -665,11 +665,12 @@ namespace love
 
         bool shouldFlush  = false;
         bool shouldResize = false;
+        bool indexedDraw  = command.indexMode != TRIANGLEINDEX_NONE;
 
         // clang-format off
         if (command.primitiveMode != state.primitiveMode
             || command.format != state.format
-            || ((command.indexMode != TRIANGLEINDEX_NONE) != (state.indexCount > 0))
+            || indexedDraw != state.indexedDraw
             || command.texture != state.texture
             || command.shaderType != state.shaderType)
         {
@@ -679,7 +680,7 @@ namespace love
 
         int totalVertices = state.vertexCount + command.vertexCount;
 
-        if (totalVertices > LOVE_UINT16_MAX && command.indexMode != TRIANGLEINDEX_NONE)
+        if (totalVertices > LOVE_UINT16_MAX && indexedDraw)
             shouldFlush = true;
 
         int requestedIndexCount   = getIndexCount(command.indexMode, command.vertexCount);
@@ -705,7 +706,7 @@ namespace love
             newDataSize = stride * command.vertexCount;
         }
 
-        if (command.indexMode != TRIANGLEINDEX_NONE)
+        if (indexedDraw)
         {
             size_t dataSize = (state.indexCount + requestedIndexCount) * sizeof(uint16_t);
 
@@ -729,6 +730,7 @@ namespace love
             state.shaderType    = command.shaderType;
             state.isFont        = command.isFont;
             state.pushTransform = command.pushTransform;
+            state.indexedDraw   = indexedDraw;
         }
 
         if (state.lastVertexCount == 0)
@@ -752,7 +754,7 @@ namespace love
             }
         }
 
-        if (command.indexMode != TRIANGLEINDEX_NONE)
+        if (indexedDraw)
         {
             if (state.indexBufferMap.data == nullptr)
                 state.indexBufferMap = state.indexBuffer->map(requestedIndexSize);
