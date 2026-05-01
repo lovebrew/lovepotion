@@ -24,7 +24,7 @@ extern "C"
 
 #include <cstdarg>
 
-#define E_INVALID_ENUM "Invalid %s '%*s', expected one of: %s."
+#define E_INVALID_ENUM "Invalid %s '%s', expected one of: %s."
 
 namespace love
 {
@@ -182,8 +182,17 @@ namespace love
     template<typename T>
     int luax_enumerror(lua_State* L, const char* name, const T& map, std::string_view value)
     {
-        const auto names = map.getNames();
-        return luaL_error(L, E_INVALID_ENUM, name, value.length(), value.data(), names.c_str());
+        const auto& names = map.getNames();
+        std::string result {};
+
+        for (size_t index = 0; index < names.size(); index++)
+        {
+            if (index > 0)
+                result += ", ";
+            result += names[index];
+        }
+
+        return luaL_error(L, E_INVALID_ENUM, name, value.length(), value.data(), result.c_str());
     }
 
     template<typename T>
