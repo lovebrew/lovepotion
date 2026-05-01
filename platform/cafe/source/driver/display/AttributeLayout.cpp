@@ -1,5 +1,7 @@
 #include "driver/display/AttributeLayout.hpp"
+#include "common/Exception.hpp"
 
+#include <coreinit/memdefaultheap.h>
 #include <gx2/mem.h>
 
 #include <bit>
@@ -33,7 +35,7 @@ namespace love
         if (stream != this->streams[index])
             this->dirty = true;
 
-        this->streams[index] = stream;
+        std::copy_n(&stream, 1, &this->streams[index]);
     }
 
     void GX2AttributeLayout::bind()
@@ -60,25 +62,19 @@ namespace love
         for (uint32_t i = 0; i < this->streams.size(); ++i)
         {
             if (this->streams[i].isEnabled())
-                active.push_back(this->streams[i]);
+                active.push_back(this->streams[i].getStream());
         }
 
-        const auto count = active.size();
-        const auto size  = GX2CalcFetchShaderSizeEx(count, TESSELATION_NONE, TESSELATION_DISCRETE);
+        const auto size = GX2CalcFetchShaderSizeEx(active.size(), GX2_FETCH_SHADER_TESSELLATION_NONE,
+                                                   GX2_TESSELLATION_MODE_DISCRETE);
 
-        this->destroy();
+        this->program = memalign(GX2_SHADER_PROGRAM_ALIGNMENT, size);
 
-        this->fetchShader.size    = size;
-        this->fetchShader.program = memalign(GX2_SHADER_PROGRAM_ALIGNMENT, size);
+        if (!this->program)
+            throw love::Exception("Failed to allocate fetch shader.");
 
-        if (!this->fetchShader.program)
-            throw std::bad_alloc();
-
-        // clang-format off
-        GX2InitFetchShaderEx(&this->fetchShader, (uint8_t*)this->fetchShader.program, count, active.data(), TESSELATION_NONE, TESSELATION_DISCRETE);
-        GX2Invalidate(GX2_INVALIDATE_MODE_CPU_SHADER, this->fetchShader.program, size);
-        // clang-format on
-
-        this->dirty = false;
+        GX2InitFetchShaderEx(&this->fetchShader, (uint8_t*)this->program, active.size(), active.data(),
+                             GX2_FETCH_SHADER_TESSELLATION_NONE, GX2_TESSELLATION_MODE_DISCRETE);
+        GX2Invalidate(GX2_INVALIDATE_MODE_CPU_SHADER, this->program, size);
     }
 } // namespace love

@@ -215,8 +215,7 @@ namespace love
             current = this;
             shaderSwitches++;
 
-            GX2SetVertexShader(this->program.vertex);
-            GX2SetPixelShader(this->program.pixel);
+            gx2.useProgram(this->program.vertex, this->program.pixel);
         }
     }
 } // namespace love

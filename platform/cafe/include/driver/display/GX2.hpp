@@ -70,6 +70,8 @@ namespace love
 
         void ensureInFrame();
 
+        void useProgram(GX2VertexShader* vertex, GX2PixelShader* pixel);
+
         void prepareDraw(GraphicsBase* graphics);
 
         void bindTextureToUnit(TextureBase* texture, int unit);

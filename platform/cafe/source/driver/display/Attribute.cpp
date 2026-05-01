@@ -20,16 +20,16 @@ namespace love
     GX2Attribute::GX2Attribute() : stream {}, enabled(false)
     {}
 
-    GX2Attribute::GX2Attribute(uint32_t index, int components, GX2AttribFormat format, uint32_t offset) :
+    GX2Attribute::GX2Attribute(uint32_t location, int components, GX2AttribFormat format, uint32_t offset) :
         stream {},
         enabled(false)
     {
-        this->update(index, components, format, offset);
+        this->update(location, components, format, offset);
     }
 
-    void GX2Attribute::update(uint32_t index, int components, GX2AttribFormat format, uint32_t offset)
+    void GX2Attribute::update(uint32_t location, int components, GX2AttribFormat format, uint32_t offset)
     {
-        this->stream.location   = index;
+        this->stream.location   = location;
         this->stream.buffer     = 0;
         this->stream.offset     = offset;
         this->stream.format     = format;

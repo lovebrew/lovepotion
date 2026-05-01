@@ -198,6 +198,7 @@ namespace love
         const auto stencil       = this->context.stencilState.value;
         this->context.depthClear = value;
         GX2ClearDepthStencilEx(&this->getInternalDepthbuffer(), (float)value, stencil, GX2_CLEAR_FLAGS_DEPTH);
+        GX2SetContextState(this->state);
     }
 
     void GX2::clearStencil(int value)
@@ -207,6 +208,7 @@ namespace love
 
         const auto depth = this->context.depthClear;
         GX2ClearDepthStencilEx(&this->getInternalDepthbuffer(), (float)depth, value, GX2_CLEAR_FLAGS_STENCIL);
+        GX2SetContextState(this->state);
     }
 
     void GX2::clear(const Color& color)
@@ -215,6 +217,7 @@ namespace love
             return;
 
         GX2ClearColor(this->getFramebuffer(), color.r, color.g, color.b, color.a);
+        GX2SetContextState(this->state);
     }
 
     void GX2::clearDepthStencil(int depth, uint8_t mask, double stencil)
@@ -281,6 +284,12 @@ namespace love
         GX2InitSamplerLOD(sampler, state.minLod, state.maxLod, state.lodBias);
     }
 
+    void GX2::useProgram(GX2VertexShader* vertex, GX2PixelShader* pixel)
+    {
+        GX2SetVertexShader(vertex);
+        GX2SetPixelShader(pixel);
+    }
+
     void GX2::prepareDraw(GraphicsBase* graphics)
     {
         if (Shader::current != nullptr)
@@ -295,15 +304,16 @@ namespace love
         uint32_t allBits = (attributes.enableBits | GX2AttributeLayout::MAX_ATTRIBUTES);
         uint32_t i       = 0;
 
+        this->layout.reset();
+
         while (allBits)
         {
             uint32_t bit = 1u << i;
 
-            GX2Attribute attr {};
-            attr.setEnabled(attributes.enableBits & bit);
-
             if (attributes.enableBits & bit)
             {
+                GX2Attribute stream(true);
+
                 const auto& attribute = attributes.attributes[i];
                 const auto& layout    = attributes.bufferLayouts[attribute.bufferIndex];
 
@@ -315,21 +325,18 @@ namespace love
                 GX2AttribFormat format;
                 getConstant(attribute.getFormat(), format);
 
-                const auto offset = (uint32_t)attribute.offsetFromVertex;
+                stream.update(i, components, format, attribute.offsetFromVertex);
+                stream.setDivisor(divisor);
 
-                attr.update(i, components, format, offset);
-                attr.setDivisor(divisor);
-
-                this->layout.set(i, attr);
+                this->layout.set(i, stream);
             }
             i++;
-            allBits >>= 1;
+            allBits >>= 1u;
         }
+        this->layout.bind();
 
         auto* handle = (GX2RBuffer*)buffers.info[0].buffer->getHandle();
         GX2RSetAttributeBuffer(handle, 0, handle->elemSize, 0);
-
-        this->layout.bind();
     }
 
     void GX2::bindTextureToUnit(TextureBase* texture, int unit)
