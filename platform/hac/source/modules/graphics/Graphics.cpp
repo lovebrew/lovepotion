@@ -3,6 +3,7 @@
 #include "modules/graphics/Graphics.hpp"
 #include "modules/window/Window.hpp"
 
+#include "modules/graphics/Buffer.hpp"
 #include "modules/graphics/Shader.hpp"
 #include "modules/graphics/ShaderStage.hpp"
 #include "modules/graphics/Texture.hpp"
@@ -279,6 +280,13 @@ namespace love
             d3d.setScissor(state.scissorRect);
     }
 
+    BufferBase* Graphics::newBuffer(const Buffer::Settings& settings,
+                                    const std::vector<Buffer::DataDeclaration>& format, const void* data,
+                                    size_t size, size_t arraylength)
+    {
+        return new Buffer(this, settings, format, data, size, arraylength);
+    }
+
     TextureBase* Graphics::newTexture(const TextureBase::Settings& settings, const TextureBase::Slices* data)
     {
         return new Texture(this, settings, data);
@@ -318,6 +326,8 @@ namespace love
 
         this->created = true;
         this->initCapabilities();
+
+        this->createQuadIndexBuffer();
 
         try
         {
@@ -380,8 +390,11 @@ namespace love
 
     void Graphics::draw(const DrawIndexedCommand& command)
     {
+        VertexAttributes attributes {};
+        this->findVertexAttributes(command.attributesID, attributes);
+
         d3d.prepareDraw(this);
-        d3d.setVertexAttributes(command.texture != nullptr);
+        d3d.setVertexAttributes(attributes, *command.buffers);
         d3d.bindTextureToUnit(command.texture, 0);
         d3d.setCullMode(command.cullMode);
 
@@ -392,15 +405,21 @@ namespace love
         const auto indexCount    = command.indexCount;
         const auto offset        = command.indexBufferOffset;
         const auto instanceCount = command.instanceCount;
+        const auto handle        = (vertex::BufferHandle*)command.indexBuffer->getHandle();
 
+        d3d.bindBuffer(BUFFERUSAGE_INDEX, handle->memory.getGpuAddr(), handle->memory.getSize());
         d3d.drawIndexed(primitive, indexCount, BUFFER_OFFSET(offset), instanceCount);
+
         ++drawCalls;
     }
 
     void Graphics::draw(const DrawCommand& command)
     {
+        VertexAttributes attributes {};
+        this->findVertexAttributes(command.attributesID, attributes);
+
         d3d.prepareDraw(this);
-        d3d.setVertexAttributes(command.texture != nullptr);
+        d3d.setVertexAttributes(attributes, *command.buffers);
         d3d.bindTextureToUnit(command.texture, 0);
         d3d.setCullMode(command.cullMode);
 
@@ -410,5 +429,32 @@ namespace love
 
         d3d.draw(primitive, command.vertexCount, command.vertexStart);
         ++drawCalls;
+    }
+
+    void Graphics::drawQuads(int start, int count, VertexAttributesID attributesID,
+                             const BufferBindings& buffers, TextureBase* texture)
+    {
+        VertexAttributes attributes {};
+        this->findVertexAttributes(attributesID, attributes);
+
+        d3d.prepareDraw(this);
+        d3d.setVertexAttributes(attributes, buffers);
+        d3d.bindTextureToUnit(texture, 0);
+        d3d.setCullMode(CULL_NONE);
+
+        d3d.bindBuffer(BUFFERUSAGE_INDEX, (DkGpuAddr)this->quadIndexBuffer->getHandle(),
+                       this->quadIndexBuffer->getSize());
+
+        BufferBindings buffersCopy = buffers;
+        d3d.setVertexAttributes(attributes, buffersCopy);
+
+        for (int quadIndex = 0; quadIndex < count; quadIndex += MAX_QUADS_PER_DRAW)
+        {
+            int quadCount = std::min(MAX_QUADS_PER_DRAW, count - quadIndex);
+
+            const auto offset = (start + quadIndex) * 6;
+            d3d.drawIndexed(DkPrimitive_Triangles, quadIndex * 6, offset, 1);
+            ++drawCalls;
+        }
     }
 } // namespace love

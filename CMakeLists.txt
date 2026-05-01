@@ -199,6 +199,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/common/debug.cpp
     source/common/float.cpp
     source/common/luax.cpp
+    source/common/memory.cpp
     source/common/Matrix.cpp
     source/common/Message.cpp
     source/common/Module.cpp
@@ -206,6 +207,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/common/pixelformat.cpp
     source/common/Reference.cpp
     source/common/screen.cpp
+    source/common/delay.cpp
     source/common/Stream.cpp
     source/common/types.cpp
     source/common/Variant.cpp
@@ -255,6 +257,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/graphics/Buffer.cpp
     source/modules/graphics/Graphics.cpp
     source/modules/graphics/FontBase.cpp
+    source/modules/graphics/Mesh.cpp
     source/modules/graphics/ParticleSystem.cpp
     source/modules/graphics/Polyline.cpp
     source/modules/graphics/TextBatch.cpp
@@ -266,7 +269,9 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/graphics/Quad.cpp
     source/modules/graphics/Volatile.cpp
     source/modules/graphics/vertex.cpp
+    source/modules/graphics/wrap_Buffer.cpp
     source/modules/graphics/wrap_Graphics.cpp
+    source/modules/graphics/wrap_Mesh.cpp
     source/modules/graphics/wrap_ParticleSystem.cpp
     source/modules/graphics/wrap_Texture.cpp
     source/modules/graphics/wrap_TextBatch.cpp

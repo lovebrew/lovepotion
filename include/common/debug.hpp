@@ -3,7 +3,6 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netinet/in.h>
-#include <signal.h>
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -69,11 +68,9 @@ namespace love
     // clang-format off
 #if defined(__DEBUG__)
     #include <cstdio>
-    #define LOG(format, ...)                                  \
-        do { std::printf("[C++] " format "\n", ##__VA_ARGS__); } while (0)
+    #define LOG(format, ...) do { std::printf("[C++] " format "\n", ##__VA_ARGS__); } while (0)
 #else
-    #define LOG(format, ...) \
-        do {} while (0)
+    #define LOG(format, ...) do {} while (0)
 #endif
     //clang-format on
 } // namespace love

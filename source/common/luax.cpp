@@ -657,6 +657,11 @@ namespace love
         return result;
     }
 
+    int luax_checkint(lua_State* L, int index)
+    {
+        return (int)luaL_checkinteger(L, index);
+    }
+
     int luax_checkintflag(lua_State* L, int tableIndex, const char* key)
     {
         lua_getfield(L, tableIndex, key);

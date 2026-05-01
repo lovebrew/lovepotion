@@ -7,6 +7,7 @@
 #include "modules/graphics/Drawable.hpp"
 #include "modules/graphics/Quad.hpp"
 #include "modules/graphics/Texture.tcc"
+#include "modules/graphics/vertex.hpp"
 
 #include <vector>
 
@@ -323,6 +324,7 @@ namespace love
         std::vector<StrongRef<Quad>> quads;
         bool relativeRotation;
 
-        std::vector<Vertex> buffer;
+        VertexAttributesID vertexAttributesID;
+        BufferBase* buffer;
     };
 } // namespace love

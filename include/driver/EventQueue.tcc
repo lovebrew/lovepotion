@@ -1,9 +1,11 @@
 #pragma once
 
 #include "common/Singleton.tcc"
+#include "common/delay.hpp"
 #include "events.hpp"
 
 #include "modules/joystick/Joystick.tcc"
+#include "modules/timer/Timer.hpp"
 
 #include <list>
 #include <memory>
@@ -39,6 +41,35 @@ namespace love
             this->events.pop_front();
 
             return this->hysteresis = true;
+        }
+
+        bool wait(LOVE_Event* event, float timeout = 0)
+        {
+            const auto start = Timer::getTime();
+
+            while (true)
+            {
+                if (!this->events.empty())
+                {
+                    *event = this->events.front();
+                    this->events.pop_front();
+                    return true;
+                }
+
+                this->pollInternal();
+
+                if (timeout == 0.0f)
+                    return false;
+
+                if (timeout > 0.0f)
+                {
+                    double elapsed = Timer::getTime() - start;
+                    if (elapsed >= timeout)
+                        return false;
+                }
+
+                love::sleep(0.001);
+            }
         }
 
         void sendFocus(bool focus)

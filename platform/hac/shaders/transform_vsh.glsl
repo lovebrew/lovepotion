@@ -1,11 +1,11 @@
 #version 460
 
-layout (location = 0) in vec3 inPos;
-layout (location = 1) in vec4 inColor;
-layout (location = 2) in vec2 inTexCoord;
+layout (location = 0) in vec3 VertexPosition;
+layout (location = 1) in vec2 VertexTexCoord;
+layout (location = 2) in vec4 VertexColor;
 
-layout (location = 0) out vec4 outColor;
-layout (location = 1) out vec2 outTexCoord;
+layout (location = 0) out vec4 VaryingColor;
+layout (location = 1) out vec2 VaryingTexCoord;
 
 layout (std140, binding = 0) uniform Transformation
 {
@@ -15,9 +15,9 @@ layout (std140, binding = 0) uniform Transformation
 
 void main()
 {
-    vec4 pos = u.mdlvMtx * vec4(inPos, 1.0);
+    vec4 pos = u.mdlvMtx * vec4(VertexPosition, 1.0);
     gl_Position = u.projMtx * pos;
 
-    outColor = inColor;
-    outTexCoord = inTexCoord;
+    VaryingColor = VertexColor;
+    VaryingTexCoord = VertexTexCoord;
 }

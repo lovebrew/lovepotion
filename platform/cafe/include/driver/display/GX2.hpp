@@ -3,9 +3,9 @@
 #include "common/Map.hpp"
 #include "common/pixelformat.hpp"
 
+#include "driver/display/AttributeLayout.hpp"
 #include "driver/display/Framebuffer.hpp"
 #include "driver/display/Renderer.tcc"
-#include "driver/display/Uniform.hpp"
 
 #include "modules/graphics/vertex.hpp"
 #include <gx2/enum.h>
@@ -64,9 +64,13 @@ namespace love
 
         void setVertexWinding(Winding winding);
 
+        void setVertexAttributes(const VertexAttributes& attributes, const BufferBindings& buffers);
+
         void setSamplerState(TextureBase* texture, const SamplerState& state);
 
         void ensureInFrame();
+
+        void useProgram(GX2VertexShader* vertex, GX2PixelShader* pixel);
 
         void prepareDraw(GraphicsBase* graphics);
 
@@ -162,22 +166,24 @@ namespace love
             { STENCIL_DECREMENT_WRAP, GX2_STENCIL_FUNCTION_DECR_WRAP  }
         );
 
-        static GX2PrimitiveMode getPrimitiveType(PrimitiveType type)
-        {
-            switch (type)
-            {
-                case PRIMITIVE_TRIANGLES:
-                    return GX2_PRIMITIVE_MODE_TRIANGLES;
-                case PRIMITIVE_POINTS:
-                    return GX2_PRIMITIVE_MODE_POINTS;
-                case PRIMITIVE_TRIANGLE_STRIP:
-                    return GX2_PRIMITIVE_MODE_TRIANGLE_STRIP;
-                case PRIMITIVE_TRIANGLE_FAN:
-                    return GX2_PRIMITIVE_MODE_TRIANGLE_FAN;
-                default:
-                    throw love::Exception("Invalid primitive type");
-            }
-        }
+        ENUMMAP_DECLARE(AttributeFormats, DataFormat, GX2AttribFormat,
+            { DATAFORMAT_FLOAT,      GX2_ATTRIB_FORMAT_FLOAT_32          },
+            { DATAFORMAT_FLOAT_VEC2, GX2_ATTRIB_FORMAT_FLOAT_32_32       },
+            { DATAFORMAT_FLOAT_VEC3, GX2_ATTRIB_FORMAT_FLOAT_32_32_32    },
+            { DATAFORMAT_FLOAT_VEC4, GX2_ATTRIB_FORMAT_FLOAT_32_32_32_32 }
+        );
+
+        ENUMMAP_DECLARE(PrimitiveModes, PrimitiveType, GX2PrimitiveMode,
+            { PRIMITIVE_TRIANGLES,      GX2_PRIMITIVE_MODE_TRIANGLES      },
+            { PRIMITIVE_TRIANGLE_STRIP, GX2_PRIMITIVE_MODE_TRIANGLE_STRIP },
+            { PRIMITIVE_TRIANGLE_FAN,   GX2_PRIMITIVE_MODE_TRIANGLE_FAN   },
+            { PRIMITIVE_POINTS,         GX2_PRIMITIVE_MODE_POINTS         }
+        );
+
+        ENUMMAP_DECLARE(IndexTypes, IndexDataType, GX2IndexType,
+            { INDEX_UINT16, GX2_INDEX_TYPE_U16 },
+            { INDEX_UINT32, GX2_INDEX_TYPE_U32 }
+        );
 
         static GX2IndexType getIndexType(IndexDataType type)
         {
@@ -210,19 +216,24 @@ namespace love
             bool depthWrite;
             bool depthTest;
             GX2CompareFunction compareMode;
+            double depthClear;
+            bool stencilTest;
+
+            GX2CompareFunction stencilCompare;
+            GX2StencilFunction stencilPass;
 
             uint32_t writeMask;
 
             GX2ColorBuffer* boundFramebuffer = nullptr;
         } context;
 
-        Uniform* uniform;
-
         bool inForeground;
 
         void* commandBuffer;
         GX2ContextState* state;
         bool dirtyProjection;
+
+        GX2AttributeLayout layout;
     };
 
     extern GX2 gx2;

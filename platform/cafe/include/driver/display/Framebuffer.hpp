@@ -3,7 +3,6 @@
 #include "common/screen.hpp"
 
 #include "driver/display/Framebuffer.tcc"
-#include "driver/display/Uniform.hpp"
 
 #include <coreinit/memfrmheap.h>
 
@@ -22,10 +21,6 @@ namespace love
 
         void destroy();
 
-        void setViewport(const Rect& viewport);
-
-        void setScissor(const Rect& scissor);
-
         GX2ColorBuffer& get()
         {
             return this->target;
@@ -36,11 +31,6 @@ namespace love
             return this->depth;
         }
 
-        Uniform* getUniform()
-        {
-            return this->uniform;
-        }
-
         bool allocateScanBuffer(MEMHeapHandle handle);
 
         bool invalidateColorBuffer(MEMHeapHandle handle);
@@ -49,11 +39,18 @@ namespace love
 
         void copyScanBuffer();
 
+        void setState()
+        {
+            GX2SetContextState(this->state);
+        }
+
       private:
         static constexpr auto FORMAT      = GX2_SURFACE_FORMAT_UNORM_R8_G8_B8_A8;
         static constexpr auto BUFFER_MODE = GX2_BUFFERING_MODE_DOUBLE;
         static constexpr auto INVALIDATE_COLOR_BUFFER =
             GX2_INVALIDATE_MODE_CPU | GX2_INVALIDATE_MODE_COLOR_BUFFER;
+        static constexpr auto INVALIDATE_DEPTH_BUFFER =
+            GX2_INVALIDATE_MODE_CPU | GX2_INVALIDATE_MODE_DEPTH_BUFFER;
 
         GX2ColorBuffer target;
         GX2DepthBuffer depth;
@@ -61,10 +58,7 @@ namespace love
         uint8_t renderMode;
         GX2ScanTarget id;
 
-        Uniform* uniform = nullptr;
-
-        glm::mat4 tmpModel;
-        glm::highp_mat4 ortho;
+        GX2ContextState* state;
 
         void* scanBuffer;
         uint32_t scanBufferSize;

@@ -59,6 +59,9 @@ namespace love
 
         void draw(const DrawCommand& command) override;
 
+        void drawQuads(int start, int count, VertexAttributesID attributes, const BufferBindings& buffers,
+                       TextureBase* texture) override;
+
         using GraphicsBase::draw;
 
         void points(Vector2* positions, const Color* colors, int count);
@@ -73,6 +76,10 @@ namespace love
 
         TextureBase* newTexture(const TextureBase::Settings& settings,
                                 const TextureBase::Slices* data = nullptr) override;
+
+        BufferBase* newBuffer(const BufferBase::Settings& settings,
+                              const std::vector<BufferBase::DataDeclaration>& format, const void* data,
+                              size_t size, size_t arraylength) override;
 
         ShaderStageBase* newShaderStageInternal(ShaderStageType stage, const std::string& filepath) override;
 

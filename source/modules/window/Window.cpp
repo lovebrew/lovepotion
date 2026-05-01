@@ -48,4 +48,11 @@ namespace love
     {
         return this->setFullscreen(fullscreen, this->settings.fsType);
     }
+
+    const char* WindowBase::getConstant(Setting setting)
+    {
+        std::string_view name {};
+        getConstant(setting, name);
+        return name.data();
+    }
 } // namespace love

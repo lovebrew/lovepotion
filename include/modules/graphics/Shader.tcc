@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/Map.hpp"
+#include "common/Matrix.hpp"
 #include "common/Object.hpp"
 #include "common/StrongRef.hpp"
 
@@ -20,6 +21,8 @@ using Location = uint8_t;
 #else
 using Location = uint32_t;
 #endif
+
+#include "common/Console.hpp"
 
 namespace love
 {
@@ -83,8 +86,22 @@ namespace love
             std::string name;
         };
 
+        struct BuiltinUniformData
+        {
+            Matrix4 transformMatrix;
+            Matrix4 projectionMatrix;
+        };
+
         static ShaderBase* current;
         static ShaderBase* standardShaders[STANDARD_MAX_ENUM];
+
+        static constexpr StandardShader getTextureShader()
+        {
+            if constexpr (Console::is(Console::CTR))
+                return STANDARD_DEFAULT;
+
+            return STANDARD_TEXTURE;
+        }
 
         ShaderBase(StrongRef<ShaderStageBase> stages[], const CompileOptions& options);
 

@@ -13,6 +13,8 @@
 
 namespace love
 {
+    const CommonFormat FontBase::VertexFormat = CommonFormat::XYf_STf_RGBAf;
+
     int FontBase::fontCount = 0;
 
     FontBase::FontBase(Rasterizer* rasterizer, const SamplerState& samplerState) :
@@ -54,6 +56,7 @@ namespace love
         if (this->pixelFormat == PIXELFORMAT_LA8_UNORM && !supported)
             this->pixelFormat = PIXELFORMAT_RGBA8_UNORM;
 
+        this->vertexAttributesID = graphics->registerVertexAttributes(VertexAttributes(VertexFormat, 0));
         ++fontCount;
     }
 
@@ -251,11 +254,11 @@ namespace love
 
     static bool sortGlyphs(const FontBase::DrawCommand& left, const FontBase::DrawCommand& right)
     {
-        if constexpr (Console::is(Console::CTR))
-        {
-            const auto result = left.texture - right.texture;
-            return result < 0;
-        }
+        // if constexpr (Console::is(Console::CTR))
+        // {
+        //     const auto result = left.texture->getHandle() - right.texture->getHandle();
+        //     return result < 0;
+        // }
 
         return left.texture < right.texture;
     }
@@ -266,10 +269,11 @@ namespace love
                                                                   float extra_spacing, Vector2 offset,
                                                                   TextShaper::TextInfo* info)
     {
+        // clang-format off
         std::vector<TextShaper::GlyphPosition> glyphPositions {};
         std::vector<IndexedColor> colors;
-        this->shaper->computeGlyphPositions(codepoints, range, offset, extra_spacing, &glyphPositions,
-                                            &colors, info);
+        this->shaper->computeGlyphPositions(codepoints, range, offset, extra_spacing, &glyphPositions, &colors, info);
+        // clang-format on
 
         size_t vertexStartSize = vertices.size();
         vertices.reserve(vertexStartSize + glyphPositions.size() * 4);
@@ -456,9 +460,6 @@ namespace love
         return drawcommands;
     }
 
-    static constexpr auto shaderType =
-        (Console::is(Console::CTR)) ? ShaderBase::STANDARD_DEFAULT : ShaderBase::STANDARD_TEXTURE;
-
     void FontBase::printv(GraphicsBase* graphics, const Matrix4& matrix,
                           const std::vector<DrawCommand>& drawcommands,
                           const std::vector<GlyphVertex>& vertices)
@@ -476,7 +477,7 @@ namespace love
             command.vertexCount = cmd.vertexCount;
             command.texture     = cmd.texture;
             command.isFont      = true;
-            command.shaderType  = shaderType;
+            command.shaderType  = ShaderBase::getTextureShader();
 
             auto data               = graphics->requestBatchedDraw(command);
             GlyphVertex* vertexdata = (GlyphVertex*)data.stream;

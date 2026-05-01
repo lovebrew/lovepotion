@@ -15,6 +15,7 @@
 #include "modules/graphics/Buffer.tcc"
 #include "modules/graphics/Font.tcc"
 #include "modules/graphics/GraphicsReadback.hpp"
+#include "modules/graphics/Mesh.hpp"
 #include "modules/graphics/Shader.tcc"
 #include "modules/graphics/ShaderStage.tcc"
 #include "modules/graphics/TextBatch.hpp"
@@ -58,8 +59,9 @@ namespace love
     {
       public:
         static constexpr size_t MAX_USER_STACK_DEPTH = 128;
-        static constexpr int MAX_VERTICES_PER_DRAW   = LOVE_UINT16_MAX;
-        static constexpr int MAX_QUADS_PER_DRAW      = MAX_VERTICES_PER_DRAW / 4;
+
+        static constexpr int MAX_VERTICES_PER_DRAW = LOVE_UINT16_MAX;
+        static constexpr int MAX_QUADS_PER_DRAW    = MAX_VERTICES_PER_DRAW / 4;
 
         enum DrawMode
         {
@@ -403,6 +405,11 @@ namespace love
             return this->states.back().font.get();
         }
 
+        BufferBase* getQuadIndexBuffer()
+        {
+            return this->quadIndexBuffer;
+        }
+
         const SamplerState& getDefaultSamplerState() const
         {
             return this->states.back().defaultSamplerState;
@@ -456,14 +463,20 @@ namespace love
 
         ParticleSystem* newParticleSystem(TextureBase* texture, int size) const;
 
-        // virtual BufferBase* newBuffer(const BufferBase::Settings& settings,
-        //                               const BufferBase::BufferFormat& format, const void* data, size_t
-        //                               size, size_t length);
+        virtual BufferBase* newBuffer(const BufferBase::Settings& settings,
+                                      const BufferBase::BufferFormat& format, const void* data, size_t size,
+                                      size_t length) = 0;
 
-        // virtual BufferBase* newBuffer(const BufferBase::Settings& settings, DataFormat format,
-        //                               const void* data, size_t size, size_t length);
+        virtual BufferBase* newBuffer(const BufferBase::Settings& settings, DataFormat format,
+                                      const void* data, size_t size, size_t length);
 
-        // Mesh* newMesh(int vertexCount, PrimitiveType mode);
+        Mesh* newMesh(const std::vector<BufferBase::DataDeclaration>& vertexformat, int vertexcount,
+                      PrimitiveType drawmode, BufferDataUsage usage);
+
+        Mesh* newMesh(const std::vector<BufferBase::DataDeclaration>& vertexformat, const void* data,
+                      size_t datasize, PrimitiveType drawmode, BufferDataUsage usage);
+
+        Mesh* newMesh(const std::vector<Mesh::BufferAttribute>& attributes, PrimitiveType drawmode);
 
         TextBatch* newTextBatch(FontBase* font, const std::vector<ColoredString>& text = {});
 
@@ -604,6 +617,9 @@ namespace love
 
         virtual void draw(const DrawCommand& command) = 0;
 
+        virtual void drawQuads(int start, int count, VertexAttributesID attributes,
+                               const BufferBindings& buffers, TextureBase* texture) = 0;
+
         Stats getStats() const;
 
         size_t getStackDepth() const
@@ -661,6 +677,10 @@ namespace love
             this->transformStack.back().setIdentity();
             this->pixelScaleStack.back() = 1.0;
         }
+
+        void validateStencilState(const StencilState& state) const;
+
+        void validateDepthState(bool depthWrite) const;
 
         int getWidth() const;
 
@@ -761,6 +781,8 @@ namespace love
 
         void setStencilMode(StencilMode mode, int value);
 
+        void createQuadIndexBuffer();
+
         void setStencilMode();
 
         StencilMode getStencilMode(int& value) const;
@@ -840,6 +862,9 @@ namespace love
         int drawCallsBatched;
         int drawCalls;
         int renderTargetSwitchCount;
+
+        BufferBase* quadIndexBuffer;
+        BufferBase* fanIndexBuffer;
 
         BatchedDrawState batchedDrawState;
         std::vector<uint8_t> scratchBuffer;

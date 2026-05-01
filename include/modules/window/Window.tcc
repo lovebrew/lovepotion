@@ -237,6 +237,8 @@ namespace love
             return pixels / this->getDPIScale();
         }
 
+        static const char* getConstant(Setting setting);
+
         // clang-format off
         STRINGMAP_DECLARE(Settings, Setting,
             { "fullscreen",     SETTING_FULLSCREEN      },

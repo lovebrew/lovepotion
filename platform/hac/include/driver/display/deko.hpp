@@ -12,6 +12,7 @@
 #include "driver/display/deko3d/CDescriptorSet.h"
 
 #include "modules/graphics/vertex.hpp"
+#include <deko3d.h>
 
 /* Enforces GLSL std140/std430 alignment rules for glm types */
 #define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
@@ -114,7 +115,7 @@ namespace love
 
         void ensureInFrame();
 
-        void setVertexAttributes(bool isTexture);
+        void setVertexAttributes(const VertexAttributes& attributes, const BufferBindings& buffers);
 
         void bindTextureToUnit(TextureBase* texture, int unit);
 

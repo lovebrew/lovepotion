@@ -102,7 +102,6 @@ namespace love
         vst1q_f32(&t[12], col4);
 
 #else
-
         t[0]  = (a.e[0] * b.e[0]) + (a.e[4] * b.e[1]) + (a.e[8] * b.e[2]) + (a.e[12] * b.e[3]);
         t[4]  = (a.e[0] * b.e[4]) + (a.e[4] * b.e[5]) + (a.e[8] * b.e[6]) + (a.e[12] * b.e[7]);
         t[8]  = (a.e[0] * b.e[8]) + (a.e[4] * b.e[9]) + (a.e[8] * b.e[10]) + (a.e[12] * b.e[11]);
@@ -122,7 +121,6 @@ namespace love
         t[7]  = (a.e[3] * b.e[4]) + (a.e[7] * b.e[5]) + (a.e[11] * b.e[6]) + (a.e[15] * b.e[7]);
         t[11] = (a.e[3] * b.e[8]) + (a.e[7] * b.e[9]) + (a.e[11] * b.e[10]) + (a.e[15] * b.e[11]);
         t[15] = (a.e[3] * b.e[12]) + (a.e[7] * b.e[13]) + (a.e[11] * b.e[14]) + (a.e[15] * b.e[15]);
-
 #endif
     }
 
@@ -175,6 +173,11 @@ namespace love
     }
 
     const float* Matrix4::getElements() const
+    {
+        return e;
+    }
+
+    float* Matrix4::getElements()
     {
         return e;
     }
@@ -392,6 +395,18 @@ namespace love
         m.e[12] = -(right + left) / (right - left);
         m.e[13] = -(top + bottom) / (top - bottom);
         m.e[14] = -(far + near) / (far - near);
+
+        return m;
+    }
+
+    Matrix4 Matrix4::orthoTilt(float left, float right, float bottom, float top, float near, float far)
+    {
+        Matrix4 m;
+
+        m.setRow(0, { 0.0f, 2 / (top - bottom), 0.0f, (bottom + top) / (bottom - top) });
+        m.setRow(1, { 2.0f / (left - right), 0.0f, 0.0f, (left + right) / (right - left) });
+        m.setRow(2, { 0.0f, 0.0f, 1.0f / (far - near), 0.5 * (near + far) / (near - far) - 0.5f });
+        m.setRow(3, { 0.0f, 0.0f, 0.0f, 1.0f });
 
         return m;
     }

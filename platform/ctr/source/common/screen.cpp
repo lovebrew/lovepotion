@@ -1,33 +1,34 @@
 #include "common/screen.hpp"
 
 #include <algorithm>
+#include <array>
 
 #include <3ds.h>
 
 namespace love
 {
     // clang-format off
-    inline constinit ScreenInfo GFX_3D[0x03] =
+    static constexpr std::array<ScreenInfo, 3> GFX_3D =
     {
-        { GFX_TOP,    0, "left",   GSP_SCREEN_HEIGHT_TOP,    GSP_SCREEN_WIDTH },
-        { GFX_TOP,    1, "right",  GSP_SCREEN_HEIGHT_TOP,    GSP_SCREEN_WIDTH },
-        { GFX_BOTTOM, 2, "bottom", GSP_SCREEN_HEIGHT_BOTTOM, GSP_SCREEN_WIDTH }
+        ScreenInfo{ GFX_TOP,    0, "left",   GSP_SCREEN_HEIGHT_TOP,    GSP_SCREEN_WIDTH },
+        ScreenInfo{ GFX_TOP,    1, "right",  GSP_SCREEN_HEIGHT_TOP,    GSP_SCREEN_WIDTH },
+        ScreenInfo{ GFX_BOTTOM, 2, "bottom", GSP_SCREEN_HEIGHT_BOTTOM, GSP_SCREEN_WIDTH }
     };
 
-    inline constinit ScreenInfo GFX_2D[0x02] =
+    static constexpr std::array<ScreenInfo, 2> GFX_2D =
     {
-        { GFX_TOP,    0, "top",    GSP_SCREEN_HEIGHT_TOP,    GSP_SCREEN_WIDTH },
-        { GFX_BOTTOM, 1, "bottom", GSP_SCREEN_HEIGHT_BOTTOM, GSP_SCREEN_WIDTH }
+        ScreenInfo{ GFX_TOP,    0, "top",    GSP_SCREEN_HEIGHT_TOP,    GSP_SCREEN_WIDTH },
+        ScreenInfo{ GFX_BOTTOM, 1, "bottom", GSP_SCREEN_HEIGHT_BOTTOM, GSP_SCREEN_WIDTH }
     };
 
-    inline constinit ScreenInfo GFX_WIDE[0x02] =
+    static constexpr std::array<ScreenInfo, 2> GFX_WIDE =
     {
-        { GFX_TOP,    0, "top",    GSP_SCREEN_HEIGHT_TOP_2X, GSP_SCREEN_WIDTH },
-        { GFX_BOTTOM, 1, "bottom", GSP_SCREEN_HEIGHT_BOTTOM, GSP_SCREEN_WIDTH }
+        ScreenInfo{ GFX_TOP,    0, "top",    GSP_SCREEN_HEIGHT_TOP_2X, GSP_SCREEN_WIDTH },
+        ScreenInfo{ GFX_BOTTOM, 1, "bottom", GSP_SCREEN_HEIGHT_BOTTOM, GSP_SCREEN_WIDTH }
     };
     // clang-format on
 
-    std::span<ScreenInfo> getScreenInfo()
+    std::span<const ScreenInfo> getScreenInfo()
     {
         if (!gfxIs3D())
             return GFX_2D;

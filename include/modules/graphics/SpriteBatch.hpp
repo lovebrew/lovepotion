@@ -10,6 +10,7 @@
 #include "common/math.hpp"
 
 #include "modules/graphics/Drawable.hpp"
+#include "modules/graphics/Mesh.hpp"
 #include "modules/graphics/vertex.hpp"
 
 #include <vector>
@@ -64,6 +65,16 @@ namespace love
         void draw(GraphicsBase* graphics, const Matrix4& matrix) override;
 
       private:
+        void updateVertexAttributes(GraphicsBase* graphics);
+
+        struct AttachedAttribute
+        {
+            StrongRef<BufferBase> buffer;
+            StrongRef<Mesh> mesh;
+            int index;
+            int bindingIndex;
+        };
+
         void setBufferSize(int newSize);
 
         StrongRef<TextureBase> texture;
@@ -76,8 +87,15 @@ namespace love
         CommonFormat vertexFormat;
         size_t vertexStride;
 
+        VertexAttributesID attributesID;
+        BufferBindings bufferBindings;
+
+        StrongRef<BufferBase> arrayBuffer;
+        uint8_t* vertexData;
+
         Range modifiedSprites;
-        std::vector<Vertex> buffer;
+
+        std::unordered_map<std::string, AttachedAttribute> attachedAttributes;
 
         int rangeStart;
         int rangeCount;

@@ -1,5 +1,6 @@
 #include "common/Exception.hpp"
 
+#include "driver/display/UniqueBuffer.hpp"
 #include "modules/graphics/StreamBuffer.tcc"
 #include "modules/graphics/Volatile.hpp"
 
@@ -9,14 +10,6 @@
 
 namespace love
 {
-    static inline GX2RResourceFlags getBufferUsage(BufferUsage usage)
-    {
-        if (usage == BUFFERUSAGE_VERTEX)
-            return GX2R_RESOURCE_BIND_VERTEX_BUFFER;
-
-        return GX2R_RESOURCE_BIND_INDEX_BUFFER;
-    }
-
     class StreamBuffer final : public StreamBufferBase, public Volatile
     {
       public:
@@ -32,23 +25,20 @@ namespace love
 
         bool loadVolatile()
         {
-            const auto flags    = getBufferUsage(this->mode);
+            GX2RResourceFlags flags;
+            UniqueBuffer::getConstant(this->mode, flags);
+
             const auto elemSize = (this->mode == BUFFERUSAGE_VERTEX) ? sizeof(Vertex) : sizeof(uint16_t);
 
             this->buffer.elemCount = this->bufferSize;
             this->buffer.elemSize  = elemSize;
-            this->buffer.flags     = flags | BUFFER_CREATE_FLAGS;
+            this->buffer.flags     = flags;
 
             return GX2RCreateBuffer(&this->buffer);
         }
 
         void unloadVolatile()
-        {
-            if (!GX2RBufferExists(&this->buffer))
-                return;
-
-            // GX2RDestroyBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
-        }
+        {}
 
         StreamBuffer(const StreamBuffer&) = delete;
 
@@ -73,10 +63,6 @@ namespace love
         size_t unmap(size_t /* usedSize */) override
         {
             GX2RUnlockBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
-
-            if (this->mode == BufferUsage::BUFFERUSAGE_VERTEX)
-                GX2RSetAttributeBuffer(&this->buffer, 0, this->buffer.elemSize, 0);
-
             return this->frameGPUReadOffset;
         }
 
@@ -102,9 +88,6 @@ namespace love
 
       private:
         GX2RBuffer buffer;
-
-        static constexpr auto BUFFER_CREATE_FLAGS =
-            GX2R_RESOURCE_USAGE_CPU_READ | GX2R_RESOURCE_USAGE_CPU_WRITE | GX2R_RESOURCE_USAGE_GPU_READ;
     };
 
     StreamBufferBase* createStreamBuffer(BufferUsage usage, size_t size)

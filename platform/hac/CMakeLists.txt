@@ -61,6 +61,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/graphics/Shader.cpp
     source/modules/graphics/ShaderStage.cpp
     source/modules/graphics/StreamBuffer.cpp
+    source/modules/graphics/Buffer.cpp
     source/modules/graphics/Texture.cpp
     source/modules/joystick/Joystick.cpp
     source/modules/joystick/JoystickModule.cpp

@@ -33,7 +33,7 @@ namespace love
         Vector2 curpos         = offset;
         float spacingRemainder = 0.0f;
 
-        int maxwidth       = 0;
+        float maxwidth     = 0;
         uint32_t prevglyph = 0;
 
         if (positions)
@@ -72,8 +72,7 @@ namespace love
 
             if (g == '\n')
             {
-                if (curpos.x > maxwidth)
-                    maxwidth = (int)curpos.x;
+                maxwidth = std::max(maxwidth, curpos.x);
 
                 // Wrap newline, but do not output a position for it.
                 curpos.y += floorf(getHeight() * getLineHeight() + 0.5f);
@@ -119,8 +118,7 @@ namespace love
             prevglyph = g;
         }
 
-        if (curpos.x > maxwidth)
-            maxwidth = (int)curpos.x;
+        maxwidth = std::max(maxwidth, curpos.x);
 
         if (info != nullptr)
         {

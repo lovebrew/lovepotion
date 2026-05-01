@@ -1,6 +1,7 @@
 #include "boot.hpp"
 #include "common/Console.hpp"
 #include "common/service.hpp"
+#include "fatal.hpp"
 
 #include "driver/EventQueue.hpp"
 
@@ -107,6 +108,11 @@ namespace love
 
         int initialize()
         {
+            const auto exceptionMode = OS_EXCEPTION_MODE_GLOBAL_ALL_CORES;
+            OSSetExceptionCallbackEx(exceptionMode, OS_EXCEPTION_TYPE_DSI, handleDSIFatal);
+            OSSetExceptionCallbackEx(exceptionMode, OS_EXCEPTION_TYPE_ISI, handleISIFatal);
+            OSSetExceptionCallbackEx(exceptionMode, OS_EXCEPTION_TYPE_PROGRAM, handleProgramFatal);
+
             std::string buffer;
             for (auto it = services.begin(); it != services.end(); ++it)
             {

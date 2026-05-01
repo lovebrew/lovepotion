@@ -18,24 +18,10 @@ namespace love
 
         void destroy();
 
-        void setScissor(const Rect& scissor);
-
         C3D_RenderTarget* get() const
         {
             return this->target;
         }
-
-        C3D_Mtx& getModelView()
-        {
-            return this->modelView;
-        }
-
-        C3D_Mtx& getProjection()
-        {
-            return this->projection;
-        }
-
-        static void calculateBounds(const Rect& bounds, Rect& out, const int width, const int height);
 
       private:
         static constexpr auto DEPTH_FORMAT = GPU_RB_DEPTH16;
@@ -47,8 +33,5 @@ namespace love
             GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_NO);
 
         C3D_RenderTarget* target;
-
-        C3D_Mtx projection;
-        C3D_Mtx modelView;
     };
 } // namespace love

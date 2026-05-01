@@ -1,5 +1,6 @@
 #include "common/Exception.hpp"
 
+#include "common/memory.hpp"
 #include "modules/graphics/Buffer.tcc"
 #include "modules/graphics/Graphics.tcc"
 
@@ -33,8 +34,8 @@ namespace love
         bool indexBuffer    = usage & BUFFERUSAGEFLAG_INDEX;
         bool vertexBuffer   = usage & BUFFERUSAGEFLAG_VERTEX;
         bool texelBuffer    = usage & BUFFERUSAGEFLAG_TEXEL;
-        bool storageBuffer  = usage & BUFFERUSAGE_SHADER_STORAGE;
-        bool indirectBuffer = usage & BUFFERUSAGE_INDIRECT_ARGUMENTS;
+        bool storageBuffer  = usage & BUFFERUSAGEFLAG_SHADER_STORAGE;
+        bool indirectBuffer = usage & BUFFERUSAGEFLAG_INDIRECT_ARGUMENTS;
 
         if (texelBuffer && !capabilities.features[GraphicsBase::FEATURE_TEXEL_BUFFER])
             throw love::Exception("Texel buffers are not supported on this system.");
@@ -105,6 +106,8 @@ namespace love
             offset        = member.offset + member.size;
             this->members.push_back(member);
         }
+
+        stride = alignUp(offset, align);
 
         if (storageBuffer && (indexBuffer || vertexBuffer || texelBuffer))
         {
