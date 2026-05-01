@@ -10,33 +10,41 @@
 #include <cstring>
 #include <limits>
 
+#include "common/debug.hpp"
+
 namespace love
 {
     Buffer::Buffer(GraphicsBase* gfx, const Settings& settings, const BufferFormat& format, const void* data,
                    size_t size, size_t length) :
-        BufferBase(gfx, settings, format, size, length)
+        BufferBase(gfx, settings, format, size, length),
+        buffer {}
     {
         size   = this->getSize();
         length = this->getArrayLength();
 
         if (this->usage & BUFFERUSAGEFLAG_VERTEX)
+        {
             this->mapUsage = BUFFERUSAGE_VERTEX;
+            BufInfo_Init(&this->buffer);
+        }
         else if (this->usage & BUFFERUSAGEFLAG_INDEX)
             this->mapUsage = BUFFERUSAGE_INDEX;
 
         if (this->dataUsage == BUFFERDATAUSAGE_STREAM)
             this->ownsMemoryMap = true;
 
+        std::vector<uint8_t> emptydata;
         if (settings.zeroInitialize && data == nullptr)
         {
             try
             {
 
-                this->bytes.resize(size);
+                emptydata.resize(this->getSize());
+                data = emptydata.data();
             }
             catch (std::exception&)
             {
-                throw love::Exception(E_OUT_OF_MEMORY);
+                data = nullptr;
             }
         }
 
@@ -54,7 +62,7 @@ namespace love
 
     bool Buffer::loadVolatile()
     {
-        if (!this->bytes.empty())
+        if (this->bytes)
             return true;
 
         return this->load(nullptr);
@@ -63,27 +71,36 @@ namespace love
     void Buffer::unloadVolatile()
     {
         this->mapped = false;
-        this->bytes.clear();
-        this->bytes.shrink_to_fit();
+        linearFree(this->bytes);
+        this->bytes = nullptr;
+        linearFree(this->staging);
+        this->staging = nullptr;
     }
 
     bool Buffer::load(const void* data)
     {
-        try
-        {
-            this->bytes.resize(this->getSize());
-        }
-        catch (std::bad_alloc&)
-        {
+        this->bytes = (uint8_t*)linearAlloc(this->getSize());
+
+        if (!this->bytes)
             return false;
+
+        if (this->mapUsage == BUFFERUSAGE_VERTEX)
+        {
+            if (BufInfo_Add(&this->buffer, this->bytes, this->arrayStride, 3, 0x210) < 0)
+                return false;
         }
 
         if (data != nullptr)
-            std::memcpy(this->bytes.data(), data, this->getSize());
+            std::memcpy(this->bytes, data, this->getSize());
         else
-            std::memset(this->bytes.data(), 0, this->getSize());
+            std::memset(this->bytes, 0, this->getSize());
 
         return true;
+    }
+
+    bool Buffer::supportsOrphan() const
+    {
+        return this->dataUsage == BUFFERDATAUSAGE_STREAM || this->dataUsage == BUFFERDATAUSAGE_DYNAMIC;
     }
 
     void* Buffer::map(MapType map, size_t offset, size_t size)
@@ -110,11 +127,11 @@ namespace love
         this->mappedRange = r;
 
         if (map == MAP_READ_ONLY)
-            return (void*)(this->bytes.data() + offset);
+            return (void*)(this->bytes + offset);
 
         try
         {
-            this->staging.resize(size);
+            this->staging = (uint8_t*)linearAlloc(this->getSize());
         }
         catch (std::bad_alloc&)
         {
@@ -122,10 +139,7 @@ namespace love
             return nullptr;
         }
 
-        if (map != MAP_WRITE_INVALIDATE)
-            std::memcpy(this->staging.data(), this->bytes.data() + offset, size);
-
-        return (void*)this->staging.data();
+        return (void*)this->staging;
     }
 
     void Buffer::unmap(size_t offset, size_t size)
@@ -140,8 +154,15 @@ namespace love
         if (this->mappedType == MAP_READ_ONLY)
             return;
 
-        std::memcpy(this->bytes.data() + offset, this->staging.data(), size);
-        this->staging.clear();
+        if (this->supportsOrphan() && this->mappedRange.first == 0 &&
+            this->mappedRange.getSize() == this->getSize())
+        {
+            offset = 0;
+            size   = this->getSize();
+        }
+
+        auto* data = this->staging + (offset - this->mappedRange.getOffset());
+        this->fill(offset, size, data);
     }
 
     bool Buffer::fill(size_t offset, size_t size, const void* data)
@@ -154,7 +175,10 @@ namespace love
         if (!Range(0, bufferSize).contains(Range(offset, size)))
             return false;
 
-        std::memcpy(this->bytes.data() + offset, data, size);
+        if (this->supportsOrphan() && size == bufferSize)
+            std::memcpy(this->bytes, data, bufferSize);
+        else
+            std::memcpy(this->bytes + offset, data, size);
 
         return true;
     }
@@ -180,7 +204,7 @@ namespace love
         if (destination == nullptr || size == 0)
             return;
 
-        const char* src = (const char*)this->bytes.data() + sourceOffset;
+        const char* src = (const char*)this->bytes + sourceOffset;
         destination->fill(destOffset, size, src);
     }
 } // namespace love

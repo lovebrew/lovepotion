@@ -21,17 +21,17 @@ ctr_add_graphics_target(cartridge
     INPUTS "assets/nogame/cartridge.png"
 )
 
-ctr_add_graphics_target(nogame
+ctr_add_graphics_target(heart
     IMAGE
     OPTIONS -f rgba8888 -z auto
-    INPUTS "assets/nogame/nogame.png"
+    INPUTS "assets/nogame/heart.png"
 )
 
 dkp_install_assets(${PROJECT_NAME}_ctr_romfs
     DESTINATION "nogame"
     TARGETS
         cartridge
-        nogame
+        heart
 )
 
 ctr_add_shader_library(main_v_pica

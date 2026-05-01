@@ -108,6 +108,13 @@ namespace love
             return this->text.get();
         }
 
+        static constexpr const char* getConstant(KeyboardOption option)
+        {
+            std::string_view name {};
+            getConstant(option, name);
+            return name.data();
+        }
+
         // clang-format off
         STRINGMAP_DECLARE(Options, KeyboardOption,
             { "type",      OPTION_TYPE       },

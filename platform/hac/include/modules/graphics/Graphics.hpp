@@ -36,6 +36,10 @@ namespace love
 
         void setPointSize(float size) override;
 
+        BufferBase* newBuffer(const BufferBase::Settings& settings,
+                              const std::vector<BufferBase::DataDeclaration>& format, const void* data,
+                              size_t size, size_t arraylength) override;
+
         FontBase* newFont(Rasterizer* data) override;
 
         FontBase* newDefaultFont(int size, const Rasterizer::Settings& settings) override;
@@ -59,6 +63,9 @@ namespace love
         void draw(const DrawIndexedCommand& command) override;
 
         void draw(const DrawCommand& command) override;
+
+        void drawQuads(int start, int count, VertexAttributesID attributesID, const BufferBindings& buffers,
+                       TextureBase* texture) override;
 
         using GraphicsBase::draw;
 

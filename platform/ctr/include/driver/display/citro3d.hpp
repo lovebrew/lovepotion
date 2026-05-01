@@ -67,13 +67,15 @@ namespace love
 
         virtual void prepareDraw(GraphicsBase* graphics) override;
 
-        void setVertexAttributes(TextureBase* texture, bool isFont);
+        void setVertexAttributes(const VertexAttributes& attributes, const BufferBindings& buffers);
 
         void bindTextureToUnit(TextureType target, C3D_Tex* texture, int unit);
 
         void bindTextureToUnit(TextureBase* texture, int unit);
 
         C3D_RenderTarget* getInternalBackbuffer() const;
+
+        GPU_FORMATS getVertexComponents(DataFormat format, int& components);
 
         void setWideMode(bool wide)
         {
@@ -104,6 +106,8 @@ namespace love
 
         void copyCurrentScanBuffer()
         {}
+
+        void setTexEnvMode(TextureBase* texture, bool isFont);
 
         static GPU_TEXTURE_MODE_PARAM getTextureType(TextureType type);
 
@@ -169,6 +173,11 @@ namespace love
             { COMPARE_ALWAYS,   GPU_ALWAYS   },
             { COMPARE_NEVER,    GPU_NEVER    }
         );
+
+        ENUMMAP_DECLARE(GpuFormats, DataFormat, GPU_FORMATS,
+            { DATAFORMAT_FLOAT,  GPU_FLOAT },
+            { DATAFORMAT_UINT16, GPU_SHORT }
+        );
         // clang-format on
 
       private:
@@ -187,6 +196,10 @@ namespace love
             std::vector<C3D_Tex*> boundTextures[TEXTURE_MAX_ENUM + 1];
             TexEnvMode texEnvMode = TEXENV_MODE_MAX_ENUM;
             C3D_Tex* boundTexture = nullptr;
+
+            bool depthWrites = false;
+            GPU_TESTFUNC testMode;
+            GPU_WRITEMASK mask;
         } context;
 
         bool isDefaultFramebufferActive() const;
@@ -204,8 +217,6 @@ namespace love
         }
 
         std::vector<Framebuffer> targets;
-
-        void updateTexEnvMode(TexEnvMode mode);
 
         std::vector<std::function<void()>> deferred;
     };

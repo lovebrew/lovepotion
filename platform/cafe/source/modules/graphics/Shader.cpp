@@ -2,14 +2,22 @@
 #include "common/config.hpp"
 #include "common/screen.hpp"
 
+#include "driver/display/GX2.hpp"
+#include "driver/display/UniqueBuffer.hpp"
+
 #include "modules/graphics/Shader.hpp"
 #include "modules/graphics/ShaderStage.hpp"
 
 #include <gfd.h>
+#include <gx2/event.h>
 #include <gx2/mem.h>
+#include <gx2/utils.h>
 #include <whb/gfx.h>
 
 #include <malloc.h>
+#include <span>
+
+#include "common/debug.hpp"
 
 #define SHADERS_DIR "/vol/content/shaders/"
 
@@ -48,55 +56,68 @@ namespace love
 
     void Shader::mapActiveUniforms()
     {
-        const auto uniformBlockCount = this->program.vertexShader->uniformBlockCount;
-
-        for (size_t index = 0; index < uniformBlockCount; index++)
+        const auto vertexUniformBlocksCount = this->program.vertex->uniformBlockCount;
+        for (size_t index = 0; index < vertexUniformBlocksCount; index++)
         {
-            const auto uniform = this->program.vertexShader->uniformBlocks[index];
+            const auto uniform = this->program.vertex->uniformBlocks[index];
 
-            this->reflection.uniforms.insert_or_assign(
-                uniform.name, new UniformInfo {
-                                  .type      = UNIFORM_MATRIX,
-                                  .stageMask = ShaderStageMask::SHADERSTAGEMASK_VERTEX,
-                                  .active    = true,
-                                  .location  = uniform.offset,
-                                  .count     = 1,
-                                  .name      = uniform.name,
-                              });
+            UniformInfo info {};
+            info.name      = uniform.name;
+            info.location  = uniform.offset;
+            info.stageMask = SHADERSTAGE_VERTEX;
+            info.active    = true;
+            info.count     = 1;
+
+            this->reflection.localUniforms[info.name] = info;
         }
 
-        const auto samplerCount = this->program.pixelShader->samplerVarCount;
-
-        for (size_t index = 0; index < samplerCount; index++)
+        const auto vertexUniformVariablesCount = this->program.vertex->uniformVarCount;
+        for (size_t index = 0; index < vertexUniformVariablesCount; index++)
         {
-            const auto sampler = this->program.pixelShader->samplerVars[index];
+            const auto uniform = this->program.vertex->uniformVars[index];
 
-            this->reflection.uniforms.insert_or_assign(
-                sampler.name, new UniformInfo {
-                                  .type      = UNIFORM_SAMPLER,
-                                  .stageMask = ShaderStageMask::SHADERSTAGEMASK_PIXEL,
-                                  .active    = true,
-                                  .location  = sampler.location,
-                                  .count     = 1,
-                                  .name      = sampler.name,
-                              });
+            UniformInfo info {};
+            info.name      = uniform.name;
+            info.location  = uniform.offset;
+            info.stageMask = SHADERSTAGE_VERTEX;
+            info.active    = true;
+            info.count     = uniform.count;
+
+            this->reflection.localUniforms[info.name] = info;
         }
-    }
 
-    bool Shader::setShaderStages(WHBGfxShaderGroup* group, std::array<StrongRef<ShaderStageBase>, 2> stages)
-    {
-        std::memset(group, 0, sizeof(WHBGfxShaderGroup));
+        const auto pixelUniformVariablesCount = this->program.pixel->uniformVarCount;
+        for (size_t index = 0; index < pixelUniformVariablesCount; index++)
+        {
+            const auto uniform = this->program.pixel->uniformVars[index];
 
-        if (this->hasStage(ShaderStageType::SHADERSTAGE_VERTEX))
-            group->vertexShader = (GX2VertexShader*)stages[SHADERSTAGE_VERTEX]->getHandle();
+            UniformInfo info {};
+            info.name      = uniform.name;
+            info.location  = uniform.offset;
+            info.stageMask = SHADERSTAGE_PIXEL;
+            info.active    = true;
+            info.count     = uniform.count;
 
-        if (this->hasStage(ShaderStageType::SHADERSTAGE_PIXEL))
-            group->pixelShader = (GX2PixelShader*)stages[SHADERSTAGE_PIXEL]->getHandle();
+            this->reflection.localUniforms[info.name] = info;
+        }
 
-        if (!this->program.vertexShader || !this->program.pixelShader)
-            return false;
+        const auto pixelSamplerVariablesCount = this->program.pixel->samplerVarCount;
+        for (size_t index = 0; index < pixelSamplerVariablesCount; index++)
+        {
+            const auto sampler = this->program.pixel->samplerVars[index];
 
-        return true;
+            UniformInfo info {};
+            info.name      = sampler.name;
+            info.location  = sampler.location;
+            info.stageMask = SHADERSTAGE_PIXEL;
+            info.active    = true;
+            info.count     = 1;
+
+            this->reflection.localUniforms[info.name] = info;
+        }
+
+        for (auto& kvp : this->reflection.localUniforms)
+            reflection.uniforms[kvp.first] = &kvp.second;
     }
 
     bool Shader::loadVolatile()
@@ -107,29 +128,29 @@ namespace love
                 ((ShaderStage*)stage.get())->loadVolatile();
         }
 
-        if (!this->setShaderStages(&this->program, this->stages))
-            return true;
+        if (this->hasStage(ShaderStageType::SHADERSTAGE_VERTEX))
+            this->program.vertex = (GX2VertexShader*)stages[SHADERSTAGE_VERTEX]->getHandle();
 
-        this->mapActiveUniforms();
+        if (this->hasStage(ShaderStageType::SHADERSTAGE_PIXEL))
+            this->program.pixel = (GX2PixelShader*)stages[SHADERSTAGE_PIXEL]->getHandle();
 
-        // clang-format off
-        WHBGfxInitShaderAttribute(&this->program, "inPos",      0, POSITION_OFFSET, GX2_ATTRIB_FORMAT_FLOAT_32_32);
-        WHBGfxInitShaderAttribute(&this->program, "inTexCoord", 0, TEXCOORD_OFFSET, GX2_ATTRIB_FORMAT_FLOAT_32_32);
-        WHBGfxInitShaderAttribute(&this->program, "inColor",    0, COLOR_OFFSET,    GX2_ATTRIB_FORMAT_FLOAT_32_32_32_32);
-        // clang-format on
-
-        if (!WHBGfxInitFetchShader(&this->program))
+        if (!this->program.vertex || !this->program.pixel)
             return false;
 
-        return true;
+        this->layout.reset();
+        this->mapActiveUniforms();
+
+        this->transformation.flags     = GX2_BUFFERFLAG_UNIFORM_BLOCK;
+        this->transformation.elemSize  = sizeof(float) * 4 * 4 * 2;
+        this->transformation.elemCount = 1;
+
+        return GX2RCreateBuffer(&this->transformation);
     }
 
     void Shader::unloadVolatile()
     {
-        WHBGfxFreeShaderGroup(&this->program);
-
-        for (auto& it : this->reflection.uniforms)
-            delete it.second;
+        WHBGfxFreeVertexShader(this->program.vertex);
+        WHBGfxFreePixelShader(this->program.pixel);
     }
 
     std::string Shader::getWarnings() const
@@ -150,21 +171,34 @@ namespace love
         return warnings;
     }
 
-    void Shader::updateBuiltinUniforms(GraphicsBase* graphics, Uniform* uniform)
+    static void bswap_into(Matrix4& out, const Matrix4& in)
+    {
+        auto src = std::span<const uint32_t>(reinterpret_cast<const uint32_t*>(&in), 16);
+        auto dst = std::span<uint32_t>(reinterpret_cast<uint32_t*>(&out), 16);
+
+        for (size_t index = 0; index < src.size(); index++)
+            dst[index] = std::byteswap(src[index]);
+    }
+
+    void Shader::updateBuiltinUniforms(GraphicsBase* graphics)
     {
         if (current != this)
             return;
 
-        auto& transform = graphics->getTransform();
-        // uniform->update(transform);
+        BuiltinUniformData data {};
+        bswap_into(data.transformMatrix, graphics->getTransform());
+        bswap_into(data.projectionMatrix, graphics->getDeviceProjection());
 
-        auto* uniformBlock = this->getUniformInfo("Transformation");
+        auto* transformation = this->getUniformInfo("Transformation");
 
-        if (!uniformBlock)
+        if (transformation == nullptr)
             return;
 
-        GX2Invalidate(INVALIDATE_UNIFORM_BLOCK, uniform, UNIFORM_SIZE);
-        GX2SetVertexUniformBlock(uniformBlock->location, UNIFORM_SIZE, uniform);
+        UniqueBuffer buffer(&this->transformation);
+        buffer.write(0, sizeof(BuiltinUniformData), &data);
+
+        /* this is actually (GX2RBuffer*, offset, binding)*/
+        GX2RSetVertexUniformBlock(&this->transformation, transformation->location, 0);
     }
 
     ptrdiff_t Shader::getHandle() const
@@ -178,14 +212,10 @@ namespace love
         {
             Graphics::flushBatchedDrawsGlobal();
 
-            GX2SetShaderMode(GX2_SHADER_MODE_UNIFORM_BLOCK);
-
-            GX2SetFetchShader(&this->program.fetchShader);
-            GX2SetVertexShader(this->program.vertexShader);
-            GX2SetPixelShader(this->program.pixelShader);
-
             current = this;
             shaderSwitches++;
+
+            gx2.useProgram(this->program.vertex, this->program.pixel);
         }
     }
 } // namespace love

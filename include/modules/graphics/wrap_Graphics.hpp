@@ -139,6 +139,8 @@ namespace Wrap_Graphics
 
     int getFont(lua_State* L);
 
+    int getQuadIndexBuffer(lua_State* L);
+
     int polygon(lua_State* L);
 
     int rectangle(lua_State* L);
@@ -155,7 +157,9 @@ namespace Wrap_Graphics
 
     int draw(lua_State* L);
 
-    // int newMesh(lua_State* L);
+    int newBuffer(lua_State* L);
+
+    int newMesh(lua_State* L);
 
     int newTextBatch(lua_State* L);
 
@@ -170,6 +174,10 @@ namespace Wrap_Graphics
     int getDefaultFilter(lua_State* L);
 
     int setDefaultFilter(lua_State* L);
+
+    int setDepthMode(lua_State* L);
+
+    int getDepthMode(lua_State* L);
 
     int setStencilMode(lua_State* L);
 

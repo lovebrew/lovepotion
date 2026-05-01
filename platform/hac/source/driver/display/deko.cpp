@@ -1,10 +1,16 @@
 #include "driver/display/deko.hpp"
+#include "common/Exception.hpp"
 #include "driver/graphics/Attributes.hpp"
 
 #include "modules/graphics/Shader.hpp"
 #include "modules/graphics/Texture.hpp"
+#include "modules/graphics/vertex.hpp"
 
+#include <deko3d.h>
 #include <glm/gtc/type_ptr.hpp>
+#include <vector>
+
+#include "common/debug.hpp"
 
 namespace love
 {
@@ -33,7 +39,7 @@ namespace love
         if (this->initialized)
             return;
 
-        this->device       = dk::DeviceMaker {}.setFlags(DkDeviceFlags_DepthMinusOneToOne).create();
+        this->device       = dk::DeviceMaker {}.create();
         this->mainQueue    = dk::QueueMaker { this->device }.setFlags(DkQueueFlags_Graphics).create();
         this->textureQueue = dk::QueueMaker { this->device }.setFlags(DkQueueFlags_Graphics).create();
 
@@ -137,12 +143,13 @@ namespace love
         this->commandBuffer.clearColor(0, DkColorMask_RGBA, color.r, color.g, color.b, color.a);
     }
 
-    void deko3d::clearDepthStencil(int depth, double stencil)
+    void deko3d::clearDepthStencil(int stencil, double depth)
     {
         if (!this->inFrame)
             return;
 
-        this->commandBuffer.clearDepthStencil(true, depth, stencil, this->context.stencilState.writeMask);
+        const float depthf = float(depth);
+        this->commandBuffer.clearDepthStencil(true, depthf, this->context.stencilState.writeMask, stencil);
     }
 
     // dk::Image& deko3d::getInternalBackbuffer()
@@ -155,7 +162,7 @@ namespace love
     {
         this->ensureInFrame();
 
-        if (!this->uniform)
+        if (!this->uniform || !shaders[0] || !shaders[1])
             return;
 
         // clang-format off
@@ -230,13 +237,51 @@ namespace love
             this->commandBuffer.bindIdxBuffer(DkIdxFormat_Uint16, address);
     }
 
-    void deko3d::setVertexAttributes(bool isTexture)
+    static DkVtxAttribType getVertexComponents(DataFormat format, DkVtxAttribSize& size)
     {
-        vertex::Attributes attributes {};
-        vertex::getAttributes(isTexture, attributes);
+        switch (format)
+        {
+            case DATAFORMAT_FLOAT_VEC2:
+                size = DkVtxAttribSize_2x32;
+                return DkVtxAttribType_Float;
+            case DATAFORMAT_FLOAT_VEC3:
+                size = DkVtxAttribSize_3x32;
+                return DkVtxAttribType_Float;
+            case DATAFORMAT_FLOAT_VEC4:
+                size = DkVtxAttribSize_4x32;
+                return DkVtxAttribType_Float;
+            default:
+                throw love::Exception("Unsupported Vertex Component: {:d}", (int)format);
+        }
+    }
 
-        this->commandBuffer.bindVtxAttribState(attributes.attributeState);
-        this->commandBuffer.bindVtxBufferState(attributes.bufferState);
+    void deko3d::setVertexAttributes(const VertexAttributes& attributes, const BufferBindings& buffers)
+    {
+        uint32_t i       = 0;
+        uint32_t allBits = attributes.enableBits | 3;
+
+        std::vector<DkVtxAttribState> attributeState {};
+
+        while (allBits)
+        {
+            uint32_t bit = 1u << i;
+            if (attributes.enableBits & bit)
+            {
+                DkVtxAttribSize size  = DkVtxAttribSize(-1);
+                const auto& attribute = attributes.attributes[i];
+                const auto format     = getVertexComponents(attribute.getFormat(), size);
+
+                attributeState.push_back({ 0, 0, (uint32_t)attribute.offsetFromVertex, size, format, 0 });
+            }
+            i++;
+            allBits >>= 1u;
+        }
+
+        auto handle = (vertex::BufferHandle*)buffers.info[0].buffer->getHandle();
+        this->bindBuffer(BUFFERUSAGE_VERTEX, handle->memory.getGpuAddr(), handle->memory.getSize());
+
+        this->commandBuffer.bindVtxAttribState(attributeState);
+        this->commandBuffer.bindVtxBufferState(handle->state);
     }
 
     void deko3d::setStencilState(const StencilState& state)
@@ -266,10 +311,13 @@ namespace love
 
     void deko3d::setDepthWrites(CompareMode compare, bool write)
     {
+        const auto enable = compare != COMPARE_ALWAYS || write;
+
         DkCompareOp compareOp;
         if (!deko3d::getConstant(compare, compareOp))
             return;
 
+        this->context.depthStencil.setDepthTestEnable(enable);
         this->context.depthStencil.setDepthCompareOp(compareOp);
         this->context.depthStencil.setDepthWriteEnable(write);
     }
@@ -503,8 +551,8 @@ namespace love
 
         if constexpr (std::is_same_v<T, DkViewport>)
         {
-            value.near = -10.0f;
-            value.far  = 10.0f;
+            value.near = 0.0f;
+            value.far  = 1.0f;
         }
 
         return value;
@@ -529,8 +577,9 @@ namespace love
         auto view           = dkRectFromRect<DkViewport>(viewport);
 
         this->commandBuffer.setViewports(0, view);
-        this->transform.projection = glm::ortho(0.0f, view.width, view.height, 0.0f, view.near, view.far);
-        this->context.viewport     = viewport;
+        this->transform.projection =
+            glm::orthoRH_ZO(0.0f, view.width, view.height, 0.0f, Framebuffer::Z_NEAR, Framebuffer::Z_FAR);
+        this->context.viewport = viewport;
     }
 
     deko3d d3d;

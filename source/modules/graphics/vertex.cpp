@@ -143,6 +143,20 @@ namespace love
         fillIndicesT(mode, vertexStart, vertexCount, indices);
     }
 
+    const char* getConstant(BuiltinVertexAttribute attribute)
+    {
+        switch (attribute)
+        {
+            default:
+            case ATTRIB_POS:
+                return "VertexPosition";
+            case ATTRIB_TEXCOORD:
+                return "VertexTexCoord";
+            case ATTRIB_COLOR:
+                return "VertexColor";
+        }
+    }
+
     void VertexAttributes::setCommonFormat(CommonFormat format, uint8_t bufferindex)
     {
         setBufferLayout(bufferindex, (uint16_t)getFormatStride(format));
@@ -289,6 +303,19 @@ namespace love
     IndexDataType getIndexDataTypeFromMax(size_t maxValue)
     {
         return maxValue > LOVE_UINT16_MAX ? INDEX_UINT32 : INDEX_UINT16;
+    }
+
+    IndexDataType getIndexDataType(DataFormat format)
+    {
+        switch (format)
+        {
+            case DATAFORMAT_UINT16:
+                return INDEX_UINT16;
+            case DATAFORMAT_UINT32:
+                return INDEX_UINT32;
+            default:
+                return INDEX_MAX_ENUM;
+        }
     }
 
     DataFormat getIndexDataFormat(IndexDataType type)

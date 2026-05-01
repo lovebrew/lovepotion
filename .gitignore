@@ -5,3 +5,7 @@ build
 *.3dsx
 *.nro
 *.wuhb
+.clangd
+
+.DS_Store
+__cmake_systeminformation

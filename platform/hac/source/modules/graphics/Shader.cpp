@@ -99,7 +99,16 @@ namespace love
     }
 
     void Shader::unloadVolatile()
-    {}
+    {
+        for (auto& stage : this->stages)
+        {
+            if (stage)
+                ((ShaderStage*)stage.get())->unloadVolatile();
+        }
+
+        this->program.vertex   = nullptr;
+        this->program.fragment = nullptr;
+    }
 
     void Shader::updateBuiltinUniforms(GraphicsBase* graphics, glm::mat4& model)
     {}

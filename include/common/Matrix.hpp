@@ -87,6 +87,11 @@ namespace love
          **/
         const float* getElements() const;
 
+        /**
+         * Gets a pointer to the 9 array elements.
+         **/
+        float* getElements();
+
         void setRow(int r, const Vector4& v);
         Vector4 getRow(int r) const;
 
@@ -229,6 +234,11 @@ namespace love
          * Creates a new orthographic projection matrix.
          **/
         static Matrix4 ortho(float left, float right, float bottom, float top, float near, float far);
+
+        /**
+         * Creates a new orthographic projection matrix, tilted 90° CCW.
+         **/
+        static Matrix4 orthoTilt(float left, float right, float bottom, float top, float near, float far);
 
         /**
          * Creates a new perspective projection matrix.

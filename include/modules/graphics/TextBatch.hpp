@@ -2,6 +2,7 @@
 
 #include "common/Range.hpp"
 
+#include "modules/graphics/Buffer.tcc"
 #include "modules/graphics/Drawable.hpp"
 #include "modules/graphics/Font.tcc"
 
@@ -57,9 +58,11 @@ namespace love
 
         StrongRef<FontBase> font;
 
-        VertexAttributes vertexAttributes;
+        VertexAttributesID vertexAtributesID;
+        BufferBindings vertexBuffers;
 
-        std::vector<Vertex> buffer;
+        StrongRef<BufferBase> vertexBuffer;
+        uint8_t* vertexData;
         Range modifiedVertices;
 
         std::vector<FontBase::DrawCommand> drawCommands;

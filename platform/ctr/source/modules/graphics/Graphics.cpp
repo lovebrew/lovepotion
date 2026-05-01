@@ -101,6 +101,7 @@ namespace love
     void Graphics::setActiveScreen()
     {
         c3d.ensureInFrame();
+        this->resetProjection();
     }
 
     void Graphics::clear(OptionalColor color, OptionalInt stencil, OptionalDouble depth)
@@ -404,6 +405,7 @@ namespace love
         if (!Volatile::loadAll())
             std::printf("Failed to load all volatile objects.\n");
 
+        this->createQuadIndexBuffer();
         this->restoreState(this->states.back());
 
         for (int index = 0; index < 1; index++)
@@ -469,6 +471,13 @@ namespace love
     TextureBase* Graphics::newTexture(const TextureBase::Settings& settings, const TextureBase::Slices* data)
     {
         return new Texture(this, settings, data);
+    }
+
+    BufferBase* Graphics::newBuffer(const Buffer::Settings& settings,
+                                    const std::vector<Buffer::DataDeclaration>& format, const void* data,
+                                    size_t size, size_t arraylength)
+    {
+        return new Buffer(this, settings, format, data, size, arraylength);
     }
 
     void Graphics::points(Vector2* positions, const Color* colors, int count)
@@ -566,8 +575,12 @@ namespace love
 
     void Graphics::draw(const DrawIndexedCommand& command)
     {
+        VertexAttributes attributes {};
+        this->findVertexAttributes(command.attributesID, attributes);
+
         c3d.prepareDraw(this);
-        c3d.setVertexAttributes(command.texture, command.isFont);
+        c3d.setTexEnvMode(command.texture, command.isFont);
+        c3d.setVertexAttributes(attributes, *command.buffers);
         c3d.bindTextureToUnit(command.texture, 0);
 
         const auto* indices = (const uint16_t*)command.indexBuffer->getHandle();
@@ -582,14 +595,43 @@ namespace love
 
     void Graphics::draw(const DrawCommand& command)
     {
+        VertexAttributes attributes {};
+        this->findVertexAttributes(command.attributesID, attributes);
+
         c3d.prepareDraw(this);
-        c3d.setVertexAttributes(command.texture, command.isFont);
+        c3d.setTexEnvMode(command.texture, command.isFont);
+        c3d.setVertexAttributes(attributes, *command.buffers);
         c3d.bindTextureToUnit(command.texture, 0);
 
         const auto primitiveType = citro3d::getPrimitiveType(command.primitiveType);
 
         C3D_DrawArrays(primitiveType, command.vertexStart, command.vertexCount);
         ++this->drawCalls;
+    }
+
+    void Graphics::drawQuads(int start, int count, VertexAttributesID attributesID,
+                             const BufferBindings& buffers, TextureBase* texture)
+    {
+        VertexAttributes attributes {};
+        this->findVertexAttributes(attributesID, attributes);
+
+        c3d.prepareDraw(this);
+        c3d.bindTextureToUnit(texture, 0);
+        c3d.setCullMode(CULL_NONE);
+
+        const auto* indices = (uint16_t*)this->quadIndexBuffer->getHandle();
+
+        BufferBindings buffersCopy = buffers;
+        c3d.setVertexAttributes(attributes, buffersCopy);
+
+        for (int quadIndex = 0; quadIndex < count; quadIndex += MAX_QUADS_PER_DRAW)
+        {
+            int quadCount = std::min(MAX_QUADS_PER_DRAW, count - quadIndex);
+
+            const auto offset = (start + quadIndex) * 6;
+            C3D_DrawElements(GPU_TRIANGLES, quadCount * 6, C3D_UNSIGNED_SHORT, &indices[offset]);
+            ++drawCalls;
+        }
     }
 
     bool Graphics::isStereoscopic() const

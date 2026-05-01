@@ -1,30 +1,32 @@
 #include "common/screen.hpp"
 
+#include <array>
+
 #include <gx2/display.h>
 
 namespace love
 {
     // clang-format off
-    inline constinit ScreenInfo TV_WIDE_480P[0x02] =
+    static constexpr std::array<ScreenInfo, 2> TV_WIDE_480P =
     {
-        { GX2_SCAN_TARGET_TV,  0, "tv",      854, 480 },
-        { GX2_SCAN_TARGET_DRC, 1, "gamepad", 854, 480 }
+        ScreenInfo{ GX2_SCAN_TARGET_TV,  0, "tv",      854, 480 },
+        ScreenInfo{ GX2_SCAN_TARGET_DRC, 1, "gamepad", 854, 480 }
     };
 
-    inline constinit ScreenInfo TV_WIDE_720P[0x02] =
+    static constexpr std::array<ScreenInfo, 2> TV_WIDE_720P =
     {
-        { GX2_SCAN_TARGET_TV,  0, "tv",      1280, 720 },
-        { GX2_SCAN_TARGET_DRC, 1, "gamepad", 854,  480 }
+        ScreenInfo{ GX2_SCAN_TARGET_TV,  0, "tv",      1280, 720 },
+        ScreenInfo{ GX2_SCAN_TARGET_DRC, 1, "gamepad", 854,  480 }
     };
 
-    inline constinit ScreenInfo TV_WIDE_1080P[0x02] =
+    static constexpr std::array<ScreenInfo, 2> TV_WIDE_1080P =
     {
-        { GX2_SCAN_TARGET_TV,  0, "tv",      1920, 1080 },
-        { GX2_SCAN_TARGET_DRC, 1, "gamepad", 854,  480  }
+        ScreenInfo{ GX2_SCAN_TARGET_TV,  0, "tv",      1920, 1080 },
+        ScreenInfo{ GX2_SCAN_TARGET_DRC, 1, "gamepad", 854,  480  }
     };
     // clang-format on
 
-    std::span<ScreenInfo> getScreenInfo()
+    std::span<const ScreenInfo> getScreenInfo()
     {
         switch (GX2GetSystemTVScanMode())
         {

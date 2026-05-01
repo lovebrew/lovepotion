@@ -132,6 +132,8 @@ namespace love
 
     std::string luax_checkstring(lua_State* L, int index);
 
+    int luax_checkint(lua_State* L, int index);
+
     int luax_checkintflag(lua_State* L, int tableIndex, const char* key);
 
     int luax_intflag(lua_State* L, int index, const char* name, int default_value);

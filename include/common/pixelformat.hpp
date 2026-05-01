@@ -273,6 +273,8 @@ namespace love
      **/
     int getPixelFormatColorComponents(PixelFormat format);
 
+    const char* getConstant(PixelFormat format);
+
     // clang-format off
     STRINGMAP_DECLARE(PixelFormats, PixelFormat,
         { "unknown", PIXELFORMAT_UNKNOWN },

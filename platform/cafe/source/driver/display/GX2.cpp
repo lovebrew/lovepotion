@@ -1,17 +1,17 @@
 #include "driver/display/GX2.hpp"
-#include "driver/display/Uniform.hpp"
+#include "driver/display/Attribute.hpp"
 
 /* keyboard needs GX2 inited first */
 #include "common/debug.hpp"
 #include "modules/graphics/Shader.hpp"
 #include "modules/keyboard/Keyboard.hpp"
-
 #include <gx2/clear.h>
 #include <gx2/context.h>
 #include <gx2/display.h>
 #include <gx2/event.h>
 #include <gx2/state.h>
 #include <gx2/swap.h>
+#include <gx2r/draw.h>
 
 #include <proc_ui/procui.h>
 
@@ -27,7 +27,7 @@ namespace love
         inForeground(false),
         commandBuffer(nullptr),
         state(nullptr),
-        dirtyProjection(false)
+        layout {}
     {}
 
     GX2::~GX2()
@@ -40,12 +40,10 @@ namespace love
 
         GX2Shutdown();
 
-        delete this->uniform;
-
-        free(this->state);
+        std::free(this->state);
         this->state = nullptr;
 
-        free(this->commandBuffer);
+        std::free(this->commandBuffer);
         this->commandBuffer = nullptr;
     }
 
@@ -118,6 +116,8 @@ namespace love
 
         GX2Init(attributes);
 
+        this->createFramebuffers();
+
         this->state = (GX2ContextState*)memalign(GX2_CONTEXT_STATE_ALIGNMENT, sizeof(GX2ContextState));
 
         if (!this->state)
@@ -125,8 +125,6 @@ namespace love
 
         GX2SetupContextStateEx(this->state, false);
         GX2SetContextState(this->state);
-
-        this->createFramebuffers();
 
         GX2SetDepthOnlyControl(false, false, GX2_COMPARE_FUNC_ALWAYS);
         // GX2SetAlphaTest(false, GX2_COMPARE_FUNC_ALWAYS, 0.0f);
@@ -142,19 +140,6 @@ namespace love
 
         if (Keyboard())
             Keyboard()->initialize();
-
-        this->context.winding     = GX2_FRONT_FACE_CCW;
-        this->context.cullBack    = false;
-        this->context.cullFront   = false;
-        this->context.depthTest   = false;
-        this->context.depthWrite  = true;
-        this->context.compareMode = GX2_COMPARE_FUNC_ALWAYS;
-
-        this->uniform             = (Uniform*)memalign(GX2_UNIFORM_BLOCK_ALIGNMENT, sizeof(Uniform));
-        this->uniform->modelView  = glm::mat4(1.0f);
-        this->uniform->projection = glm::mat4(1.0f);
-
-        this->bindFramebuffer(&this->targets[0].get());
 
         this->initialized = true;
     }
@@ -190,8 +175,6 @@ namespace love
 
     void GX2::ensureInFrame()
     {
-        GX2SetContextState(this->state);
-
         if (!this->inFrame)
             this->inFrame = true;
     }
@@ -212,8 +195,9 @@ namespace love
         if (!this->inFrame)
             return;
 
-        const auto stencil = this->context.stencilState.value;
-        GX2ClearDepthStencilEx(&this->getInternalDepthbuffer(), value, stencil, GX2_CLEAR_FLAGS_DEPTH);
+        const auto stencil       = this->context.stencilState.value;
+        this->context.depthClear = value;
+        GX2ClearDepthStencilEx(&this->getInternalDepthbuffer(), (float)value, stencil, GX2_CLEAR_FLAGS_DEPTH);
         GX2SetContextState(this->state);
     }
 
@@ -222,13 +206,14 @@ namespace love
         if (!this->inFrame)
             return;
 
-        GX2ClearDepthStencilEx(&this->getInternalDepthbuffer(), 1.0f, value, GX2_CLEAR_FLAGS_STENCIL);
+        const auto depth = this->context.depthClear;
+        GX2ClearDepthStencilEx(&this->getInternalDepthbuffer(), (float)depth, value, GX2_CLEAR_FLAGS_STENCIL);
         GX2SetContextState(this->state);
     }
 
     void GX2::clear(const Color& color)
     {
-        if (!this->inFrame)
+        if (!this->inFrame || !this->context.boundFramebuffer)
             return;
 
         GX2ClearColor(this->getFramebuffer(), color.r, color.g, color.b, color.a);
@@ -236,10 +221,7 @@ namespace love
     }
 
     void GX2::clearDepthStencil(int depth, uint8_t mask, double stencil)
-    {
-        // GX2ClearDepthStencilEx(&this->getInternalDepthbuffer(), depth, stencil, GX2_CLEAR_FLAGS_BOTH);
-        // GX2SetContextState(this->state);
-    }
+    {}
 
     void GX2::bindFramebuffer(GX2ColorBuffer* target)
     {
@@ -255,7 +237,8 @@ namespace love
         {
             GX2SetColorBuffer(target, GX2_RENDER_TARGET_0);
             GX2SetDepthBuffer(&this->getInternalDepthbuffer());
-            this->setMode(target->surface.width, target->surface.height);
+            GX2SetViewport(0, 0, target->surface.width, target->surface.height, 0.0f, 1.0f);
+            GX2SetScissor(0, 0, target->surface.width, target->surface.height);
         }
     }
 
@@ -263,9 +246,6 @@ namespace love
     {
         this->setViewport({ 0, 0, width, height });
         this->setScissor({ 0, 0, width, height });
-
-        auto* newUniform = this->targets[love::currentScreen].getUniform();
-        std::memcpy(this->uniform, newUniform, sizeof(Uniform));
     }
 
     void GX2::setSamplerState(TextureBase* texture, const SamplerState& state)
@@ -304,13 +284,59 @@ namespace love
         GX2InitSamplerLOD(sampler, state.minLod, state.maxLod, state.lodBias);
     }
 
+    void GX2::useProgram(GX2VertexShader* vertex, GX2PixelShader* pixel)
+    {
+        GX2SetVertexShader(vertex);
+        GX2SetPixelShader(pixel);
+    }
+
     void GX2::prepareDraw(GraphicsBase* graphics)
     {
         if (Shader::current != nullptr)
         {
             auto* shader = (Shader*)ShaderBase::current;
-            shader->updateBuiltinUniforms(graphics, this->uniform);
+            shader->updateBuiltinUniforms(graphics);
         }
+    }
+
+    void GX2::setVertexAttributes(const VertexAttributes& attributes, const BufferBindings& buffers)
+    {
+        uint32_t allBits = (attributes.enableBits | GX2AttributeLayout::MAX_ATTRIBUTES);
+        uint32_t i       = 0;
+
+        this->layout.reset();
+
+        while (allBits)
+        {
+            uint32_t bit = 1u << i;
+
+            if (attributes.enableBits & bit)
+            {
+                GX2Attribute stream(true);
+
+                const auto& attribute = attributes.attributes[i];
+                const auto& layout    = attributes.bufferLayouts[attribute.bufferIndex];
+
+                uint32_t bufferBit = 1u << attribute.bufferIndex;
+                uint32_t divisor   = (attributes.instanceBits & bufferBit) != 0 ? 1 : 0;
+
+                const auto components = getDataFormatInfo(attribute.getFormat()).components;
+
+                GX2AttribFormat format;
+                getConstant(attribute.getFormat(), format);
+
+                stream.update(i, components, format, attribute.offsetFromVertex);
+                stream.setDivisor(divisor);
+
+                this->layout.set(i, stream);
+            }
+            i++;
+            allBits >>= 1u;
+        }
+        this->layout.bind();
+
+        auto* handle = (GX2RBuffer*)buffers.info[0].buffer->getHandle();
+        GX2RSetAttributeBuffer(handle, 0, handle->elemSize, 0);
     }
 
     void GX2::bindTextureToUnit(TextureBase* texture, int unit)
@@ -336,7 +362,7 @@ namespace love
         auto* shader = (Shader*)ShaderBase::current;
         auto* info   = shader->getUniformInfo("texture0");
 
-        if (!info)
+        if (info == nullptr)
             return;
 
         GX2SetPixelTexture(texture, unit);
@@ -355,7 +381,7 @@ namespace love
         if (rect == Rect::EMPTY)
             view = this->targets[love::currentScreen].getViewport();
 
-        GX2SetViewport(view.x, view.y, view.w, view.h, Framebuffer::Z_NEAR, Framebuffer::Z_FAR);
+        GX2SetViewport(view.x, view.y, view.w, view.h, 0.0f, 1.0f);
         this->context.viewport = view;
     }
 
@@ -373,10 +399,10 @@ namespace love
     {
         const auto enabled = mode != CullMode::CULL_NONE;
 
-        this->context.cullBack  = (enabled && mode == CullMode::CULL_BACK);
         this->context.cullFront = (enabled && mode == CullMode::CULL_FRONT);
+        this->context.cullBack  = (enabled && mode == CullMode::CULL_BACK);
 
-        GX2SetCullOnlyControl(this->context.winding, this->context.cullBack, this->context.cullFront);
+        GX2SetCullOnlyControl(this->context.winding, this->context.cullFront, this->context.cullBack);
     }
 
     void GX2::setVertexWinding(Winding winding)
@@ -438,14 +464,13 @@ namespace love
         const bool enabled = compare != COMPARE_ALWAYS || write;
 
         GX2CompareFunction func;
-
         if (!GX2::getConstant(compare, func))
             return;
 
-        GX2SetDepthOnlyControl(write, enabled, func);
+        GX2SetDepthOnlyControl(enabled, write, func);
 
         this->context.depthWrite  = write;
-        this->context.depthTest   = true;
+        this->context.depthTest   = enabled;
         this->context.compareMode = func;
     }
 
@@ -459,7 +484,15 @@ namespace love
         GX2CompareFunction testFunction = GX2_COMPARE_FUNC_ALWAYS;
         GX2::getConstant(state.compare, testFunction);
 
-        GX2SetClearStencil(&this->getInternalDepthbuffer(), state.value);
+        GX2SetDepthStencilControl(this->context.depthTest, this->context.depthWrite,
+                                  this->context.compareMode, this->context.stencilTest,
+                                  this->context.stencilTest, testFunction, stencilAction,
+                                  GX2_STENCIL_FUNCTION_KEEP, GX2_STENCIL_FUNCTION_KEEP, testFunction,
+                                  stencilAction, GX2_STENCIL_FUNCTION_KEEP, GX2_STENCIL_FUNCTION_KEEP);
+
+        this->context.stencilPass    = stencilAction;
+        this->context.stencilCompare = testFunction;
+        this->context.stencilTest    = enabled;
     }
 
     GX2 gx2;

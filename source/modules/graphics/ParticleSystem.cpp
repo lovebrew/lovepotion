@@ -1,16 +1,19 @@
 #include "common/Console.hpp"
 #include "common/Exception.hpp"
+#include "common/Module.hpp"
 #include "common/math.hpp"
 
+#include "modules/graphics/Buffer.hpp"
+#include "modules/graphics/Buffer.tcc"
 #include "modules/graphics/Graphics.hpp"
+#include "modules/graphics/Graphics.tcc"
 #include "modules/graphics/ParticleSystem.hpp"
+#include "modules/graphics/vertex.hpp"
 #include "modules/math/RandomGenerator.hpp"
 
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
-
-#include "common/debug.hpp"
 
 namespace love
 {
@@ -69,7 +72,9 @@ namespace love
         offset(float(texture->getWidth()) * 0.5f, float(texture->getHeight()) * 0.5f),
         defaultOffset(true),
         relativeRotation(false),
-        buffer {}
+        vertexAttributesID(Module::getInstance<GraphicsBase>(Module::M_GRAPHICS)
+                               ->registerVertexAttributes(VertexAttributes(CommonFormat::XYf_STf_RGBAf, 0))),
+        buffer(nullptr)
     {
         if (size == 0 || size > MAX_PARTICLES)
             throw love::Exception("Invalid ParticleSystem size.");
@@ -160,7 +165,13 @@ namespace love
         {
             this->pFree = this->pMemory = new Particle[size];
             this->maxParticles          = (uint32_t)size;
-            this->buffer.resize(size * 4);
+
+            auto* graphics = Module::getInstance<GraphicsBase>(Module::M_GRAPHICS);
+            size_t bytes   = sizeof(Vertex) * size * 4;
+
+            BufferBase::Settings settings(BUFFERUSAGEFLAG_VERTEX, BUFFERDATAUSAGE_STREAM);
+            auto decl    = BufferBase::getCommonFormatDeclaration(CommonFormat::XYf_STPf_RGBAf);
+            this->buffer = graphics->newBuffer(settings, decl, nullptr, bytes, 0);
         }
         catch (std::bad_alloc&)
         {
@@ -172,7 +183,8 @@ namespace love
     void ParticleSystem::deleteBuffers()
     {
         delete[] this->pMemory;
-        this->buffer.clear();
+        if (this->buffer)
+            this->buffer->release();
 
         this->pMemory         = nullptr;
         this->maxParticles    = 0;
@@ -1000,7 +1012,8 @@ namespace love
     {
         uint32_t count = this->getCount();
 
-        if (count == 0 || this->texture.get() == nullptr || this->pMemory == nullptr || this->buffer.empty())
+        if (count == 0 || this->texture.get() == nullptr || this->pMemory == nullptr ||
+            this->buffer == nullptr)
             return;
 
         graphics->flushBatchedDraws();
@@ -1008,55 +1021,48 @@ namespace love
         const auto* positions = this->texture->getQuad()->getVertexPositions();
         const auto* texcoords = this->texture->getQuad()->getTextureCoordinates();
 
+        const auto mode = BufferBase::MAP_WRITE_INVALIDATE;
+        auto* pVerts    = (Vertex*)this->buffer->map(mode, 0, this->buffer->getSize());
+
         Particle* p = this->pHead;
 
         bool useQuads = !this->quads.empty();
 
         Matrix3 t {};
-        size_t baseIndex = 0;
 
         while (p)
         {
             if (useQuads)
             {
                 positions = this->quads[p->quadIndex]->getVertexPositions();
+                if constexpr (Console::is(Console::CTR))
+                    this->texture->updateQuad(this->quads[p->quadIndex]);
+
                 texcoords = this->quads[p->quadIndex]->getTextureCoordinates();
             }
 
             // clang-format off
             t.setTransformation(p->position.x, p->position.y, p->angle, p->size, p->size, this->offset.x, this->offset.y, 0.0f, 0.0f);
-            auto* destination  = &this->buffer[baseIndex];
-            t.transformXY(destination, positions, 4);
+            t.transformXY(pVerts, positions, 4);
             // clang-format on
 
             for (int vertex = 0; vertex < 4; vertex++)
             {
-                destination[vertex].s     = texcoords[vertex].x;
-                destination[vertex].t     = texcoords[vertex].y;
-                destination[vertex].color = p->color;
+                pVerts[vertex].s     = texcoords[vertex].x;
+                pVerts[vertex].t     = texcoords[vertex].y;
+                pVerts[vertex].color = p->color;
             }
-            baseIndex += 4;
+            pVerts += 4;
             p = p->next;
         }
 
-        // GraphicsBase::TempTransform(graphics, matrix);
+        buffer->unmap(0, count * sizeof(Vertex) * 4);
 
-        BatchedDrawCommand command {};
-        command.format        = CommonFormat::XYf_STf_RGBAf;
-        command.indexMode     = TRIANGLEINDEX_QUADS;
-        command.texture       = this->texture;
-        command.vertexCount   = count * 4;
-        command.pushTransform = false;
-        command.shaderType    = SHADER_TYPE;
+        GraphicsBase::TempTransform transform(graphics, matrix);
 
-        auto data = graphics->requestBatchedDraw(command);
+        BufferBindings vertexBuffers;
+        vertexBuffers.set(0, this->buffer, 0);
 
-        Vertex* stream = (Vertex*)data.stream;
-        std::memcpy(stream, this->buffer.data(), command.vertexCount * sizeof(Vertex));
-
-        auto& m_transform = graphics->getTransform();
-        Matrix4 translated(m_transform, matrix);
-
-        translated.transformXY(stream, this->buffer.data(), command.vertexCount);
+        graphics->drawQuads(0, count, this->vertexAttributesID, vertexBuffers, this->texture);
     }
 } // namespace love
