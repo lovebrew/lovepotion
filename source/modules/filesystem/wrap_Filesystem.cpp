@@ -16,33 +16,25 @@ using namespace love;
 #define instance() (Module::getInstance<Filesystem>(Module::M_FILESYSTEM))
 
 #include <algorithm>
+#include <map>
 #include <string>
-
-// clang-format off
-STRINGMAP_DECLARE(CtrPathTranslations, std::string_view,
-    { ".png",  ".t3x"   },
-    { ".jpg",  ".t3x"   },
-    { ".jpeg", ".t3x"   },
-    { ".ttf",  ".bcfnt" },
-    { ".otf",  ".bcfnt" }
-);
-// clang-format on
 
 static std::filesystem::path translatePath(const std::filesystem::path& input)
 {
-    if constexpr (!Console::is(Console::CTR))
+    if (!Console::is(Console::CTR))
         return input;
 
-    auto fileExtension = input.extension();
-    std::string_view extension { fileExtension.c_str() };
-    std::string_view ext {};
+    static constexpr auto textures = { ".png", ".jpg", ".jpeg" };
+    static constexpr auto fonts    = { ".ttf", ".otf" };
 
-    if (!getConstant(extension, ext))
-        return input;
+    auto path = std::filesystem::path(input);
 
-    auto path = input;
+    if (std::find(textures.begin(), textures.end(), input.extension()) != textures.end())
+        return path.replace_extension(".t3x");
+    else if (std::find(fonts.begin(), fonts.end(), input.extension()) != fonts.end())
+        return path.replace_extension(".bcfnt");
 
-    return path.replace_extension(ext);
+    return path;
 }
 
 int Wrap_Filesystem::init(lua_State* L)
