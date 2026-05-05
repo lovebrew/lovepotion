@@ -1,9 +1,27 @@
+#include "common/Module.hpp"
+#include "common/debug.hpp"
 #include "driver/EventQueue.hpp"
 
 #include "modules/joystick/JoystickModule.hpp"
 
 namespace love
 {
+#if defined(__WIIU__)
+    #include <padscore/wpad.h>
+    void extensionCallback(WPADChan channel, WPADExtensionType extension)
+    {
+        auto* instance = Module::getInstance<JoystickModule>(Module::M_JOYSTICK);
+        LOG("ExtensionCallback: channel=%d, extension=%d", channel, extension);
+        instance->addJoystick(channel + 1);
+    }
+
+    void connectCallback(WPADChan channel, WPADError error)
+    {
+        LOG("ConnectCallback: channel=%d, error=%d", channel, error);
+        EventQueue::getInstance().sendJoystickStatus(false, channel + 1);
+    }
+#endif
+
     JoystickModule::JoystickModule() : Module(M_JOYSTICK, "love.joystick")
     {
         for (size_t index = 0; index < (size_t)joystick::getJoystickCount(); index++)
@@ -11,6 +29,14 @@ namespace love
             this->addJoystick(index);
             EventQueue::getInstance().sendJoystickStatus(true, index);
         }
+
+#if defined(__WIIU__)
+        for (size_t channel = 0; channel < 4; channel++)
+            WPADSetExtensionCallback((WPADChan)channel, extensionCallback);
+
+        for (size_t channel = 0; channel < 4; channel++)
+            WPADSetConnectCallback((WPADChan)channel, connectCallback);
+#endif
     }
 
     JoystickModule::~JoystickModule()
@@ -75,7 +101,8 @@ namespace love
                 break;
             }
         }
-
+        LOG("addJoystick: deviceId=%lld, guid=%s, reused=%d", deviceId, guid.c_str(), reused);
+        LOG("addJoystick: %p", joystick);
         if (!joystick)
         {
             joystick = love::joystick::openJoystick(this->joysticks.size());
@@ -86,18 +113,25 @@ namespace love
 
         if (!joystick->open(deviceId))
             return nullptr;
-
-        /*
-        ** LÖVE checks for if multiple instances of a joystick
-        ** are in the active list, and if so, it removes the
-        ** one we just newly constructed and returns the active one.
-        **
-        ** We don't care. It shouldn't be possible.
-        */
+        LOG("addJoystick: open success, handle=%p", (void*)joystick->getHandle());
+        for (auto* activeStick : this->activeSticks)
+        {
+            if (joystick->getHandle() == activeStick->getHandle())
+            {
+                joystick->close();
+                if (!reused)
+                {
+                    this->joysticks.remove(joystick);
+                    joystick->release();
+                }
+                LOG("addJoystick: handle conflict, returning active stick");
+                return activeStick;
+            }
+        }
 
         if (joystick->isGamepad())
             this->recentGamepadGUIDs[joystick->getGUID()] = true;
-
+        LOG("addJoystick: new joystick, handle=%p", (void*)joystick->getHandle());
         this->activeSticks.push_back(joystick);
         return joystick;
     }

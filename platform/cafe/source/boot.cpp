@@ -15,6 +15,7 @@
 #include <coreinit/thread.h>
 #include <coreinit/time.h>
 
+#include <padscore/wpad.h>
 #include <vpad/input.h>
 #include <whb/log.h>
 #include <whb/log_console.h>
@@ -128,6 +129,7 @@ namespace love
 
             WPADEnableWiiRemote(true);
             WPADEnableURCC(true);
+            WPADEnableMotor(true);
 
             Console::setMainCoreId(OSGetCoreId());
 

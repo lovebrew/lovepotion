@@ -1,18 +1,17 @@
 #include "common/Exception.hpp"
-#include "common/config.hpp"
-#include "common/debug.hpp"
-#include "common/int.hpp"
 
 #include "modules/audio/dsp/Audio.hpp"
 
 #include "driver/DigitalSound.tcc"
-#include "driver/audio/DigitalSoundMix.hpp"
 
 #include <coreinit/cache.h>
 #include <coreinit/event.h>
+#include <coreinit/thread.h>
+#include <coreinit/time.h>
 #include <sndcore2/core.h>
 
 #include <cstring>
+#include <sndcore2/voice.h>
 
 extern "C"
 {
@@ -51,15 +50,155 @@ namespace love
             AXInitWithParams(&AX_INIT_PARAMS);
             s_Init = AXIsInit();
 
-            OSInitEvent(&s_Event, false, OS_EVENT_MODE_AUTO);
-            AXRegisterAppFrameCallback(audioCallback);
+            // OSInitEvent(&s_Event, false, OS_EVENT_MODE_AUTO);
+            // AXRegisterAppFrameCallback(audioCallback);
 
             return s_Init;
         }
 
+        class BufferChannel
+        {
+          public:
+            BufferChannel() :
+                currentBuffer(nullptr),
+                channels(2),
+                bitdepth(16),
+                samplerate(48000),
+                volume(1.0f),
+                paused(false)
+            {}
+
+            void reset(int samplerate, int channels, int bitdepth, float volume)
+            {
+                this->channels = channels;
+                this->bitdepth = bitdepth;
+                this->setSampleRate(samplerate);
+                this->setVolume(volume);
+            }
+
+            float getVolume() const
+            {
+                if (this->currentBuffer)
+                    return this->currentBuffer->getVolume();
+
+                return this->volume;
+            }
+
+            void setVolume(float volume)
+            {
+                if (this->currentBuffer)
+                    this->currentBuffer->setVolume(volume);
+
+                this->volume = volume;
+            }
+
+            size_t getSampleOffset() const
+            {
+                if (this->currentBuffer)
+                    return this->currentBuffer->getSampleCount();
+
+                return 0;
+            }
+
+            void setSampleRate(int samplerate)
+            {
+                if (this->currentBuffer)
+                    this->currentBuffer->setSampleRate(samplerate);
+
+                this->samplerate = samplerate;
+            }
+
+            void setFormat(AX_VOICE_FORMAT format)
+            {
+                if (this->currentBuffer)
+                    this->currentBuffer->setFormat(format);
+            }
+
+            void setStatus(AXVoiceState status)
+            {
+                if (this->currentBuffer)
+                    this->currentBuffer->setStatus(status);
+            }
+
+            void update()
+            {
+                if (this->currentBuffer && !this->currentBuffer->isFinished())
+                    return;
+
+                if (this->buffers.empty())
+                    return;
+
+                if (this->paused)
+                    return;
+
+                this->currentBuffer = this->buffers.front();
+                this->buffers.pop();
+
+                this->currentBuffer->setPaused(paused);
+                this->currentBuffer->setStatus(AX_VOICE_STATE_PLAYING);
+            }
+
+            void setPaused(bool paused)
+            {
+                if (this->currentBuffer)
+                    this->currentBuffer->setPaused(paused);
+
+                this->paused = paused;
+            }
+
+            void addBuffer(Buffer* buffer)
+            {
+                this->buffers.push(buffer);
+
+                buffer->setSampleRate(this->samplerate);
+                buffer->setVolume(this->volume);
+            }
+
+            bool isPaused() const
+            {
+                if (this->currentBuffer)
+                    return this->currentBuffer->isPaused();
+
+                return this->paused;
+            }
+
+            void stop()
+            {
+                if (this->currentBuffer)
+                    this->currentBuffer->setStatus(AX_VOICE_STATE_STOPPED);
+
+                this->currentBuffer = nullptr;
+                while (!this->buffers.empty())
+                    this->buffers.pop();
+            }
+
+            bool isPlaying() const
+            {
+                return this->currentBuffer && !this->currentBuffer->isFinished() && !this->isPaused();
+            }
+
+          private:
+            std::queue<Buffer*> buffers;
+            Buffer* currentBuffer;
+
+            int channels;
+            int bitdepth;
+            int samplerate;
+            float volume;
+            bool paused;
+        };
+
+        static std::array<BufferChannel, Channel::MAX_CHANNELS> s_Channels;
+
         void Device::update()
         {
-            OSWaitEvent(&s_Event);
+            if (!s_Init)
+                return;
+
+            for (auto& channel : s_Channels)
+                channel.update();
+
+            OSSleepTicks(OSMillisecondsToTicks(3));
         }
 
         void Device::close()
@@ -67,7 +206,7 @@ namespace love
             if (!s_Init)
                 return;
 
-            AXDeregisterAppFrameCallback(audioCallback);
+            // AXDeregisterAppFrameCallback(audioCallback);
             s_Init = false;
             AXQuit();
         }
@@ -271,109 +410,6 @@ namespace love
         // #endregion
 
         // #region Channel
-
-        class BufferChannel
-        {
-          public:
-            void reset(int samplerate, int channels, int bitdepth, float volume)
-            {
-                this->channels = channels;
-                this->bitdepth = bitdepth;
-                this->setSampleRate(samplerate);
-                this->setVolume(volume);
-            }
-
-            float getVolume() const
-            {
-                if (this->buffer)
-                    return this->buffer->getVolume();
-
-                return this->volume;
-            }
-
-            void setVolume(float volume)
-            {
-                if (this->buffer)
-                    this->buffer->setVolume(volume);
-
-                this->volume = volume;
-            }
-
-            size_t getSampleOffset() const
-            {
-                if (this->buffer)
-                    return this->buffer->getSampleCount();
-
-                return 0;
-            }
-
-            void setSampleRate(int samplerate)
-            {
-                if (this->buffer)
-                    this->buffer->setSampleRate(samplerate);
-
-                this->samplerate = samplerate;
-            }
-
-            void setFormat(AX_VOICE_FORMAT format)
-            {
-                if (this->buffer)
-                    this->buffer->setFormat(format);
-            }
-
-            void setStatus(AXVoiceState status)
-            {
-                if (this->buffer)
-                    this->buffer->setStatus(status);
-            }
-
-            void setPaused(bool paused)
-            {
-                if (this->buffer)
-                    this->buffer->setPaused(paused);
-
-                this->paused = paused;
-            }
-
-            void addBuffer(Buffer* buffer)
-            {
-                this->buffer = buffer;
-
-                buffer->setSampleRate(this->samplerate);
-                buffer->setVolume(this->volume);
-                buffer->setStatus(AX_VOICE_STATE_PLAYING);
-                buffer->setPaused(false);
-            }
-
-            bool isPaused() const
-            {
-                if (this->buffer)
-                    return this->buffer->isPaused();
-
-                return this->paused;
-            }
-
-            void stop()
-            {
-                if (this->buffer)
-                    this->buffer->setStatus(AX_VOICE_STATE_STOPPED);
-            }
-
-            bool isPlaying() const
-            {
-                return this->buffer && !this->buffer->isFinished() && !this->isPaused();
-            }
-
-          private:
-            Buffer* buffer;
-            int channels;
-            int bitdepth;
-            int samplerate;
-            float volume;
-            bool paused;
-        };
-
-        static std::array<BufferChannel, Channel::MAX_CHANNELS> s_Channels;
 
         static AX_VOICE_FORMAT getChannelFormat(AudioBase::AudioFormat format)
         {

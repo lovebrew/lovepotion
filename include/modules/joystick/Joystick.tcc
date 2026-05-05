@@ -127,6 +127,8 @@ namespace love
             return this->gamepadType;
         }
 
+        virtual ptrdiff_t getHandle() const = 0;
+
         int getInstanceID() const
         {
             return this->instanceId;

@@ -3,8 +3,10 @@
 #include "common/Vector.hpp"
 
 #include "modules/joystick/Joystick.tcc"
+#include "utility/guid.hpp"
 
 #include <padscore/kpad.h>
+#include <padscore/wpad.h>
 
 namespace love
 {
@@ -38,6 +40,11 @@ namespace love
             virtual bool isUp(std::span<GamepadButton> buttons) const override;
 
             virtual bool isAxisChanged(GamepadAxis axis) const override;
+
+            virtual ptrdiff_t getHandle() const override
+            {
+                return (ptrdiff_t)std::addressof(this->status);
+            }
 
             virtual void setPlayerIndex(int index) override;
 
@@ -114,17 +121,25 @@ namespace love
             // #endregion
 
             // #region Classic
+            // clang-format off
+            ENUMMAP_DECLARE(GamepadTypes, WPADExtensionType, GamepadType,
+                { WPAD_EXT_CORE,           GAMEPAD_TYPE_NINTENDO_WII_REMOTE         },
+                { WPAD_EXT_CLASSIC,        GAMEPAD_TYPE_NINTENDO_WII_CLASSIC        },
+                { WPAD_EXT_NUNCHUK,        GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK },
+                { WPAD_EXT_PRO_CONTROLLER, GAMEPAD_TYPE_NINTENDO_WII_U_PRO          }
+            );
+
+
             enum ClassicAxis
             {
-                CLASSIC_AXIS_LEFTX =
-                    WPAD_CLASSIC_STICK_L_EMULATION_LEFT | WPAD_CLASSIC_STICK_R_EMULATION_RIGHT,
+                CLASSIC_AXIS_LEFTX = WPAD_CLASSIC_STICK_L_EMULATION_LEFT | WPAD_CLASSIC_STICK_L_EMULATION_RIGHT,
                 CLASSIC_AXIS_LEFTY = WPAD_CLASSIC_STICK_L_EMULATION_UP | WPAD_CLASSIC_STICK_L_EMULATION_DOWN,
-                CLASSIC_AXIS_RIGHTX =
-                    WPAD_CLASSIC_STICK_R_EMULATION_LEFT | WPAD_CLASSIC_STICK_R_EMULATION_RIGHT,
-                CLASSIC_AXIS_RIGHTY = WPAD_CLASSIC_STICK_R_EMULATION_UP | WPAD_CLASSIC_STICK_R_EMULATION_DOWN
+                CLASSIC_AXIS_RIGHTX = WPAD_CLASSIC_STICK_R_EMULATION_LEFT | WPAD_CLASSIC_STICK_R_EMULATION_RIGHT,
+                CLASSIC_AXIS_RIGHTY = WPAD_CLASSIC_STICK_R_EMULATION_UP | WPAD_CLASSIC_STICK_R_EMULATION_DOWN,
+                CLASSIC_AXIS_TRIGGERLEFT = WPAD_CLASSIC_BUTTON_ZL,
+                CLASSIC_AXIS_TRIGGERRIGHT = WPAD_CLASSIC_BUTTON_ZR,
             };
 
-            // clang-format off
             ENUMMAP_DECLARE(ClassicButtons, GamepadButton, WPADClassicButton,
                 { GAMEPAD_BUTTON_A, WPAD_CLASSIC_BUTTON_A },
                 { GAMEPAD_BUTTON_B, WPAD_CLASSIC_BUTTON_B },
@@ -144,10 +159,12 @@ namespace love
             );
 
             ENUMMAP_DECLARE(ClassicAxes, GamepadAxis, ClassicAxis,
-                { GAMEPAD_AXIS_LEFTX,  CLASSIC_AXIS_LEFTX  },
-                { GAMEPAD_AXIS_LEFTY,  CLASSIC_AXIS_LEFTY  },
-                { GAMEPAD_AXIS_RIGHTX, CLASSIC_AXIS_RIGHTX },
-                { GAMEPAD_AXIS_RIGHTY, CLASSIC_AXIS_RIGHTY }
+                { GAMEPAD_AXIS_LEFTX,        CLASSIC_AXIS_LEFTX        },
+                { GAMEPAD_AXIS_LEFTY,        CLASSIC_AXIS_LEFTY        },
+                { GAMEPAD_AXIS_RIGHTX,       CLASSIC_AXIS_RIGHTX       },
+                { GAMEPAD_AXIS_RIGHTY,       CLASSIC_AXIS_RIGHTY       },
+                { GAMEPAD_AXIS_TRIGGERLEFT,  CLASSIC_AXIS_TRIGGERLEFT  },
+                { GAMEPAD_AXIS_TRIGGERRIGHT, CLASSIC_AXIS_TRIGGERRIGHT }
             );
             // clang-format on
             // #endregion
@@ -193,24 +210,41 @@ namespace love
             // #endregion
 
           private:
-            template<typename T>
-            bool isButtonDown(std::span<Joystick::GamepadButton> buttons) const;
+            template<typename ButtonType>
+            bool checkButtonImpl(std::span<Joystick::GamepadButton> buttons, uint32_t field) const
+            {
+                ButtonType result;
 
-            template<typename T>
-            bool isButtonUp(std::span<Joystick::GamepadButton> buttons) const;
+                for (Joystick::GamepadButton button : buttons)
+                {
+                    if (!Joystick::getConstant(button, result))
+                        continue;
 
-            template<typename T>
-            bool isAxisValueChanged(GamepadAxis axis) const;
+                    if (field & result)
+                        return true;
+                }
+
+                return false;
+            }
+
+            template<typename Button>
+            bool isAxisValueChangedImpl(GamepadAxis axis, uint32_t held, uint32_t released) const
+            {
+                Button result;
+
+                if (!Joystick::getConstant(axis, result))
+                    return false;
+
+                if ((held & result) || (released & result))
+                    return true;
+
+                return false;
+            }
 
             KPADStatus status;
             KPADError error;
 
-            struct State
-            {
-                uint32_t pressed;
-                uint32_t released;
-                uint32_t held;
-            } state;
+            WPADExtensionType extension;
         };
     } // namespace kpad
 } // namespace love

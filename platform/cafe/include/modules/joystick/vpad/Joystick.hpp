@@ -66,7 +66,12 @@ namespace love
 
             virtual std::vector<float> getSensorData(Sensor::SensorType type) const override;
 
-            PowerType getPowerInfo(int& percent) const override;
+            virtual ptrdiff_t getHandle() const override
+            {
+                return (ptrdiff_t)std::addressof(this->status);
+            }
+
+            virtual PowerType getPowerInfo(int& percent) const override;
 
             ConnectionType getConnectionState() const override;
 

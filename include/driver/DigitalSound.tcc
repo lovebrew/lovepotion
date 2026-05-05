@@ -28,6 +28,7 @@ struct AudioBuf
     int channels;
     bool paused;
     AXVoiceFormat format;
+    mutable bool started;
 };
     #include "common/Exception.hpp"
     #include <string.h>

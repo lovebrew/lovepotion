@@ -1,6 +1,7 @@
 #include "modules/joystick/JoystickModule.hpp"
 
 #include <padscore/kpad.h>
+#include <padscore/wpad.h>
 #include <vpad/input.h>
 
 #include "modules/joystick/kpad/Joystick.hpp"

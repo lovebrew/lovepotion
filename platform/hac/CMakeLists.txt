@@ -4,6 +4,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
     __CONSOLE__="switch" __OS__="horizon"
     __RENDERER_NAME__="deko3d" __RENDERER_VERSION__="0.5.0"
     __RENDERER_VENDOR__="devkitPro" __RENDERER_DEVICE__="NVIDIA Tegra X1"
+    LOVE_SIMD_NEON
 )
 
 if (Patch_FOUND)
