@@ -32,7 +32,7 @@ namespace love
         if (!this->isRecording())
             return nullptr;
 
-        auto* data = SOUND()->newSoundData(samples, this->sampleRate, this->bitDepth, this->channels);
+        auto* data = SOUND()->newSoundData(this->samples, this->sampleRate, this->bitDepth, this->channels);
 
         if (!data)
             return nullptr;

@@ -19,6 +19,7 @@ struct AudioBuf
 {
     std::array<AXVoice*, 2> voices;
     int16_t* data_pcm16;
+
     size_t nsamples;
     size_t size;
     int samplerate;
@@ -26,7 +27,10 @@ struct AudioBuf
     bool looping;
     int channels;
     bool paused;
+    AXVoiceFormat format;
 };
+    #include "common/Exception.hpp"
+    #include <string.h>
 #endif
 
 namespace love
@@ -60,10 +64,6 @@ namespace love
 
             Buffer(const size_t size, int channels);
 
-#if defined(__WIIU__)
-            Buffer clone();
-#endif
-
             void destroy();
 
             bool isFinished() const;
@@ -88,6 +88,11 @@ namespace love
             bool isPaused() const;
 
             void setPaused(bool paused);
+
+            void setFormat(AXVoiceFormat format)
+            {
+                this->buffer.format = format;
+            }
 #endif
 
             AudioBuf* getHandle()

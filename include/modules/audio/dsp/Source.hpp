@@ -34,6 +34,11 @@ namespace love
 
                 audio::Buffer& getView(const size_t samples, int channels);
 
+                audio::Buffer& getHandle()
+                {
+                    return this->buffer;
+                }
+
               private:
                 size_t size;
                 size_t nsamples;

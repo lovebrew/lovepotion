@@ -29,7 +29,7 @@ namespace love
             audio::Buffer& StaticDataBuffer::getView(const size_t offset, int channels)
             {
 #if defined(__WIIU__)
-                this->view = this->buffer.clone();
+                this->view = audio::Buffer(this->size, channels);
 #endif
                 const auto samples = this->nsamples - (offset / channels);
                 this->view.prepare(this->buffer.getData() + offset, this->size, samples, false);
@@ -661,8 +661,12 @@ namespace love
                 {
                     case TYPE_STATIC:
                     {
+#if defined(__WIIU__)
+                        audio::Channel::addBuffer(this->channel, this->staticBuffer->getHandle());
+#else
                         auto& buffer = this->staticBuffer->getView(this->offsetSamples, this->channels);
                         audio::Channel::addBuffer(this->channel, buffer);
+#endif
 
                         break;
                     }
@@ -739,7 +743,7 @@ namespace love
                         audio::Channel::addBuffer(this->channel, buffer);
                 }
 
-                bool success = false;
+                bool success = true;
                 if (this->sourceType == TYPE_STREAM)
                 {
                     this->valid = true;
