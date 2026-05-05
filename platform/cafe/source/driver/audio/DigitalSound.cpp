@@ -33,6 +33,9 @@ namespace love
         };
         // clang-format on
 
+        OSEvent s_Event;
+        volatile bool s_Init = false;
+
         static void audioCallback()
         {
             if (!s_Init)
@@ -40,9 +43,6 @@ namespace love
 
             OSSignalEvent(&s_Event);
         }
-
-        OSEvent s_Event;
-        volatile bool s_Init = false;
 
         // # region Device
 
