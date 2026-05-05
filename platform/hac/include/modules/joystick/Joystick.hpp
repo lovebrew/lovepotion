@@ -61,6 +61,11 @@ namespace love
 
         virtual ConnectionType getConnectionState() const override;
 
+        virtual ptrdiff_t getHandle() const override
+        {
+            return (ptrdiff_t)std::addressof(this->state);
+        }
+
         using JoystickBase::getConstant;
 
         virtual void update()
