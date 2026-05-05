@@ -6,7 +6,6 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
     __CONSOLE__="3ds" __OS__="horizon"
     __RENDERER_NAME__="citro3d" __RENDERER_VERSION__="1.7.0"
     __RENDERER_VENDOR__="devkitPro" __RENDERER_DEVICE__="DMP PICA200"
-    LOVE_SIMD_NEON
 )
 
 if (Patch_FOUND)
