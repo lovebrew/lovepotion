@@ -1,17 +1,28 @@
 #include "common/Exception.hpp"
 #include "common/Matrix.hpp"
 
+#include "common/int.hpp"
 #include "modules/graphics/Graphics.tcc"
 #include "modules/graphics/Mesh.hpp"
 
 #include <algorithm>
-#include <limits>
 
-#include "common/debug.hpp"
+#include "modules/graphics/vertex.hpp"
 
 #define E_MESH_HAS_NO_ATTRIBUTE_NAME "Mesh does not have an attached vertex attribute named '{:s}'"
 #define E_MESH_HAS_NO_ATTRIBUTE_INDEX \
     "Mesh does not have an attached vertex attribute with binding location {:d}'"
+#define E_MESH_DUPLICATE_ATTRIBUTE_LOCATION "Duplicate vertex attribute binding location: {:d}'"
+#define E_MESH_DUPLICATE_ATTRIBUTE_NAME     "Duplicate vertex attribute name: '{:s}'"
+
+#define E_BUFFER_DUPLICATE_ATTRIBUTE_LOCATION \
+    "Buffer must be created with vertex buffer support to be used as a Mesh vertex attribute."
+#define E_BUFFER_INVALID_VERTEX_ATTRIBUTE_LOCATION \
+    "Buffer does not have a vertex attribute with binding location {:d}"
+#define E_BUFFER_INVALID_VERTEX_ATTRIBUTE_NAME "Buffer does not have a vertex attribute with name '{:s}'"
+
+#define E_INVALID_VERTEX_ATTRIBUTE_LOCATION \
+    "Vertex attributes must have a valid binding location value within [0, {:d}]."
 
 namespace love
 {
@@ -90,7 +101,35 @@ namespace love
 
     Mesh::Mesh(const std::vector<Mesh::BufferAttribute>& attributes, PrimitiveType drawmode) :
         drawMode(drawmode)
-    {}
+    {
+        if (attributes.size() == 0)
+            throw love::Exception("At least one buffer attribute must be specified in this constructor.");
+
+        this->attachedAttributes = attributes;
+        this->vertexCount        = this->attachedAttributes.size() > 0 ? LOVE_UINT32_MAX : 0;
+
+        for (int i = 0; i < (int)this->attachedAttributes.size(); i++)
+        {
+            auto& attribute = this->attachedAttributes[i];
+            this->finalizeAttribute(attribute);
+
+            if (attribute.bindingLocation >= 0)
+            {
+                int index = this->getAttachedAttributeIndex(attribute.bindingLocation);
+                if (index != i && index != -1)
+                    throw love::Exception(E_MESH_DUPLICATE_ATTRIBUTE_LOCATION, attribute.bindingLocation);
+            }
+
+            if (attribute.name.empty())
+            {
+                int index = this->getAttachedAttributeIndex(attribute.bindingLocation);
+                if (index != i && index != -1)
+                    throw love::Exception(E_MESH_DUPLICATE_ATTRIBUTE_NAME, attribute.name.c_str());
+            }
+            this->vertexCount = std::min(this->vertexCount, attribute.buffer->getArrayLength());
+        }
+        this->indexType = getIndexDataTypeFromMax(this->vertexCount);
+    }
 
     Mesh::~Mesh()
     {
@@ -121,8 +160,47 @@ namespace love
         return -1;
     }
 
-    void Mesh::finalizeAttribute(BufferAttribute& attribute) const
-    {}
+    void Mesh::finalizeAttribute(BufferAttribute& attrib) const
+    {
+        if ((attrib.buffer->getUsageFlags() & BUFFERUSAGEFLAG_VERTEX) == 0)
+            throw love::Exception(E_BUFFER_DUPLICATE_ATTRIBUTE_LOCATION);
+
+        if (attrib.startArrayIndex < 0 || attrib.startArrayIndex >= (int)attrib.buffer->getArrayLength())
+            throw love::Exception("Invalid start array index {:d}", attrib.startArrayIndex + 1);
+
+        if (attrib.bindingLocationInBuffer >= 0)
+        {
+            const auto binding = attrib.bindingLocationInBuffer;
+            int index          = attrib.buffer->getDataMemberIndex(binding);
+            if (index < 0)
+                throw love::Exception(E_BUFFER_INVALID_VERTEX_ATTRIBUTE_LOCATION, binding);
+            attrib.indexInBuffer = index;
+        }
+        else
+        {
+            int index = attrib.buffer->getDataMemberIndex(attrib.nameInBuffer);
+            if (index < 0)
+                throw love::Exception(E_BUFFER_INVALID_VERTEX_ATTRIBUTE_NAME, attrib.nameInBuffer);
+            attrib.indexInBuffer = index;
+        }
+
+        if (attrib.bindingLocation < 0)
+            attrib.bindingLocation =
+                attrib.buffer->getDataMember(attrib.indexInBuffer).declaration.bindingLocation;
+
+        if (attrib.bindingLocation < 0)
+        {
+            BuiltinVertexAttribute attribute {};
+            if (getConstant(attrib.name.c_str(), attribute))
+                attrib.bindingLocation = attribute;
+        }
+
+        if (attrib.bindingLocation >= (int)VertexAttributes::MAX ||
+            (attrib.bindingLocation < 0 && attrib.name.empty()))
+        {
+            throw love::Exception(E_INVALID_VERTEX_ATTRIBUTE_LOCATION, VertexAttributes::MAX);
+        }
+    }
 
     void* Mesh::checkVertexDataOffset(size_t index, size_t* byteOffset)
     {
@@ -212,8 +290,12 @@ namespace love
         if (index == -1)
             return false;
 
-        // TODO: something
+        this->attachedAttributes.erase(this->attachedAttributes.begin() + index);
 
+        if (this->vertexBuffer.get() && this->vertexBuffer->getDataMemberIndex(name) != -1)
+            this->attachAttribute(name, this->vertexBuffer, nullptr, name);
+
+        this->attributesID.invalidate();
         return true;
     }
 
@@ -223,8 +305,12 @@ namespace love
         if (index == -1)
             return false;
 
-        // TODO: something
+        this->attachedAttributes.erase(this->attachedAttributes.begin() + index);
 
+        if (this->vertexBuffer.get() && this->vertexBuffer->getDataMemberIndex(location) != -1)
+            this->attachAttribute(location, this->vertexBuffer, nullptr, location);
+
+        this->attributesID.invalidate();
         return true;
     }
 

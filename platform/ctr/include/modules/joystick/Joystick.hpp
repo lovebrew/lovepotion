@@ -59,6 +59,11 @@ namespace love
 
         virtual std::vector<float> getSensorData(Sensor::SensorType type) const override;
 
+        virtual ptrdiff_t getHandle() const override
+        {
+            return (ptrdiff_t)this->handle;
+        }
+
         virtual PowerType getPowerInfo(int& percent) const override;
 
         virtual ConnectionType getConnectionState() const override;
@@ -110,6 +115,7 @@ namespace love
           { GAMEPAD_TYPE_NEW_NINTENDO_2DS_XL, CFG_MODEL_N2DSXL }
         );
         // clang-format on
+        void* handle;
 
         using JoystickBase::getConstant;
     };

@@ -5,12 +5,8 @@
 #include "modules/graphics/Graphics.hpp"
 #include "modules/graphics/vertex.hpp"
 
-#include <algorithm>
 #include <cstdlib>
 #include <cstring>
-#include <limits>
-
-#include "common/debug.hpp"
 
 namespace love
 {

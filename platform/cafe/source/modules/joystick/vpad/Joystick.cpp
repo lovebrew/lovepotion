@@ -209,10 +209,10 @@ namespace love
 
         bool Joystick::isVibrationSupported() const
         {
-            return false;
+            return true;
         }
 
-        bool Joystick::setVibration(float, float, float)
+        bool Joystick::setVibration(float left, float right, float duration)
         {
             return false;
         }

@@ -129,11 +129,10 @@ namespace love
                 { WPAD_EXT_PRO_CONTROLLER, GAMEPAD_TYPE_NINTENDO_WII_U_PRO          }
             );
 
-
             enum ClassicAxis
             {
-                CLASSIC_AXIS_LEFTX = WPAD_CLASSIC_STICK_L_EMULATION_LEFT | WPAD_CLASSIC_STICK_L_EMULATION_RIGHT,
-                CLASSIC_AXIS_LEFTY = WPAD_CLASSIC_STICK_L_EMULATION_UP | WPAD_CLASSIC_STICK_L_EMULATION_DOWN,
+                CLASSIC_AXIS_LEFTX  = WPAD_CLASSIC_STICK_L_EMULATION_LEFT | WPAD_CLASSIC_STICK_L_EMULATION_RIGHT,
+                CLASSIC_AXIS_LEFTY  = WPAD_CLASSIC_STICK_L_EMULATION_UP | WPAD_CLASSIC_STICK_L_EMULATION_DOWN,
                 CLASSIC_AXIS_RIGHTX = WPAD_CLASSIC_STICK_R_EMULATION_LEFT | WPAD_CLASSIC_STICK_R_EMULATION_RIGHT,
                 CLASSIC_AXIS_RIGHTY = WPAD_CLASSIC_STICK_R_EMULATION_UP | WPAD_CLASSIC_STICK_R_EMULATION_DOWN,
                 CLASSIC_AXIS_TRIGGERLEFT = WPAD_CLASSIC_BUTTON_ZL,
@@ -245,6 +244,12 @@ namespace love
             KPADError error;
 
             WPADExtensionType extension;
+
+            struct WPADRumble
+            {
+                float duration;
+                float start;
+            } rumble;
         };
     } // namespace kpad
 } // namespace love

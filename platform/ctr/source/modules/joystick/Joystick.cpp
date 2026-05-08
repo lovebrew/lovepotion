@@ -37,12 +37,16 @@ namespace love
             this->name = "Unknown";
 
         this->joystickType = JOYSTICK_TYPE_GAMEPAD;
+        this->handle       = std::malloc(1);
 
         return this->isConnected();
     }
 
     void Joystick::close()
     {
+        std::free(this->handle);
+        this->handle = nullptr;
+
         this->instanceId = -1;
     }
 

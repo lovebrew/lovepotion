@@ -1,6 +1,7 @@
 #include "common/Module.hpp"
 #include "common/debug.hpp"
 #include "driver/EventQueue.hpp"
+#include <padscore/kpad.h>
 
 #include "modules/joystick/JoystickModule.hpp"
 
@@ -32,10 +33,10 @@ namespace love
 
 #if defined(__WIIU__)
         for (size_t channel = 0; channel < 4; channel++)
+        {
             WPADSetExtensionCallback((WPADChan)channel, extensionCallback);
-
-        for (size_t channel = 0; channel < 4; channel++)
-            WPADSetConnectCallback((WPADChan)channel, connectCallback);
+            KPADSetConnectCallback((WPADChan)channel, connectCallback);
+        }
 #endif
     }
 

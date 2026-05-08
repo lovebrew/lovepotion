@@ -1,10 +1,15 @@
+#include <algorithm>
+#include <cstdint>
 #include <cstring>
+#include <limits>
+#include <padscore/kpad.h>
 #include <padscore/wpad.h>
 
 #include "common/debug.hpp"
-#include "common/screen.hpp"
+#include "common/int.hpp"
 
 #include "modules/joystick/kpad/Joystick.hpp"
+#include "modules/timer/Timer.hpp"
 #include "utility/guid.hpp"
 
 namespace love
@@ -26,9 +31,26 @@ namespace love
 
         void Joystick::update()
         {
+            WPADExtensionType type;
+            WPADProbe(WPADChan(this->id - 1), &type);
+
+            if (type != this->extension)
+            {
+                if (!Joystick::getConstant(type, this->gamepadType))
+                    this->gamepadType = GAMEPAD_TYPE_UNKNOWN;
+
+                this->guid = love::getGamepadGUID(this->gamepadType);
+                if (!Joystick::getConstant(this->gamepadType, this->name))
+                    this->name = "Unknown";
+
+                this->extension = type;
+            }
+
+            if ((Timer::getTime() * 1000.0f) >= this->rumble.start + this->rumble.duration)
+                this->setVibration();
+
             std::memset(&this->status, 0, sizeof(this->status));
             KPADReadEx(WPADChan(this->instanceId - 1), &this->status, 1, &this->error);
-            LOG("Joystick::update: instanceId=%d error=%d", this->instanceId, this->error);
         }
 
         bool Joystick::open(int64_t deviceId)
@@ -43,14 +65,14 @@ namespace love
 
             if (WPADProbe(WPADChan(index - 1), &this->extension) < 0)
                 return false;
-            LOG("Joystick::open: index=%d extension=%d", index, this->extension);
+
             if (!Joystick::getConstant(this->extension, this->gamepadType))
                 this->gamepadType = GAMEPAD_TYPE_UNKNOWN;
-            LOG("Joystick::open: gamepadType=%d", this->gamepadType);
+
             this->guid = love::getGamepadGUID(this->gamepadType);
             if (!Joystick::getConstant(this->gamepadType, this->name))
                 this->name = "Unknown";
-            LOG("Joystick::open: name=%s", this->name.data());
+
             this->joystickType = JOYSTICK_TYPE_GAMEPAD;
             this->update();
 
@@ -148,6 +170,35 @@ namespace love
             return axes;
         }
 
+        /*
+         * For some reason, Wiimote D-Pad also causes WPAD_NUNCHUK_STICK_EMULATION_* to be set
+         * Current logic does not affect the Classic Controller.
+         */
+        static KPADStatus checkNunchukData(const KPADStatus& status)
+        {
+            auto modified              = status;
+            const auto [nunchuk, core] = std::tie(status.nunchuk, status);
+
+            // clang-format off
+            auto handleStickEmulation = [](uint32_t& modified, uint32_t core, uint32_t nunchuk, WPADButton button) {
+                if (core & button && nunchuk & button)
+                    modified &= ~button;
+            };
+            // clang-format on
+
+            handleStickEmulation(modified.nunchuk.hold, core.hold, nunchuk.hold, WPAD_BUTTON_LEFT);
+            handleStickEmulation(modified.nunchuk.hold, core.hold, nunchuk.hold, WPAD_BUTTON_RIGHT);
+            handleStickEmulation(modified.nunchuk.hold, core.hold, nunchuk.hold, WPAD_BUTTON_UP);
+            handleStickEmulation(modified.nunchuk.hold, core.hold, nunchuk.hold, WPAD_BUTTON_DOWN);
+
+            handleStickEmulation(modified.nunchuk.release, core.release, nunchuk.release, WPAD_BUTTON_LEFT);
+            handleStickEmulation(modified.nunchuk.release, core.release, nunchuk.release, WPAD_BUTTON_RIGHT);
+            handleStickEmulation(modified.nunchuk.release, core.release, nunchuk.release, WPAD_BUTTON_UP);
+            handleStickEmulation(modified.nunchuk.release, core.release, nunchuk.release, WPAD_BUTTON_DOWN);
+
+            return modified;
+        }
+
         bool Joystick::isDown(std::span<Joystick::GamepadButton> buttons) const
         {
             if (!this->isConnected())
@@ -180,8 +231,8 @@ namespace love
                 case GAMEPAD_TYPE_NINTENDO_WII_REMOTE:
                     return this->checkButtonImpl<WPADButton>(buttons, this->status.hold);
                 case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK:
-                    return this->checkButtonImpl<WPADButton>(buttons, this->status.hold) ||
-                           this->checkButtonImpl<WPADNunchukButton>(buttons, this->status.nunchuk.hold);
+                    return this->checkButtonImpl<WPADButton>(buttons, this->status.release) ||
+                           this->checkButtonImpl<WPADNunchukButton>(buttons, this->status.nunchuk.release);
                 case GAMEPAD_TYPE_NINTENDO_WII_CLASSIC:
                     return this->checkButtonImpl<WPADClassicButton>(buttons, this->status.classic.hold);
                 case GAMEPAD_TYPE_NINTENDO_WII_U_PRO:
@@ -226,8 +277,11 @@ namespace love
                 case GAMEPAD_TYPE_NINTENDO_WII_REMOTE:
                     break;
                 case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK:
-                    return this->isAxisValueChangedImpl<NunchuckAxis>(axis, this->status.nunchuk.hold,
-                                                                      this->status.nunchuk.release);
+                {
+                    auto filtered               = checkNunchukData(this->status);
+                    const auto [held, released] = std::tie(filtered.nunchuk.hold, filtered.nunchuk.release);
+                    return this->isAxisValueChangedImpl<NunchuckAxis>(axis, held, released);
+                }
                 case GAMEPAD_TYPE_NINTENDO_WII_CLASSIC:
                     return this->isAxisValueChangedImpl<ClassicAxis>(axis, this->status.classic.hold,
                                                                      this->status.classic.release);
@@ -282,17 +336,45 @@ namespace love
 
         bool Joystick::isVibrationSupported() const
         {
-            return false;
+            return true;
         }
 
-        bool Joystick::setVibration(float, float, float)
+        bool Joystick::setVibration(float left, float right, float duration)
         {
-            return false;
+            left  = std::clamp(left, 0.0f, 1.0f);
+            right = std::clamp(right, 0.0f, 1.0f);
+
+            if (left == 0.0f && right == 0.0f)
+                return this->setVibration();
+
+            if (!this->isConnected())
+                return false;
+
+            uint32_t length = LOVE_UINT32_MAX;
+            if (duration >= 0.0f)
+            {
+                float maxDuration = (float)std::numeric_limits<uint32_t>::max() / 1000.0f;
+                length            = uint32_t(std::min(duration, maxDuration) * 1000);
+            }
+
+            WPADControlMotor(WPADChan(this->id - 1), true);
+
+            this->rumble.start    = Timer::getTime() * 1000.0f;
+            this->rumble.duration = length;
+
+            return true;
         }
 
         bool Joystick::setVibration()
         {
-            return false;
+            if (!this->isConnected())
+                return false;
+
+            WPADControlMotor(WPADChan(this->id - 1), false);
+            this->rumble.duration = 0;
+            this->rumble.start    = 0;
+
+            return true;
         }
 
         void Joystick::getVibration(float&, float&) const

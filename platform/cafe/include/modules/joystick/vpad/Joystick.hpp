@@ -130,6 +130,12 @@ namespace love
                 uint32_t released;
                 uint32_t held;
             } state;
+
+            struct VPadRumble
+            {
+                float start;
+                float duration;
+            } rumble;
         };
     } // namespace vpad
 } // namespace love
