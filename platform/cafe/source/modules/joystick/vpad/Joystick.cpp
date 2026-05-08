@@ -1,6 +1,12 @@
+#include <cmath>
 #include <cstring>
+#include <vpad/input.h>
+#include <vpadbase/base.h>
 
+#include "common/debug.hpp"
+#include "common/int.hpp"
 #include "modules/joystick/vpad/Joystick.hpp"
+#include "modules/timer/Timer.hpp"
 
 namespace love
 {
@@ -21,12 +27,28 @@ namespace love
 
         void Joystick::update()
         {
-            std::memset(&this->state, 0, sizeof(this->state));
-            VPADRead(VPAD_CHAN_0, &this->status, 1, &this->error);
+            const auto now = Timer::getTime();
 
-            const auto& status = this->status;
-            if (this->error != VPAD_READ_NO_SAMPLES)
-                this->state = { status.trigger, status.release, status.hold };
+            if (this->rumble.duration > 0)
+            {
+                if ((now * 1000.0f) >= this->rumble.start + this->rumble.duration)
+                    this->setVibration();
+                else
+                {
+                    uint8_t pattern[0x0F] {};
+                    std::memset(pattern, this->rumble.average, sizeof(pattern));
+
+                    // rumble lasts for a second, queue another rumble after that
+                    if (now - this->rumble.last >= 1.0)
+                    {
+                        VPADControlMotor(VPAD_CHAN_0, pattern, 120);
+                        this->rumble.last = now;
+                    }
+                }
+            }
+
+            std::memset(&this->status, 0, sizeof(this->status));
+            VPADRead(VPAD_CHAN_0, &this->status, 1, &this->error);
         }
 
         bool Joystick::open(int64_t deviceId)
@@ -117,11 +139,8 @@ namespace love
                 if (!Joystick::getConstant(button, result))
                     continue;
 
-                if (this->state.pressed & result)
-                {
-                    this->state.pressed ^= result;
+                if (this->status.trigger & result)
                     return true;
-                }
             }
 
             return false;
@@ -139,7 +158,7 @@ namespace love
                 if (!Joystick::getConstant(button, result))
                     continue;
 
-                if (this->state.held & result)
+                if (this->status.hold & result)
                     return true;
             }
 
@@ -158,11 +177,8 @@ namespace love
                 if (!Joystick::getConstant(button, result))
                     continue;
 
-                if (this->state.released & result)
-                {
-                    this->state.released ^= result;
+                if (this->status.release & result)
                     return true;
-                }
             }
 
             return false;
@@ -178,11 +194,8 @@ namespace love
             if (!Joystick::getConstant(axis, result))
                 return false;
 
-            if ((this->state.held & result) || (this->state.released & result))
-            {
-                this->state.held ^= result;
+            if ((this->status.hold & result) || (this->status.release & result))
                 return true;
-            }
 
             return false;
         }
@@ -214,16 +227,54 @@ namespace love
 
         bool Joystick::setVibration(float left, float right, float duration)
         {
-            return false;
+            left  = std::clamp(left, 0.0f, 1.0f);
+            right = std::clamp(right, 0.0f, 1.0f);
+
+            if (left == 0.0f && right == 0.0f)
+                return this->setVibration();
+
+            float strength = std::max(left, right) * 0xFF;
+
+            if (!this->isConnected())
+                return false;
+
+            this->setVibration();
+
+            uint32_t length = LOVE_UINT32_MAX;
+            if (duration >= 0.0f)
+            {
+                float maxDuration = (float)std::numeric_limits<uint32_t>::max() / 1000.0f;
+                length            = uint32_t(std::min(duration, maxDuration) * 1000);
+            }
+
+            uint8_t pattern[0x0F] {};
+            std::memset(pattern, strength, sizeof(pattern));
+
+            if (VPADControlMotor(VPAD_CHAN_0, pattern, 120) < 0)
+                return false;
+
+            const auto now        = Timer::getTime();
+            this->rumble.start    = now * 1000;
+            this->rumble.left     = left;
+            this->rumble.right    = right;
+            this->rumble.duration = length;
+            this->rumble.average  = strength;
+            this->rumble.last     = now;
+
+            return true;
         }
 
         bool Joystick::setVibration()
         {
-            return false;
+            VPADStopMotor(VPAD_CHAN_0);
+            return true;
         }
 
-        void Joystick::getVibration(float&, float&) const
-        {}
+        void Joystick::getVibration(float& left, float& right) const
+        {
+            left  = this->rumble.left;
+            right = this->rumble.right;
+        }
 
         Joystick::PowerType Joystick::getPowerInfo(int& percent) const
         {

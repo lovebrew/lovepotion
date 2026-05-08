@@ -17,7 +17,7 @@ namespace love
 
             ~Joystick();
 
-            virtual void update();
+            virtual void update() override;
 
             VPADStatus& getVPADStatus()
             {
@@ -124,17 +124,14 @@ namespace love
             VPADStatus status;
             VPADReadError error;
 
-            mutable struct State
-            {
-                uint32_t pressed;
-                uint32_t released;
-                uint32_t held;
-            } state;
-
             struct VPadRumble
             {
                 float start;
                 float duration;
+                float left;
+                float right;
+                float average;
+                double last;
             } rumble;
         };
     } // namespace vpad
