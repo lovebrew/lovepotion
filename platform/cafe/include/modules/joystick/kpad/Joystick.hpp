@@ -21,7 +21,7 @@ namespace love
 
             ~Joystick();
 
-            virtual void update();
+            virtual void update() override;
 
             virtual bool open(int64_t deviceId) override;
 

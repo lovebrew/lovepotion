@@ -12,13 +12,11 @@ namespace love
     void extensionCallback(WPADChan channel, WPADExtensionType extension)
     {
         auto* instance = Module::getInstance<JoystickModule>(Module::M_JOYSTICK);
-        LOG("ExtensionCallback: channel=%d, extension=%d", channel, extension);
         instance->addJoystick(channel + 1);
     }
 
     void connectCallback(WPADChan channel, WPADError error)
     {
-        LOG("ConnectCallback: channel=%d, error=%d", channel, error);
         EventQueue::getInstance().sendJoystickStatus(false, channel + 1);
     }
 #endif
@@ -102,8 +100,6 @@ namespace love
                 break;
             }
         }
-        LOG("addJoystick: deviceId=%lld, guid=%s, reused=%d", deviceId, guid.c_str(), reused);
-        LOG("addJoystick: %p", joystick);
         if (!joystick)
         {
             joystick = love::joystick::openJoystick(this->joysticks.size());
@@ -114,7 +110,7 @@ namespace love
 
         if (!joystick->open(deviceId))
             return nullptr;
-        LOG("addJoystick: open success, handle=%p", (void*)joystick->getHandle());
+
         for (auto* activeStick : this->activeSticks)
         {
             if (joystick->getHandle() == activeStick->getHandle())
@@ -125,14 +121,13 @@ namespace love
                     this->joysticks.remove(joystick);
                     joystick->release();
                 }
-                LOG("addJoystick: handle conflict, returning active stick");
                 return activeStick;
             }
         }
 
         if (joystick->isGamepad())
             this->recentGamepadGUIDs[joystick->getGUID()] = true;
-        LOG("addJoystick: new joystick, handle=%p", (void*)joystick->getHandle());
+
         this->activeSticks.push_back(joystick);
         return joystick;
     }

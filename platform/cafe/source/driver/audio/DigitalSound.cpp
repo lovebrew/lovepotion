@@ -32,16 +32,7 @@ namespace love
         };
         // clang-format on
 
-        OSEvent s_Event;
         volatile bool s_Init = false;
-
-        static void audioCallback()
-        {
-            if (!s_Init)
-                return;
-
-            OSSignalEvent(&s_Event);
-        }
 
         // # region Device
 
@@ -49,10 +40,6 @@ namespace love
         {
             AXInitWithParams(&AX_INIT_PARAMS);
             s_Init = AXIsInit();
-
-            // OSInitEvent(&s_Event, false, OS_EVENT_MODE_AUTO);
-            // AXRegisterAppFrameCallback(audioCallback);
-
             return s_Init;
         }
 
@@ -122,7 +109,7 @@ namespace love
 
             void update()
             {
-                if (this->currentBuffer && !this->currentBuffer->isFinished())
+                if (!this->currentBuffer)
                     return;
 
                 if (this->buffers.empty())
@@ -148,10 +135,10 @@ namespace love
 
             void addBuffer(Buffer* buffer)
             {
-                this->buffers.push(buffer);
-
                 buffer->setSampleRate(this->samplerate);
                 buffer->setVolume(this->volume);
+
+                this->buffers.push(buffer);
             }
 
             bool isPaused() const
@@ -192,9 +179,6 @@ namespace love
 
         void Device::update()
         {
-            if (!s_Init)
-                return;
-
             for (auto& channel : s_Channels)
                 channel.update();
 
@@ -206,7 +190,6 @@ namespace love
             if (!s_Init)
                 return;
 
-            // AXDeregisterAppFrameCallback(audioCallback);
             s_Init = false;
             AXQuit();
         }
@@ -263,6 +246,8 @@ namespace love
             for (int channel = 0; channel < channels; channel++)
             {
                 this->buffer.voices[channel] = AXAcquireVoice(0x1F, nullptr, nullptr);
+                if (!this->buffer.voices[channel])
+                    throw love::Exception("Failed to acquire AXVoice!");
 
                 UniqueVoiceScope scope(this->buffer.voices[channel]);
                 AXSetVoiceType(this->buffer.voices[channel], AX_VOICE_TYPE_UNKNOWN);
@@ -290,7 +275,7 @@ namespace love
             AXGetVoiceOffsets(this->buffer.voices[0], &offsets);
             const auto running = AXIsVoiceRunning(this->buffer.voices[0]);
 
-            return offsets.currentOffset == offsets.endOffset || (!running && offsets.currentOffset == 0);
+            return (offsets.currentOffset == offsets.endOffset) || (!running && offsets.currentOffset == 0);
         }
 
         void Buffer::prepare(const void* data, size_t size, int samples, bool own)
