@@ -1,13 +1,13 @@
 #include "common/Module.hpp"
 #include "common/debug.hpp"
 #include "driver/EventQueue.hpp"
-#include <padscore/kpad.h>
 
 #include "modules/joystick/JoystickModule.hpp"
 
 namespace love
 {
 #if defined(__WIIU__)
+    #include <padscore/kpad.h>
     #include <padscore/wpad.h>
     void extensionCallback(WPADChan channel, WPADExtensionType extension)
     {
