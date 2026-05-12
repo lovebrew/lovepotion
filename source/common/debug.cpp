@@ -1,140 +1,95 @@
 #include "common/debug.hpp"
 
+#include <arpa/inet.h>
+#include <csignal>
+#include <cstdio>
+#include <fcntl.h>
+#include <netinet/in.h>
+#include <sys/_timeval.h>
+#include <sys/select.h>
+#include <sys/socket.h>
+#include <sys/unistd.h>
+
 namespace love
 {
-    bool DebugSocket::open(std::string& error)
+    namespace debug
     {
-        return this->open(8000, 3, error);
-    }
-
-    bool DebugSocket::open(uint16_t port, int timeout, std::string& error)
-    {
-        this->closeAll();
-
-        this->lsockfd = socket(AF_INET, SOCK_STREAM, 0);
-        if (this->lsockfd < 0)
+        bool Socket::open(const detail::Connection& connection)
         {
-            error = "Failed to create socket.";
-            this->closeAll();
-            return false;
-        }
+            this->restore();
 
-        if (auto flags = fcntl(this->lsockfd, F_GETFL); flags != -1)
-            fcntl(this->lsockfd, F_SETFL, flags | FD_CLOEXEC);
+            this->lsockfd.reset(socket(AF_INET, SOCK_STREAM, 0));
 
-        const int yes = 1;
-        setsockopt(this->lsockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
+            if (!this->lsockfd)
+                return false;
 
-        sockaddr_in server {};
-        server.sin_family      = AF_INET;
-        server.sin_addr.s_addr = INADDR_ANY;
-        server.sin_port        = htons(port);
+            fcntl(this->lsockfd.get(), F_SETFD, FD_CLOEXEC);
 
-        if (bind(this->lsockfd, (struct sockaddr*)&server, sizeof(server)) < 0)
-        {
-            error = "Failed to bind socket.";
-            this->closeAll();
-            return false;
-        }
+            int yes = 1;
+            setsockopt(this->lsockfd.get(), SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
 
-        if (listen(this->lsockfd, DebugSocket::MAX_PENDING_CONNECTIONS) < 0)
-        {
-            error = "Failed to listen on socket.";
-            this->closeAll();
-            return false;
-        }
+            sockaddr_in server {};
+            server.sin_family      = AF_INET;
+            server.sin_port        = htons(connection.port);
+            server.sin_addr.s_addr = INADDR_ANY;
 
-        fd_set set;
-        FD_ZERO(&set);
-        FD_SET(this->lsockfd, &set);
+            if (bind(this->lsockfd.get(), (sockaddr*)&server, sizeof(server)) < 0)
+                return false;
 
-        timeval tm {};
-        tm.tv_sec  = timeout;
-        tm.tv_usec = 0;
+            if (listen(this->lsockfd.get(), MAX_PENDING_CONNECTIONS) < 0)
+                return false;
 
-        const auto selection = select(this->lsockfd + 1, &set, nullptr, nullptr, &tm);
-        if (selection < 0)
-        {
-            error = "Failed to select on socket.";
-            this->closeAll();
-            return false;
-        }
-        else if (selection == 0)
-        {
-            error = "Timeout while waiting for connection.";
-            this->closeAll();
-            return false;
-        }
+            fd_set set;
+            FD_ZERO(&set);
+            FD_SET(this->lsockfd.get(), &set);
 
-        const auto accepted = accept(this->lsockfd, nullptr, nullptr);
-        close(this->lsockfd);
-        this->lsockfd = -1;
+            timeval timeout {
+                .tv_sec  = connection.timeout,
+                .tv_usec = 0,
+            };
 
-        if (accepted < 0)
-        {
-            error = "Failed to accept connection.";
-            this->closeAll();
-            return false;
-        }
+            int ready = select(this->lsockfd.get() + 1, &set, nullptr, nullptr, &timeout);
 
-        this->savedStdoutFd = dup(STDOUT_FILENO);
-        if (this->savedStdoutFd < 0)
-        {
-            error = "Failed to duplicate stdout file descriptor.";
-            close(accepted);
-            this->closeAll();
-            return false;
-        }
+            // ready == 0: timeout, ready < 0: select() failed
+            if (ready <= 0)
+                return false;
 
-        std::fflush(stdout);
+            detail::UniqueFD client(accept(this->lsockfd.get(), nullptr, nullptr));
+            this->lsockfd.reset();
 
-        if (dup2(accepted, STDOUT_FILENO) < 0)
-        {
-            error = "Failed to redirect stdout.";
-            dup2(this->savedStdoutFd, STDOUT_FILENO);
-            close(this->savedStdoutFd);
-            this->savedStdoutFd = -1;
-            close(accepted);
-            this->closeAll();
-            return false;
-        }
+            if (!client)
+                return false;
 
-        close(accepted);
-        signal(SIGPIPE, SIG_IGN);
+            this->savedfd.reset(dup(STDOUT_FILENO));
+            if (!this->savedfd)
+                return false;
 
-        return this->redirected = true;
-    }
-
-    void DebugSocket::restore()
-    {
-        if (this->savedStdoutFd != -1)
-        {
             std::fflush(stdout);
-            dup2(this->savedStdoutFd, STDOUT_FILENO);
-            close(this->savedStdoutFd);
-            this->savedStdoutFd = -1;
-        }
-        this->redirected = false;
-    }
 
-    void DebugSocket::closeAll()
-    {
-        if (this->lsockfd != -1)
+            if (dup2(client.get(), STDOUT_FILENO) < 0)
+            {
+                this->restore();
+                return false;
+            }
+
+            std::signal(SIGPIPE, SIG_IGN);
+            this->redirected = true;
+            return true;
+        }
+
+        void Socket::restore()
         {
-            close(this->lsockfd);
-            this->lsockfd = -1;
+            if (this->savedfd)
+            {
+                std::fflush(stdout);
+                dup2(this->savedfd.get(), STDOUT_FILENO);
+                this->savedfd.reset();
+            }
+
+            this->lsockfd.reset();
+            this->redirected = false;
         }
-        this->redirected = false;
-    }
 
-    void DebugSocket::move(DebugSocket&& other) noexcept
-    {
-        this->savedStdoutFd = other.savedStdoutFd;
-        this->lsockfd       = other.lsockfd;
-        this->redirected    = other.redirected;
-
-        other.lsockfd       = -1;
-        other.savedStdoutFd = -1;
-        other.redirected    = false;
-    }
+        Socket g_debugSocket;
+    } // namespace debug
 } // namespace love

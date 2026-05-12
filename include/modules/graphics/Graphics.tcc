@@ -432,6 +432,8 @@ namespace love
 
         bool getScissor(Rect& scissor) const;
 
+        void setProjection(const Matrix4& matrix);
+
         void setMeshCullMode(CullMode mode)
         {
             this->states.back().meshCullMode = mode;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common/Map.hpp"
 #include "common/Vector.hpp"
 
 #include "modules/joystick/Joystick.tcc"
@@ -82,6 +83,12 @@ namespace love
 
             // #region Wii Remote
             // clang-format off
+            ENUMMAP_DECLARE(MplsModes, WPADExtensionType, WPADMplsMode,
+                { WPAD_EXT_CORE,    WPAD_MPLS_MODE_MPLS_ONLY    },
+                { WPAD_EXT_NUNCHUK, WPAD_MPLS_MODE_MPLS_NUNCHUK },
+                { WPAD_EXT_CLASSIC, WPAD_MPLS_MODE_MPLS_CLASSIC }
+            )
+
             ENUMMAP_DECLARE(CoreButtons, GamepadButton, WPADButton,
                 { GAMEPAD_BUTTON_A, WPAD_BUTTON_A },
                 { GAMEPAD_BUTTON_B, WPAD_BUTTON_B },
@@ -101,7 +108,7 @@ namespace love
             // #endregion
 
             // #region WiimoteNunchuck
-            enum NunchuckAxis
+            enum NunchukAxis
             {
                 NUNCHUCK_AXIS_X = WPAD_NUNCHUK_STICK_EMULATION_LEFT | WPAD_NUNCHUK_STICK_EMULATION_RIGHT,
                 NUNCHUCK_AXIS_Y = WPAD_NUNCHUK_STICK_EMULATION_UP | WPAD_NUNCHUK_STICK_EMULATION_DOWN
@@ -113,7 +120,7 @@ namespace love
                 { GAMEPAD_BUTTON_Z, WPAD_NUNCHUK_BUTTON_Z }
             );
 
-            ENUMMAP_DECLARE(NunchuckAxes, GamepadAxis, NunchuckAxis,
+            ENUMMAP_DECLARE(NunchuckAxes, GamepadAxis, NunchukAxis,
                 { GAMEPAD_AXIS_LEFTX, NUNCHUCK_AXIS_X },
                 { GAMEPAD_AXIS_LEFTY, NUNCHUCK_AXIS_Y },
             );
@@ -123,10 +130,13 @@ namespace love
             // #region Classic
             // clang-format off
             ENUMMAP_DECLARE(GamepadTypes, WPADExtensionType, GamepadType,
-                { WPAD_EXT_CORE,           GAMEPAD_TYPE_NINTENDO_WII_REMOTE         },
-                { WPAD_EXT_CLASSIC,        GAMEPAD_TYPE_NINTENDO_WII_CLASSIC        },
-                { WPAD_EXT_NUNCHUK,        GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK },
-                { WPAD_EXT_PRO_CONTROLLER, GAMEPAD_TYPE_NINTENDO_WII_U_PRO          }
+                { WPAD_EXT_CORE,           GAMEPAD_TYPE_NINTENDO_WII_REMOTE                     },
+                { WPAD_EXT_NUNCHUK,        GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK             },
+                { WPAD_EXT_CLASSIC,        GAMEPAD_TYPE_NINTENDO_WII_CLASSIC                    },
+                { WPAD_EXT_MPLUS,          GAMEPAD_TYPE_NINTENDO_WII_REMOTE_MOTION_PLUS         },
+                { WPAD_EXT_MPLUS_NUNCHUK,  GAMEPAD_TYPE_NINTENDO_WII_REMOTE_MOTION_PLUS_NUNCHUK },
+                { WPAD_EXT_MPLUS_CLASSIC,  GAMEPAD_TYPE_NINTENDO_WII_REMOTE_MOTION_PLUS_CLASSIC },
+                { WPAD_EXT_PRO_CONTROLLER, GAMEPAD_TYPE_NINTENDO_WII_U_PRO                      }
             );
 
             enum ClassicAxis
@@ -209,32 +219,51 @@ namespace love
             // #endregion
 
           private:
-            template<typename ButtonType>
-            bool checkButtonImpl(std::span<Joystick::GamepadButton> buttons, uint32_t field) const
+            template<typename ButtonType, typename State, typename Mask>
+            bool checkButtonstateImpl(auto buttons, const State& state, Mask State::* member) const
             {
-                ButtonType result;
+                ButtonType result {};
+                const auto mask = state.*member;
 
                 for (Joystick::GamepadButton button : buttons)
                 {
                     if (!Joystick::getConstant(button, result))
                         continue;
 
-                    if (field & result)
+                    if (mask & result)
                         return true;
                 }
 
                 return false;
             }
 
-            template<typename Button>
-            bool isAxisValueChangedImpl(GamepadAxis axis, uint32_t held, uint32_t released) const
+            template<typename ButtonType, typename State>
+            bool isButtonDown(std::span<Joystick::GamepadButton> buttons, const State& state) const
             {
-                Button result;
+                return checkButtonstateImpl<ButtonType>(buttons, state, &State::trigger);
+            }
+
+            template<typename ButtonType, typename State>
+            bool isButtonHeld(std::span<Joystick::GamepadButton> buttons, const State& state) const
+            {
+                return checkButtonstateImpl<ButtonType>(buttons, state, &State::hold);
+            }
+
+            template<typename ButtonType, typename State>
+            bool checkButtonUpImpl(std::span<Joystick::GamepadButton> buttons, const State& state) const
+            {
+                return checkButtonstateImpl<ButtonType>(buttons, state, &State::release);
+            }
+
+            template<typename AxisType, typename State>
+            bool isAxisValueChangedImpl(GamepadAxis axis, const State& state) const
+            {
+                AxisType result;
 
                 if (!Joystick::getConstant(axis, result))
                     return false;
 
-                if ((held & result) || (released & result))
+                if ((state.hold & result) || (state.release & result))
                     return true;
 
                 return false;
@@ -244,6 +273,7 @@ namespace love
             KPADError error;
 
             WPADExtensionType extension;
+            KPADChan channel;
 
             struct WPADRumble
             {

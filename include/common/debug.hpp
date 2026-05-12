@@ -1,76 +1,123 @@
 #pragma once
 
-#include <arpa/inet.h>
-#include <fcntl.h>
-#include <netinet/in.h>
-#include <sys/select.h>
-#include <sys/socket.h>
+#include <cstdint>
 #include <unistd.h>
 
-#include <cstring>
 #include <string>
+#include <utility>
 
 namespace love
 {
-    class DebugSocket
+    namespace debug
     {
-      public:
-        DebugSocket() = default;
-
-        ~DebugSocket()
+        namespace detail
         {
-            this->restore();
-            this->closeAll();
-        }
+            class UniqueFD
+            {
+              public:
+                UniqueFD() = default;
 
-        DebugSocket(const DebugSocket&)            = delete;
-        DebugSocket& operator=(const DebugSocket&) = delete;
+                explicit UniqueFD(int fd) : fd(fd)
+                {}
 
-        DebugSocket(DebugSocket&& other) noexcept
+                ~UniqueFD()
+                {
+                    this->reset();
+                }
+
+                UniqueFD(const UniqueFD&)            = delete;
+                UniqueFD& operator=(const UniqueFD&) = delete;
+
+                UniqueFD(UniqueFD&& other) noexcept : fd(std::exchange(other.fd, -1))
+                {}
+
+                UniqueFD& operator=(UniqueFD&& other) noexcept
+                {
+                    if (this != &other)
+                        this->reset(std::exchange(other.fd, -1));
+
+                    return *this;
+                }
+
+                void reset(int value = -1) noexcept
+                {
+                    if (value != -1)
+                        close(fd);
+
+                    this->fd = value;
+                }
+
+                int release() noexcept
+                {
+                    return std::exchange(this->fd, -1);
+                }
+
+                int get() const noexcept
+                {
+                    return this->fd;
+                }
+
+                explicit operator bool() const noexcept
+                {
+                    return this->fd != -1;
+                }
+
+              private:
+                int fd = -1;
+            };
+
+            struct Connection
+            {
+                uint16_t port  = DEFAULT_PORT;
+                size_t timeout = DEFAULT_TIMEOUT_SECONDS;
+
+              private:
+                static constexpr uint16_t DEFAULT_PORT          = 8000;
+                static constexpr size_t DEFAULT_TIMEOUT_SECONDS = 3;
+            };
+        } // namespace detail
+
+        class Socket
         {
-            this->move(std::move(other));
-        }
+          public:
+            Socket() = default;
 
-        DebugSocket& operator=(DebugSocket&& other) noexcept
-        {
-            if (this != &other)
+            ~Socket()
             {
                 this->restore();
-                this->closeAll();
-                this->move(std::move(other));
             }
-            return *this;
-        }
 
-        bool open(std::string& error);
+            Socket(const Socket&)            = delete;
+            Socket& operator=(const Socket&) = delete;
 
-        bool open(uint16_t port, int timeout, std::string& error);
+            Socket(Socket&&) noexcept            = default;
+            Socket& operator=(Socket&&) noexcept = default;
 
-        void restore();
+            bool open(const detail::Connection& connection);
 
-        bool isRedirected() const
-        {
-            return this->redirected;
-        }
+            void restore();
 
-      private:
-        static constexpr size_t MAX_PENDING_CONNECTIONS = 5;
+          private:
+            static constexpr uint8_t MAX_PENDING_CONNECTIONS = 5;
 
-        void move(DebugSocket&& other) noexcept;
+            detail::UniqueFD lsockfd;
+            detail::UniqueFD savedfd;
+            bool redirected = false;
+        };
 
-        void closeAll();
-
-        int lsockfd       = -1;
-        bool redirected   = false;
-        int savedStdoutFd = -1;
-    };
-
-    // clang-format off
+        extern Socket g_debugSocket;
+    } // namespace debug
 #if defined(__DEBUG__)
     #include <cstdio>
-    #define LOG(format, ...) do { std::printf("[C++] " format "\n", ##__VA_ARGS__); } while (0)
+    #define LOG(format, ...)                                  \
+        do                                                    \
+        {                                                     \
+            std::printf("[C++] " format "\n", ##__VA_ARGS__); \
+        } while (0)
 #else
-    #define LOG(format, ...) do {} while (0)
+    #define LOG(format, ...) \
+        do                   \
+        {                    \
+        } while (0)
 #endif
-    //clang-format on
 } // namespace love

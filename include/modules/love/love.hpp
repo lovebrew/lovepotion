@@ -7,9 +7,6 @@ extern "C"
     extern int luaopen_https(lua_State*);
 }
 
-#include "common/debug.hpp"
-static love::DebugSocket g_debugSocket;
-
 const char* love_getVersion();
 
 const char* love_getCodename();

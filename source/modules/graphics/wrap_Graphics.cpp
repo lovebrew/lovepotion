@@ -1,10 +1,12 @@
 #include "common/Reference.hpp"
+#include "common/luax.hpp"
 #include "common/screen.hpp"
 
 #include "modules/graphics/wrap_Graphics.hpp"
 
 #include "modules/filesystem/wrap_Filesystem.hpp"
 
+#include "modules/graphics/vertex.hpp"
 #include "modules/graphics/wrap_Buffer.hpp"
 #include "modules/graphics/wrap_Font.hpp"
 #include "modules/graphics/wrap_Mesh.hpp"
@@ -17,11 +19,13 @@
 #include "modules/image/Image.hpp"
 #include "modules/image/ImageData.hpp"
 #include "modules/image/wrap_CompressedImageData.hpp"
-#include "modules/image/wrap_Image.hpp"
 #include "modules/image/wrap_ImageData.hpp"
 
+#include "modules/math/Transform.hpp"
+#include "modules/math/wrap_Transform.hpp"
 #include "modules/thread/Channel.hpp"
 #include "modules/thread/wrap_Channel.hpp"
+#include <lua.h>
 
 using namespace love;
 
@@ -1187,7 +1191,7 @@ static void luax_checkbufferformat(lua_State* L, int index, const BufferBase::Se
         return;
     }
 
-    bool requireLocation = (settings.usage & BUFFERUSAGE_VERTEX) != 0;
+    bool requireLocation = (settings.usage & BUFFERUSAGEFLAG_VERTEX) != 0;
     luaL_checktype(L, index, LUA_TTABLE);
     size_t length = luax_objlen(L, index);
 
@@ -2741,6 +2745,45 @@ int Wrap_Graphics::getStencilState(lua_State* L)
     return 5;
 }
 
+int Wrap_Graphics::flushBatch(lua_State* L)
+{
+    instance()->flushBatchedDraws();
+    return 0;
+}
+
+int Wrap_Graphics::setProjection(lua_State* L)
+{
+    Transform* transform = luax_totype<Transform>(L, 1);
+    if (transform == nullptr)
+    {
+        instance()->setProjection(transform->getMatrix());
+        return 0;
+    }
+
+    auto layout = Transform::MATRIX_ROW_MAJOR;
+
+    int index = 1;
+    if (lua_type(L, index) == LUA_TSTRING)
+    {
+        const char* name = lua_tostring(L, index);
+        if (!Transform::getConstant(name, layout))
+            return luax_enumerror(L, "matrix layout", Transform::MatrixLayouts, name);
+        index++;
+    }
+
+    float elements[16];
+    luax_checkmatrix(L, index, layout, elements);
+
+    instance()->setProjection(Matrix4(elements));
+    return 0;
+}
+
+int Wrap_Graphics::resetProjection(lua_State*)
+{
+    instance()->resetProjection();
+    return 0;
+}
+
 // Homebrew Stuff™
 
 int Wrap_Graphics::getScreens(lua_State* L)
@@ -2939,6 +2982,11 @@ static constexpr luaL_Reg functions[] =
     { "getDepthMode",           Wrap_Graphics::getDepthMode          },
 
     { "getQuadIndexBuffer",     Wrap_Graphics::getQuadIndexBuffer    },
+
+    { "setProjection",          Wrap_Graphics::setProjection         },
+    { "resetProjection",        Wrap_Graphics::resetProjection       },
+
+    { "flushBatch",             Wrap_Graphics::flushBatch            },
 
     { "newFont",                Wrap_Graphics::newFont               },
     { "setFont",                Wrap_Graphics::setFont               },

@@ -1,6 +1,8 @@
+#include "common/debug.hpp"
 #include "common/luax.hpp"
 #include "common/version.hpp"
 
+#include <lua.h>
 #include <luasocket.hpp>
 
 #include "modules/love/love.hpp"
@@ -109,7 +111,7 @@ int love_isVersionCompatible(lua_State* L)
 
     for (auto& item : love::VERSION_COMPATIBILITY)
     {
-        if (version != item)
+        if (version != love::Version(item))
             continue;
 
         lua_pushboolean(L, true);
@@ -270,17 +272,25 @@ int love_initialize(lua_State* L)
 /**
  * @brief Initializes the console output.
  * See: common/debug.hpp
+ *
+ * Users can configure the timeout, using a table config, in seconds.
+ * e.g. `t.console = { timeout = 5 }`
  */
 int love_openConsole(lua_State* L)
 {
-    std::string error {};
-    auto isOpen = g_debugSocket.open(error);
+    /* default timeout is 3 seconds */
+    love::debug::detail::Connection connection {};
 
-    if (!error.empty())
-        return luaL_error(L, error.c_str());
+    if (lua_type(L, 1) == LUA_TTABLE)
+    {
+        lua_getfield(L, 1, "timeout");
+        if (lua_type(L, -1) == LUA_TNUMBER)
+            connection.timeout = love::luax_checknumberclamped(L, -1, 0, 10);
+        lua_pop(L, 1);
+    }
 
-    love::luax_pushboolean(L, isOpen);
-
+    const auto opened = love::debug::g_debugSocket.open(connection);
+    love::luax_pushboolean(L, opened);
     return 1;
 }
 

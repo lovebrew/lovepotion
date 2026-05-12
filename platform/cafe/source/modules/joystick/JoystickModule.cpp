@@ -1,5 +1,9 @@
+#include "common/config.hpp"
+
+#include "driver/EventQueue.hpp"
 #include "modules/joystick/JoystickModule.hpp"
 
+#include <cstdint>
 #include <padscore/kpad.h>
 #include <padscore/wpad.h>
 #include <vpad/input.h>
@@ -9,27 +13,37 @@
 
 namespace love::joystick
 {
+    void connectCallback(WPADChan channel, WPADError error)
+    {
+        const auto status = error == WPAD_ERROR_NONE;
+        EventQueue::getInstance().sendJoystickStatus(status, channel + 1);
+    }
+
+    void init()
+    {
+        for (size_t channel = WPAD_CHAN_0; channel < KPADGetMaxControllers(); channel++)
+            KPADSetConnectCallback((KPADChan)channel, connectCallback);
+    }
+
     int getJoystickCount()
     {
-        int count = 0;
+        size_t count = 0;
 
-        VPADStatus vpadStatus {};
-        VPADReadError error = VPAD_READ_SUCCESS;
-
-        VPADRead(VPAD_CHAN_0, &vpadStatus, 1, &error);
-
-        if (error == VPAD_READ_SUCCESS || error == VPAD_READ_NO_SAMPLES)
-            count++;
-
-        for (int channel = 0; channel < 4; channel++)
         {
-            KPADStatus kpadStatus {};
-            KPADError error = KPAD_ERROR_OK;
+            VPADStatus status {};
+            VPADReadError error = VPAD_READ_SUCCESS;
 
-            KPADReadEx((KPADChan)channel, &kpadStatus, 1, &error);
-            bool success = error == KPAD_ERROR_OK || error == KPAD_ERROR_NO_SAMPLES;
+            VPADRead(VPAD_CHAN_0, &status, 1, &error);
 
-            if (success && kpadStatus.extensionType != 0xFF)
+            if (error == VPAD_READ_SUCCESS || error == VPAD_READ_NO_SAMPLES)
+                count++;
+        }
+
+        for (uint32_t channel = 0; channel < KPADGetMaxControllers(); channel++)
+        {
+            auto extension   = WPAD_EXT_UNKNOWN;
+            const auto error = WPADProbe((WPADChan)channel, &extension);
+            if (error == WPAD_ERROR_NONE && extension != WPAD_EXT_UNKNOWN)
                 count++;
         }
 

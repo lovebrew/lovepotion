@@ -24,7 +24,7 @@ target_compile_options(${PROJECT_NAME} PRIVATE
 target_compile_definitions(${PROJECT_NAME} PRIVATE
     LOVE_POTION_VERSION_STRING="${PROJECT_VERSION}"
     LOVE_VERSION_STRING="12.0"
-    $<$<CONFIG:Debug>:__DEBUG__=1>
+    $<$<CONFIG:Debug>:__DEBUG__>
 )
 
 set(APP_TITLE "LÖVE Potion")

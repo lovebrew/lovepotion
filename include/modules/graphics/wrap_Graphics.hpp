@@ -139,6 +139,16 @@ namespace Wrap_Graphics
 
     int getFont(lua_State* L);
 
+    int readbackBuffer(lua_State* L);
+
+    int readbackBufferAsync(lua_State* L);
+
+    int readbackTexture(lua_State* L);
+
+    int readbackTextureAsync(lua_State* L);
+
+    int flushBatch(lua_State* L);
+
     int getQuadIndexBuffer(lua_State* L);
 
     int polygon(lua_State* L);
@@ -174,6 +184,10 @@ namespace Wrap_Graphics
     int getDefaultFilter(lua_State* L);
 
     int setDefaultFilter(lua_State* L);
+
+    int setProjection(lua_State* L);
+
+    int resetProjection(lua_State* L);
 
     int setDepthMode(lua_State* L);
 

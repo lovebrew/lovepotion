@@ -6,36 +6,15 @@
 
 namespace love
 {
-#if defined(__WIIU__)
-    #include <padscore/kpad.h>
-    #include <padscore/wpad.h>
-    void extensionCallback(WPADChan channel, WPADExtensionType extension)
-    {
-        auto* instance = Module::getInstance<JoystickModule>(Module::M_JOYSTICK);
-        instance->addJoystick(channel + 1);
-    }
-
-    void connectCallback(WPADChan channel, WPADError error)
-    {
-        EventQueue::getInstance().sendJoystickStatus(false, channel + 1);
-    }
-#endif
-
     JoystickModule::JoystickModule() : Module(M_JOYSTICK, "love.joystick")
     {
+        joystick::init();
+
         for (size_t index = 0; index < (size_t)joystick::getJoystickCount(); index++)
         {
             this->addJoystick(index);
             EventQueue::getInstance().sendJoystickStatus(true, index);
         }
-
-#if defined(__WIIU__)
-        for (size_t channel = 0; channel < 4; channel++)
-        {
-            WPADSetExtensionCallback((WPADChan)channel, extensionCallback);
-            KPADSetConnectCallback((WPADChan)channel, connectCallback);
-        }
-#endif
     }
 
     JoystickModule::~JoystickModule()

@@ -4,6 +4,9 @@
 
 namespace love::joystick
 {
+    void init()
+    {}
+
     int getJoystickCount()
     {
         return 1;

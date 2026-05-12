@@ -20,6 +20,9 @@ namespace love::joystick
     };
     // clang-format on
 
+    void init()
+    {}
+
     int getJoystickCount()
     {
         int count = 0;

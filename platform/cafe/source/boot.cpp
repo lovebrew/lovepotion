@@ -35,6 +35,9 @@ namespace love
     uint32_t Console::mainCoreId = 0;
     bool Console::mainCoreIdSet  = false;
 
+    static void* WII_MOTION_PLUS_WORK_AREA         = nullptr;
+    static uint32_t WII_MOTION_PLUS_WORK_AREA_SIZE = 0;
+
     namespace platform
     {
         // clang-format off
@@ -131,6 +134,10 @@ namespace love
             WPADEnableURCC(true);
             WPADEnableMotor(true);
 
+            WII_MOTION_PLUS_WORK_AREA_SIZE = KPADGetMplsWorkSize();
+            WII_MOTION_PLUS_WORK_AREA      = malloc(WII_MOTION_PLUS_WORK_AREA_SIZE);
+            KPADSetMplsWorkarea(WII_MOTION_PLUS_WORK_AREA);
+
             Console::setMainCoreId(OSGetCoreId());
 
             return 0;
@@ -185,6 +192,8 @@ namespace love
 
         void shutdown()
         {
+            std::free(WII_MOTION_PLUS_WORK_AREA);
+
             for (auto it = services.rbegin(); it != services.rend(); ++it)
                 it->exit();
         }

@@ -2,6 +2,8 @@
 
 #include <array>
 #include <compare>
+#include <cstdint>
+#include <string_view>
 
 namespace love
 {
@@ -19,26 +21,24 @@ namespace love
             patch(patch)
         {}
 
-        constexpr Version(const char* v)
+        constexpr Version(std::string_view view)
         {
-            // clang-format off
-            major = parse_number(v);
-            if (*v == '.') ++v;
-            minor = parse_number(v);
-            if (*v == '.') ++v;
-            patch = parse_number(v);
-            // clang-format on
+            this->major = parse_u8(view);
+            if (!view.empty() && view.front() == '.')
+                this->minor = parse_u8(view);
+
+            if (!view.empty() && view.front() == '.')
+                this->patch = parse_u8(view);
         }
 
         constexpr std::strong_ordering operator<=>(const Version&) const noexcept = default;
 
       private:
-        static constexpr uint8_t parse_number(const char*& s)
+        static constexpr uint8_t parse_u8(std::string_view& s)
         {
-            uint8_t value = 0;
-            while (*s >= '0' && *s <= '9')
-                value = value * 10 + (*s++ - '0');
-
+            uint32_t value = 0;
+            while (!s.empty() && s.front() >= '0' && s.front() <= '9')
+                value = value * 10 + (s.front() - '0'), s.remove_prefix(1);
             return value;
         }
     };

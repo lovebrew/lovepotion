@@ -117,6 +117,16 @@ namespace love
         this->quadIndexBuffer->setImmutable(true);
     }
 
+    void GraphicsBase::setProjection(const Matrix4& matrix)
+    {
+        this->flushBatchedDraws();
+
+        auto& state               = this->states.back();
+        state.useCustomProjection = true;
+        state.customProjection    = matrix;
+        this->updateDeviceProjection(matrix);
+    }
+
     void GraphicsBase::resetProjection()
     {
         this->flushBatchedDraws();
@@ -194,7 +204,7 @@ namespace love
         this->setDefaultSamplerState(state.defaultSamplerState);
 
         if (state.useCustomProjection)
-            this->updateDeviceProjection(state.customProjection);
+            this->setProjection(state.customProjection);
         else
             this->resetProjection();
     }
@@ -275,7 +285,7 @@ namespace love
         this->setDefaultSamplerState(state.defaultSamplerState);
 
         if (state.useCustomProjection)
-            this->updateDeviceProjection(state.customProjection);
+            this->setProjection(state.customProjection);
         else if (current.useCustomProjection)
             this->resetProjection();
     }

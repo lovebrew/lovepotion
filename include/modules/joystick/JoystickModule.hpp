@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/Module.hpp"
+#include "modules/filesystem/wrap_Filesystem.hpp"
 #include "modules/joystick/Joystick.tcc"
 
 #include <list>
@@ -42,6 +43,8 @@ namespace love
 
     namespace joystick
     {
+        void init();
+
         /*
         ** Return the number of connected joysticks.
         ** This is implemented in the platform-specific code.

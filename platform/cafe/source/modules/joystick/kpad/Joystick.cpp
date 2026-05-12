@@ -5,9 +5,11 @@
 #include <padscore/kpad.h>
 #include <padscore/wpad.h>
 
-#include "common/debug.hpp"
 #include "common/int.hpp"
 
+#include "common/debug.hpp"
+#include "common/screen.hpp"
+#include "modules/joystick/Joystick.tcc"
 #include "modules/joystick/kpad/Joystick.hpp"
 #include "modules/timer/Timer.hpp"
 #include "utility/guid.hpp"
@@ -32,10 +34,14 @@ namespace love
         void Joystick::update()
         {
             WPADExtensionType type;
-            WPADProbe(WPADChan(this->id - 1), &type);
+            WPADProbe(this->channel, &type);
 
             if (type != this->extension)
             {
+                WPADMplsMode mode = WPAD_MPLS_MODE_DISABLE;
+                if (Joystick::getConstant(this->extension, mode))
+                    KPADEnableMpls(this->channel, mode);
+
                 if (!Joystick::getConstant(type, this->gamepadType))
                     this->gamepadType = GAMEPAD_TYPE_UNKNOWN;
 
@@ -50,7 +56,7 @@ namespace love
                 this->setVibration();
 
             std::memset(&this->status, 0, sizeof(this->status));
-            KPADReadEx(WPADChan(this->instanceId - 1), &this->status, 1, &this->error);
+            KPADReadEx(this->channel, &this->status, 1, &this->error);
         }
 
         bool Joystick::open(int64_t deviceId)
@@ -62,9 +68,14 @@ namespace love
             this->close();
 
             this->instanceId = index;
+            this->channel    = KPADChan(index - 1);
 
-            if (WPADProbe(WPADChan(index - 1), &this->extension) < 0)
+            if (WPADProbe(this->channel, &this->extension) < 0)
                 return false;
+
+            WPADMplsMode mode = WPAD_MPLS_MODE_DISABLE;
+            if (Joystick::getConstant(this->extension, mode))
+                KPADEnableMpls(this->channel, mode);
 
             if (!Joystick::getConstant(this->extension, this->gamepadType))
                 this->gamepadType = GAMEPAD_TYPE_UNKNOWN;
@@ -81,6 +92,9 @@ namespace love
 
         void Joystick::close()
         {
+            if (KPADGetMplsStatus(this->channel) != WPAD_MPLS_MODE_DISABLE)
+                KPADDisableMpls(this->channel);
+
             this->instanceId = -1;
         }
 
@@ -103,8 +117,16 @@ namespace love
             switch (this->gamepadType)
             {
                 case GAMEPAD_TYPE_NINTENDO_WII_REMOTE:
-                    return 0.0f;
+                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_MOTION_PLUS:
+                {
+                    if (axis == GAMEPAD_AXIS_RIGHTX)
+                        return clamp(this->status.angle.x);
+                    else if (axis == GAMEPAD_AXIS_RIGHTY)
+                        return clamp(this->status.angle.y);
+                    break;
+                }
                 case GAMEPAD_TYPE_NINTENDO_WII_CLASSIC:
+                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_MOTION_PLUS_CLASSIC:
                 {
                     if (axis == GAMEPAD_AXIS_LEFTX)
                         return clamp(this->status.classic.leftStick.x);
@@ -122,12 +144,16 @@ namespace love
                     break;
                 }
                 case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK:
+                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_MOTION_PLUS_NUNCHUK:
                 {
                     if (axis == GAMEPAD_AXIS_LEFTX)
                         return clamp(this->status.nunchuk.stick.x);
                     else if (axis == GAMEPAD_AXIS_LEFTY)
                         return clamp(this->status.nunchuk.stick.y);
-
+                    else if (axis == GAMEPAD_AXIS_RIGHTX)
+                        return clamp(this->status.angle.x);
+                    else if (axis == GAMEPAD_AXIS_RIGHTY)
+                        return clamp(this->status.angle.y);
                     break;
                 }
                 case GAMEPAD_TYPE_NINTENDO_WII_U_PRO:
@@ -208,14 +234,18 @@ namespace love
             {
                 case GAMEPAD_TYPE_NINTENDO_WII_REMOTE:
                 default:
-                    return this->checkButtonImpl<WPADButton>(buttons, this->status.trigger);
+                    return this->isButtonDown<WPADButton>(buttons, this->status);
                 case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK:
-                    return this->checkButtonImpl<WPADButton>(buttons, this->status.trigger) ||
-                           this->checkButtonImpl<WPADNunchukButton>(buttons, this->status.nunchuk.trigger);
+                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_MOTION_PLUS_NUNCHUK:
+                {
+                    auto ext = this->isButtonDown<WPADNunchukButton>(buttons, this->status.nunchuk);
+                    return this->isButtonDown<WPADButton>(buttons, this->status) || ext;
+                }
                 case GAMEPAD_TYPE_NINTENDO_WII_CLASSIC:
-                    return this->checkButtonImpl<WPADClassicButton>(buttons, this->status.classic.trigger);
+                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_MOTION_PLUS_CLASSIC:
+                    return this->isButtonDown<WPADClassicButton>(buttons, this->status.classic);
                 case GAMEPAD_TYPE_NINTENDO_WII_U_PRO:
-                    return this->checkButtonImpl<WPADProButton>(buttons, this->status.pro.trigger);
+                    return this->isButtonDown<WPADProButton>(buttons, this->status.pro);
             }
 
             return false;
@@ -229,14 +259,18 @@ namespace love
             switch (this->gamepadType)
             {
                 case GAMEPAD_TYPE_NINTENDO_WII_REMOTE:
-                    return this->checkButtonImpl<WPADButton>(buttons, this->status.hold);
+                    return this->isButtonHeld<WPADButton>(buttons, this->status);
                 case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK:
-                    return this->checkButtonImpl<WPADButton>(buttons, this->status.release) ||
-                           this->checkButtonImpl<WPADNunchukButton>(buttons, this->status.nunchuk.release);
+                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_MOTION_PLUS_NUNCHUK:
+                {
+                    auto ext = this->isButtonHeld<WPADNunchukButton>(buttons, this->status.nunchuk);
+                    return this->isButtonHeld<WPADButton>(buttons, this->status) || ext;
+                }
                 case GAMEPAD_TYPE_NINTENDO_WII_CLASSIC:
-                    return this->checkButtonImpl<WPADClassicButton>(buttons, this->status.classic.hold);
+                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_MOTION_PLUS_CLASSIC:
+                    return this->isButtonHeld<WPADClassicButton>(buttons, this->status.classic);
                 case GAMEPAD_TYPE_NINTENDO_WII_U_PRO:
-                    return this->checkButtonImpl<WPADProButton>(buttons, this->status.pro.hold);
+                    return this->isButtonHeld<WPADProButton>(buttons, this->status.pro);
                 default:
                     break;
             }
@@ -252,14 +286,18 @@ namespace love
             switch (this->gamepadType)
             {
                 case GAMEPAD_TYPE_NINTENDO_WII_REMOTE:
-                    return this->checkButtonImpl<WPADButton>(buttons, this->status.release);
+                    return this->checkButtonUpImpl<WPADButton>(buttons, this->status);
                 case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK:
-                    return this->checkButtonImpl<WPADButton>(buttons, this->status.release) ||
-                           this->checkButtonImpl<WPADNunchukButton>(buttons, this->status.nunchuk.release);
+                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_MOTION_PLUS_NUNCHUK:
+                {
+                    auto ext = this->checkButtonUpImpl<WPADNunchukButton>(buttons, this->status.nunchuk);
+                    return this->checkButtonUpImpl<WPADButton>(buttons, this->status) || ext;
+                }
                 case GAMEPAD_TYPE_NINTENDO_WII_CLASSIC:
-                    return this->checkButtonImpl<WPADClassicButton>(buttons, this->status.classic.release);
+                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_MOTION_PLUS_CLASSIC:
+                    return this->checkButtonUpImpl<WPADClassicButton>(buttons, this->status.classic);
                 case GAMEPAD_TYPE_NINTENDO_WII_U_PRO:
-                    return this->checkButtonImpl<WPADProButton>(buttons, this->status.pro.release);
+                    return this->checkButtonUpImpl<WPADProButton>(buttons, this->status.pro);
                 default:
                     break;
             }
@@ -275,19 +313,24 @@ namespace love
             switch (this->gamepadType)
             {
                 case GAMEPAD_TYPE_NINTENDO_WII_REMOTE:
-                    break;
-                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK:
+                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_MOTION_PLUS:
                 {
-                    auto filtered               = checkNunchukData(this->status);
-                    const auto [held, released] = std::tie(filtered.nunchuk.hold, filtered.nunchuk.release);
-                    return this->isAxisValueChangedImpl<NunchuckAxis>(axis, held, released);
+                    if (this->status.angleDiff.x != 0.0f || this->status.angleDiff.y != 0.0f)
+                        return true;
+                    break;
+                }
+                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK:
+                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_MOTION_PLUS_NUNCHUK:
+                {
+                    bool wiimote  = (this->status.angleDiff.x != 0.0f || this->status.angleDiff.y != 0.0f);
+                    auto filtered = checkNunchukData(this->status);
+                    return wiimote || this->isAxisValueChangedImpl<NunchukAxis>(axis, filtered.nunchuk);
                 }
                 case GAMEPAD_TYPE_NINTENDO_WII_CLASSIC:
-                    return this->isAxisValueChangedImpl<ClassicAxis>(axis, this->status.classic.hold,
-                                                                     this->status.classic.release);
+                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_MOTION_PLUS_CLASSIC:
+                    return this->isAxisValueChangedImpl<ClassicAxis>(axis, this->status.classic);
                 case GAMEPAD_TYPE_NINTENDO_WII_U_PRO:
-                    return this->isAxisValueChangedImpl<ProAxis>(axis, this->status.pro.hold,
-                                                                 this->status.pro.release);
+                    return this->isAxisValueChangedImpl<ProAxis>(axis, this->status.pro);
                 default:
                     break;
             }
@@ -297,7 +340,7 @@ namespace love
 
         Joystick::PowerType Joystick::getPowerInfo(int& percent) const
         {
-            const auto battery = WPADGetBatteryLevel(WPADChan(this->instanceId - 1));
+            const auto battery = WPADGetBatteryLevel(this->channel);
             percent            = battery * 25.0f;
 
             if (this->gamepadType != GAMEPAD_TYPE_NINTENDO_WII_U_PRO)
@@ -357,7 +400,7 @@ namespace love
                 length            = uint32_t(std::min(duration, maxDuration) * 1000);
             }
 
-            WPADControlMotor(WPADChan(this->id - 1), true);
+            WPADControlMotor(this->channel, true);
 
             this->rumble.start    = Timer::getTime() * 1000.0f;
             this->rumble.duration = length;
@@ -370,7 +413,7 @@ namespace love
             if (!this->isConnected())
                 return false;
 
-            WPADControlMotor(WPADChan(this->id - 1), false);
+            WPADControlMotor(this->channel, false);
             this->rumble.duration = 0;
             this->rumble.start    = 0;
 
@@ -421,11 +464,13 @@ namespace love
             }
         }
 
+        // Wiimote and Nunchuk have accelerometer data.
+        // Wii Motion Plus™ has gyroscope data.
         std::vector<float> Joystick::getSensorData(Sensor::SensorType type) const
         {
-            std::vector<float> data {};
+            std::vector<float> data(3);
 
-            if (!this->hasSensor(type))
+            if (!this->isSensorEnabled(type))
             {
                 std::string_view name = "Unknown";
                 Sensor::getConstant(type, name);
@@ -433,52 +478,71 @@ namespace love
                 throw love::Exception("\"{}\" gamepad sensor is not enabled.", name);
             }
 
-            data.reserve(3);
-
             switch (this->gamepadType)
             {
                 case GAMEPAD_TYPE_NINTENDO_WII_REMOTE:
+                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK:
                 {
-                    data.push_back(this->status.acc.x);
-                    data.push_back(this->status.acc.y);
-                    data.push_back(this->status.acc.z);
+                    if (type == Sensor::SENSOR_ACCELEROMETER)
+                    {
+                        data.push_back(this->status.acc.x);
+                        data.push_back(this->status.acc.y);
+                        data.push_back(this->status.acc.z);
+                    }
                     break;
                 }
-                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK:
-                    data.push_back(this->status.acc.x);
-                    data.push_back(this->status.acc.y);
-                    data.push_back(this->status.acc.z);
-
-                    data.push_back(this->status.nunchuk.acc.x);
-                    data.push_back(this->status.nunchuk.acc.y);
-                    data.push_back(this->status.nunchuk.acc.z);
+                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_MOTION_PLUS:
+                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_MOTION_PLUS_NUNCHUK:
+                {
+                    if (type == Sensor::SENSOR_GYROSCOPE)
+                    {
+                        data.push_back(this->status.mplus.acc.x);
+                        data.push_back(this->status.mplus.acc.y);
+                        data.push_back(this->status.mplus.acc.z);
+                    }
                     break;
-                case GAMEPAD_TYPE_NINTENDO_WII_U_PRO:
-                case GAMEPAD_TYPE_NINTENDO_WII_CLASSIC:
+                }
                 default:
                     break;
+            }
+
+            if (this->extension == WPAD_EXT_NUNCHUK && type == Sensor::SENSOR_ACCELEROMETER)
+            {
+                data.push_back(this->status.nunchuk.acc.x);
+                data.push_back(this->status.nunchuk.acc.y);
+                data.push_back(this->status.nunchuk.acc.z);
             }
 
             return data;
         }
 
+        // TODO: position to TV coordinates
+        // this is in a newer wut commit not released
         Vector2 Joystick::getPosition() const
         {
+            // const auto& size = love::getScreenInfo();
+            // KPADRect screen { .topLeft = { 0.0f, 0.0f }, .bottomRight = { size.x, size.y }};
+
+            Vector2 position {};
+
             switch (this->gamepadType)
             {
                 case GAMEPAD_TYPE_NINTENDO_WII_REMOTE:
                 case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK:
+                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_MOTION_PLUS:
+                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_MOTION_PLUS_NUNCHUK:
                 {
                     if (this->status.posValid)
+                    {
+                        // KPADGetProjectionPos(&position, this->status.pos, &screen, 1.0f);
                         return Vector2 { this->status.pos.x, this->status.pos.y };
+                    }
                 }
-                case GAMEPAD_TYPE_NINTENDO_WII_CLASSIC:
-                case GAMEPAD_TYPE_NINTENDO_WII_U_PRO:
                 default:
                     break;
             }
 
-            return Vector2 {};
+            return position;
         }
 
         Vector2 Joystick::getAngle() const
@@ -489,6 +553,8 @@ namespace love
             {
                 case GAMEPAD_TYPE_NINTENDO_WII_REMOTE:
                 case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUK:
+                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_MOTION_PLUS:
+                case GAMEPAD_TYPE_NINTENDO_WII_REMOTE_MOTION_PLUS_NUNCHUK:
                 {
                     if (!this->status.posValid)
                         break;

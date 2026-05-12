@@ -273,7 +273,7 @@ int Wrap_Joystick::isGamepadDown(lua_State* L)
     return 1;
 }
 
-int Wrap_Joystick::getPowerInfo(lua_State* L)
+int Wrap_Joystick::getDevicePowerInfo(lua_State* L)
 {
     auto* self  = luax_checkjoystick(L, 1);
     int percent = 0;
@@ -294,7 +294,7 @@ int Wrap_Joystick::getPowerInfo(lua_State* L)
     return 2;
 }
 
-int Wrap_Joystick::getConnectionState(lua_State* L)
+int Wrap_Joystick::getDeviceConnectionState(lua_State* L)
 {
     auto* self = luax_checkjoystick(L, 1);
 
@@ -479,37 +479,37 @@ int Wrap_Joystick::getSensorData(lua_State* L)
 
 // clang-format off
 static constexpr luaL_Reg functions[] = {
-    { "isConected",              Wrap_Joystick::isConected              },
-    { "getName",                 Wrap_Joystick::getName                 },
-    { "getID",                   Wrap_Joystick::getID                   },
-    { "getGUID",                 Wrap_Joystick::getGUID                 },
-    { "getDeviceInfo",           Wrap_Joystick::getDeviceInfo           },
-    { "getJoystickType",         Wrap_Joystick::getJoystickType         },
-    { "getAxisCount",            Wrap_Joystick::getAxisCount            },
-    { "getButtonCount",          Wrap_Joystick::getButtonCount          },
-    { "getHatCount",             Wrap_Joystick::getHatCount             },
-    { "getAxis",                 Wrap_Joystick::getAxis                 },
-    { "getAxes",                 Wrap_Joystick::getAxes                 },
-    { "getHat",                  Wrap_Joystick::getHat                  },
-    { "isDown",                  Wrap_Joystick::isDown                  },
-    { "setPlayerIndex",          Wrap_Joystick::setPlayerIndex          },
-    { "getPlayerIndex",          Wrap_Joystick::getPlayerIndex          },
-    { "isGamepad",               Wrap_Joystick::isGamepad               },
-    { "getGamepadType",          Wrap_Joystick::getGamepadType          },
-    { "getGamepadAxis",          Wrap_Joystick::getGamepadAxis          },
-    { "isGamepadDown",           Wrap_Joystick::isGamepadDown           },
-    { "getPowerInfo",            Wrap_Joystick::getPowerInfo            },
-    { "getConnectionState",      Wrap_Joystick::getConnectionState      },
-    { "getGamepadMapping",       Wrap_Joystick::getGamepadMapping       },
-    { "getGamepadMappingString", Wrap_Joystick::getGamepadMappingString },
-    { "isVibrationSupported",    Wrap_Joystick::isVibrationSupported    },
-    { "setVibration",            Wrap_Joystick::setVibration            },
-    { "getVibration",            Wrap_Joystick::getVibration            },
-    { "hasSensor",               Wrap_Joystick::hasSensor               },
-    { "isSensorEnabled",         Wrap_Joystick::isSensorEnabled         },
-    { "setSensorEnabled",        Wrap_Joystick::setSensorEnabled        },
-    { "getSensorData",           Wrap_Joystick::getSensorData           },
-    { "getConnectedIndex",       Wrap_JoystickModule::getIndex          }
+    { "isConected",               Wrap_Joystick::isConected               },
+    { "getName",                  Wrap_Joystick::getName                  },
+    { "getID",                    Wrap_Joystick::getID                    },
+    { "getGUID",                  Wrap_Joystick::getGUID                  },
+    { "getDeviceInfo",            Wrap_Joystick::getDeviceInfo            },
+    { "getJoystickType",          Wrap_Joystick::getJoystickType          },
+    { "getAxisCount",             Wrap_Joystick::getAxisCount             },
+    { "getButtonCount",           Wrap_Joystick::getButtonCount           },
+    { "getHatCount",              Wrap_Joystick::getHatCount              },
+    { "getAxis",                  Wrap_Joystick::getAxis                  } ,
+    { "getAxes",                 Wrap_Joystick::getAxes                  },
+    { "getHat",                  Wrap_Joystick::getHat                   },
+    { "isDown",                  Wrap_Joystick::isDown                   },
+    { "setPlayerIndex",          Wrap_Joystick::setPlayerIndex           },
+    { "getPlayerIndex",          Wrap_Joystick::getPlayerIndex           },
+    { "isGamepad",               Wrap_Joystick::isGamepad                },
+    { "getGamepadType",          Wrap_Joystick::getGamepadType           },
+    { "getGamepadAxis",          Wrap_Joystick::getGamepadAxis           },
+    { "isGamepadDown",           Wrap_Joystick::isGamepadDown            },
+    { "getDevicePowerInfo",      Wrap_Joystick::getDevicePowerInfo       },
+    { "getDeviceConnectionState",Wrap_Joystick::getDeviceConnectionState },
+    { "getGamepadMapping",       Wrap_Joystick::getGamepadMapping        },
+    { "getGamepadMappingString", Wrap_Joystick::getGamepadMappingString  },
+    { "isVibrationSupported",    Wrap_Joystick::isVibrationSupported     },
+    { "setVibration",            Wrap_Joystick::setVibration             },
+    { "getVibration",            Wrap_Joystick::getVibration             },
+    { "hasSensor",               Wrap_Joystick::hasSensor                },
+    { "isSensorEnabled",         Wrap_Joystick::isSensorEnabled          },
+    { "setSensorEnabled",        Wrap_Joystick::setSensorEnabled         },
+    { "getSensorData",           Wrap_Joystick::getSensorData            },
+    { "getConnectedIndex",       Wrap_JoystickModule::getIndex           }
 };
 
 #if !defined(__WIIU__)
