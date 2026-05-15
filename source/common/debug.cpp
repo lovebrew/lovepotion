@@ -18,44 +18,44 @@ namespace love
         {
             this->restore();
 
-            this->lsockfd.reset(socket(AF_INET, SOCK_STREAM, 0));
+            detail::UniqueFD listenfd(socket(AF_INET, SOCK_STREAM, 0));
 
-            if (!this->lsockfd)
+            if (!listenfd)
                 return false;
 
-            fcntl(this->lsockfd.get(), F_SETFD, FD_CLOEXEC);
+            fcntl(listenfd.get(), F_SETFD, FD_CLOEXEC);
 
             int yes = 1;
-            setsockopt(this->lsockfd.get(), SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
+            setsockopt(listenfd.get(), SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
 
             sockaddr_in server {};
             server.sin_family      = AF_INET;
             server.sin_port        = htons(connection.port);
             server.sin_addr.s_addr = INADDR_ANY;
 
-            if (bind(this->lsockfd.get(), (sockaddr*)&server, sizeof(server)) < 0)
+            if (bind(listenfd.get(), (sockaddr*)&server, sizeof(server)) < 0)
                 return false;
 
-            if (listen(this->lsockfd.get(), MAX_PENDING_CONNECTIONS) < 0)
+            if (listen(listenfd.get(), MAX_PENDING_CONNECTIONS) < 0)
                 return false;
 
             fd_set set;
             FD_ZERO(&set);
-            FD_SET(this->lsockfd.get(), &set);
+            FD_SET(listenfd.get(), &set);
 
             timeval timeout {
                 .tv_sec  = connection.timeout,
                 .tv_usec = 0,
             };
 
-            int ready = select(this->lsockfd.get() + 1, &set, nullptr, nullptr, &timeout);
+            int ready = select(listenfd.get() + 1, &set, nullptr, nullptr, &timeout);
 
             // ready == 0: timeout, ready < 0: select() failed
             if (ready <= 0)
                 return false;
 
-            detail::UniqueFD client(accept(this->lsockfd.get(), nullptr, nullptr));
-            this->lsockfd.reset();
+            detail::UniqueFD client(accept(listenfd.get(), nullptr, nullptr));
+            listenfd.reset();
 
             if (!client)
                 return false;
@@ -73,21 +73,17 @@ namespace love
             }
 
             std::signal(SIGPIPE, SIG_IGN);
-            this->redirected = true;
             return true;
         }
 
         void Socket::restore()
         {
-            if (this->savedfd)
-            {
-                std::fflush(stdout);
-                dup2(this->savedfd.get(), STDOUT_FILENO);
-                this->savedfd.reset();
-            }
+            if (!this->savedfd)
+                return;
 
-            this->lsockfd.reset();
-            this->redirected = false;
+            std::fflush(stdout);
+            dup2(this->savedfd.get(), STDOUT_FILENO);
+            this->savedfd.reset();
         }
 
         Socket g_debugSocket;

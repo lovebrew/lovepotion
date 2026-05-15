@@ -90,8 +90,8 @@ namespace love
             Socket(const Socket&)            = delete;
             Socket& operator=(const Socket&) = delete;
 
-            Socket(Socket&&) noexcept            = default;
-            Socket& operator=(Socket&&) noexcept = default;
+            Socket(Socket&&) noexcept            = delete;
+            Socket& operator=(Socket&&) noexcept = delete;
 
             bool open(const detail::Connection& connection);
 
@@ -99,10 +99,7 @@ namespace love
 
           private:
             static constexpr uint8_t MAX_PENDING_CONNECTIONS = 5;
-
-            detail::UniqueFD lsockfd;
             detail::UniqueFD savedfd;
-            bool redirected = false;
         };
 
         extern Socket g_debugSocket;
