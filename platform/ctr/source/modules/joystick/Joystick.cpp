@@ -5,10 +5,10 @@
 
 namespace love
 {
-    Joystick::Joystick(int id) : JoystickBase(id)
+    Joystick::Joystick(int id) : JoystickBase(id), handle(nullptr)
     {}
 
-    Joystick::Joystick(int id, int index) : JoystickBase(id, index)
+    Joystick::Joystick(int id, int index) : JoystickBase(id, index), handle(nullptr)
     {
         this->open(index);
     }
@@ -44,15 +44,18 @@ namespace love
 
     void Joystick::close()
     {
-        std::free(this->handle);
-        this->handle = nullptr;
+        if (this->handle != nullptr)
+        {
+            std::free(this->handle);
+            this->handle = nullptr;
+        }
 
         this->instanceId = -1;
     }
 
     bool Joystick::isConnected() const
     {
-        return true;
+        return this->instanceId >= 0;
     }
 
     float Joystick::getAxis(GamepadAxis axis) const

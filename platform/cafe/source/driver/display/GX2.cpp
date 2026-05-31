@@ -1,16 +1,23 @@
 #include "driver/display/GX2.hpp"
-#include "driver/display/Attribute.hpp"
+#include "common/Optional.hpp"
+#include "common/screen.hpp"
 
 /* keyboard needs GX2 inited first */
-#include "common/debug.hpp"
+#include "driver/display/AttributeLayout.hpp"
 #include "modules/graphics/Shader.hpp"
+#include "modules/graphics/vertex.hpp"
 #include "modules/keyboard/Keyboard.hpp"
+
+#include <cstdio>
 #include <gx2/clear.h>
 #include <gx2/context.h>
 #include <gx2/display.h>
+#include <gx2/enum.h>
 #include <gx2/event.h>
+#include <gx2/shaders.h>
 #include <gx2/state.h>
 #include <gx2/swap.h>
+#include <gx2/utils.h>
 #include <gx2r/draw.h>
 
 #include <proc_ui/procui.h>
@@ -28,7 +35,9 @@ namespace love
         commandBuffer(nullptr),
         state(nullptr),
         layout {}
-    {}
+    {
+        this->renderState.enabledAttribArrays = ((1ull << uint32_t(GX2AttributeLayout::MAX_ATTRIBUTES)) - 1);
+    }
 
     GX2::~GX2()
     {}
@@ -184,6 +193,7 @@ namespace love
         Graphics::flushBatchedDrawsGlobal();
         Graphics::advanceStreamBuffersGlobal();
 
+        this->swkbdRenderFuncs[love::currentScreen]();
         this->targets[love::currentScreen].copyScanBuffer();
 
         GX2Flush();
@@ -192,31 +202,31 @@ namespace love
 
     void GX2::clearDepth(double value)
     {
-        if (!this->inFrame)
-            return;
-
-        const auto stencil       = this->context.stencilState.value;
         this->context.depthClear = value;
-        GX2ClearDepthStencilEx(&this->getInternalDepthbuffer(), (float)value, stencil, GX2_CLEAR_FLAGS_DEPTH);
-        GX2SetContextState(this->state);
+        GX2SetClearDepth(&this->getInternalDepthbuffer(), (float)value);
     }
 
     void GX2::clearStencil(int value)
     {
-        if (!this->inFrame)
-            return;
-
-        const auto depth = this->context.depthClear;
-        GX2ClearDepthStencilEx(&this->getInternalDepthbuffer(), (float)depth, value, GX2_CLEAR_FLAGS_STENCIL);
-        GX2SetContextState(this->state);
+        this->context.writeMask = value;
+        GX2SetClearStencil(&this->getInternalDepthbuffer(), (uint8_t)value);
     }
 
-    void GX2::clear(const Color& color)
+    void GX2::clearColor(const Color& color)
     {
         if (!this->inFrame || !this->context.boundFramebuffer)
             return;
 
         GX2ClearColor(this->getFramebuffer(), color.r, color.g, color.b, color.a);
+        GX2SetContextState(this->state);
+    }
+
+    void GX2::clear(OptionalInt stencil, OptionalDouble depth, GX2ClearFlags flags)
+    {
+        if (!this->inFrame || !this->context.boundFramebuffer)
+            return;
+
+        GX2ClearDepthStencilEx(&this->getInternalDepthbuffer(), depth.value, stencil.value, flags);
         GX2SetContextState(this->state);
     }
 
@@ -299,12 +309,25 @@ namespace love
         }
     }
 
+    static uint32_t getAttributeFormatSelector(int components)
+    {
+        static constexpr std::array masks = {
+            GX2_SEL_MASK(GX2_SQ_SEL_0, GX2_SQ_SEL_0, GX2_SQ_SEL_0, GX2_SQ_SEL_1),
+            GX2_SEL_MASK(GX2_SQ_SEL_X, GX2_SQ_SEL_0, GX2_SQ_SEL_0, GX2_SQ_SEL_1),
+            GX2_SEL_MASK(GX2_SQ_SEL_X, GX2_SQ_SEL_Y, GX2_SQ_SEL_0, GX2_SQ_SEL_1),
+            GX2_SEL_MASK(GX2_SQ_SEL_X, GX2_SQ_SEL_Y, GX2_SQ_SEL_Z, GX2_SQ_SEL_1),
+            GX2_SEL_MASK(GX2_SQ_SEL_X, GX2_SQ_SEL_Y, GX2_SQ_SEL_Z, GX2_SQ_SEL_W)
+        };
+
+        return masks[components];
+    }
+
     void GX2::setVertexAttributes(const VertexAttributes& attributes, const BufferBindings& buffers)
     {
-        uint32_t allBits = (attributes.enableBits | GX2AttributeLayout::MAX_ATTRIBUTES);
+        uint32_t allBits = (attributes.enableBits | this->renderState.enabledAttribArrays);
         uint32_t i       = 0;
 
-        this->layout.reset();
+        std::vector<GX2AttribStream> attributeState {};
 
         while (allBits)
         {
@@ -312,10 +335,7 @@ namespace love
 
             if (attributes.enableBits & bit)
             {
-                GX2Attribute stream(true);
-
                 const auto& attribute = attributes.attributes[i];
-                const auto& layout    = attributes.bufferLayouts[attribute.bufferIndex];
 
                 uint32_t bufferBit = 1u << attribute.bufferIndex;
                 uint32_t divisor   = (attributes.instanceBits & bufferBit) != 0 ? 1 : 0;
@@ -325,18 +345,34 @@ namespace love
                 GX2AttribFormat format;
                 getConstant(attribute.getFormat(), format);
 
-                stream.update(i, components, format, attribute.offsetFromVertex);
-                stream.setDivisor(divisor);
+                GX2AttribIndexType type;
+                getConstant(attributes.getBufferStep(i), type);
 
-                this->layout.set(i, stream);
+                // clang-format off
+                GX2AttribStream stream {
+                    .location   = i,
+                    .buffer     = attribute.bufferIndex,
+                    .offset     = attribute.offsetFromVertex,
+                    .format     = format,
+                    .type       = type,
+                    .aluDivisor = divisor,
+                    .mask       = getAttributeFormatSelector(components),
+                    .endianSwap = GX2_ENDIAN_SWAP_DEFAULT
+                };
+                // clang-format on
+
+                attributeState.push_back(stream);
             }
             i++;
             allBits >>= 1u;
         }
+        this->layout.rebuild(attributeState);
         this->layout.bind();
 
         auto* handle = (GX2RBuffer*)buffers.info[0].buffer->getHandle();
         GX2RSetAttributeBuffer(handle, 0, handle->elemSize, 0);
+
+        this->renderState.enabledAttribArrays = attributes.enableBits;
     }
 
     void GX2::bindTextureToUnit(TextureBase* texture, int unit)

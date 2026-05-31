@@ -37,14 +37,15 @@ namespace love
         }
 
         // clang-format off
-        static constexpr std::array<const Service, 8> services =
+        static constexpr std::array<const Service, 9> services =
         {{
+            { "gfx", BIND(gfxInitDefault), &gfxExit },
             { "ac:u",    BIND(acInit),                                     &acExit               },
             { "soc:u",   BIND(socuInit),                                   &socuExit             },
             { "mcu:Hwc", BIND(mcuHwcInit),                                 &mcuHwcExit           },
             { "ptm:u",   BIND(ptmuInit),                                   &ptmuExit             },
             { "cfg:u",   BIND(cfguInit),                                   &cfguExit             },
-            { "frd:a",   BIND(frdInit, false),                             &frdExit              },
+            { "frd:a",   BIND(frdInit, false),                  &frdExit              },
             { "ir:rst",  BIND(irrstInit),                                  &irrstExit            },
             { "romfs",   BIND(romfsInit),                                  []() { romfsExit(); } }
         }};

@@ -1,6 +1,8 @@
+#include "common/pixelformat.hpp"
 #include "driver/display/GX2.hpp"
 
 #include "modules/graphics/Graphics.hpp"
+#include "modules/graphics/Graphics.tcc"
 #include "modules/window/Window.hpp"
 
 #include "modules/graphics/Buffer.hpp"
@@ -10,11 +12,10 @@
 #include "modules/graphics/freetype/Font.hpp"
 
 #include <gx2/draw.h>
+#include <gx2/enum.h>
 #include <gx2/event.h>
 #include <gx2/state.h>
 #include <gx2r/draw.h>
-
-#include "common/debug.hpp"
 
 namespace love
 {
@@ -138,17 +139,29 @@ namespace love
         if (color.hasValue || stencil.hasValue || depth.hasValue)
             this->flushBatchedDraws();
 
-        if (stencil.hasValue)
-            gx2.clearStencil(stencil.value);
-
-        if (depth.hasValue)
-            gx2.clearDepth(depth.value);
+        GX2ClearFlags flags = (GX2ClearFlags)0;
 
         if (color.hasValue)
         {
-            gammaCorrectColor(color.value);
-            gx2.clear(color.value);
+            Color col = color.value;
+            gammaCorrectColor(col);
+            gx2.clearColor(col);
         }
+
+        if (stencil.hasValue)
+        {
+            gx2.clearStencil(stencil.value);
+            flags |= GX2_CLEAR_FLAGS_STENCIL;
+        }
+
+        if (depth.hasValue)
+        {
+            gx2.clearDepth(depth.value);
+            flags |= GX2_CLEAR_FLAGS_DEPTH;
+        }
+
+        if (flags != (GX2ClearFlags)0)
+            gx2.clear(stencil, depth, flags);
 
         gx2.bindFramebuffer(&gx2.getInternalBackbuffer());
     }
@@ -182,16 +195,34 @@ namespace love
 
         for (int index = 0; index < numColors; index++)
         {
-            OptionalColor current = colors[index];
-
-            if (!current.hasValue)
+            if (!colors[index].hasValue)
                 continue;
 
-            Color value(current.value.r, current.value.g, current.value.b, current.value.a);
+            PixelFormatType type = PIXELFORMATTYPE_UNORM;
+            if (targets[index].texture == nullptr)
+                type = getPixelFormatInfo(targets[index].texture->getPixelFormat()).dataType;
 
-            gammaCorrectColor(value);
-            gx2.clear(value);
+            Color color = colors[index].value;
+            gammaCorrectColor(color);
+            gx2.clearColor(color);
         }
+
+        GX2ClearFlags flags = (GX2ClearFlags)0;
+
+        if (stencil.hasValue)
+        {
+            gx2.clearStencil(stencil.value);
+            flags |= GX2_CLEAR_FLAGS_STENCIL;
+        }
+
+        if (depth.hasValue)
+        {
+            gx2.clearDepth(depth.value);
+            flags |= GX2_CLEAR_FLAGS_DEPTH;
+        }
+
+        if (flags != (GX2ClearFlags)0)
+            gx2.clear(stencil, depth, flags);
 
         gx2.bindFramebuffer(&gx2.getInternalBackbuffer());
     }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/Map.hpp"
+#include "common/Optional.hpp"
 #include "common/pixelformat.hpp"
 
 #include "driver/display/AttributeLayout.hpp"
@@ -11,6 +12,7 @@
 #include <gx2/enum.h>
 #include <gx2/sampler.h>
 #include <gx2/texture.h>
+#include <nn/swkbd/swkbd_cpp.h>
 
 /* Enforces GLSL std140/std430 alignment rules for glm types */
 #define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
@@ -40,7 +42,9 @@ namespace love
 
         int onForegroundReleased();
 
-        void clear(const Color& color);
+        void clearColor(const Color& color);
+
+        void clear(OptionalInt stencil, OptionalDouble depth, GX2ClearFlags flags);
 
         void clearDepthStencil(int depth, uint8_t mask, double stencil);
 
@@ -173,6 +177,11 @@ namespace love
             { DATAFORMAT_FLOAT_VEC4, GX2_ATTRIB_FORMAT_FLOAT_32_32_32_32 }
         );
 
+        ENUMMAP_DECLARE(AttributeIndexModes, AttributeStep, GX2AttribIndexType,
+            { STEP_PER_VERTEX,    GX2_ATTRIB_INDEX_PER_VERTEX   },
+            { STEP_PER_INSTANCE,  GX2_ATTRIB_INDEX_PER_INSTANCE }
+        );
+
         ENUMMAP_DECLARE(PrimitiveModes, PrimitiveType, GX2PrimitiveMode,
             { PRIMITIVE_TRIANGLES,      GX2_PRIMITIVE_MODE_TRIANGLES      },
             { PRIMITIVE_TRIANGLE_STRIP, GX2_PRIMITIVE_MODE_TRIANGLE_STRIP },
@@ -200,6 +209,7 @@ namespace love
 
       private:
         std::array<Framebuffer, 2> targets;
+        std::array<std::function<void()>, 2> swkbdRenderFuncs = { nn::swkbd::DrawTV, nn::swkbd::DrawDRC };
 
         void createFramebuffers();
 

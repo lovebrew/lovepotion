@@ -14,6 +14,8 @@ namespace love
     {
         const auto side = (gfxIs3D() && info.name == "right") ? GFX_RIGHT : GFX_LEFT;
 
+        this->destroy();
+
         this->target = C3D_RenderTargetCreate(info.height, info.width, COLOR_FORMAT, DEPTH_FORMAT);
 
         if (!this->target)

@@ -335,4 +335,18 @@ namespace love
                 return 0;
         }
     }
+
+    size_t getVertexAttributeLocation(BuiltinVertexAttribute attribute)
+    {
+        switch (attribute)
+        {
+            case ATTRIB_POS:
+            default:
+                return 0;
+            case ATTRIB_TEXCOORD:
+                return 1;
+            case ATTRIB_COLOR:
+                return 2;
+        }
+    }
 } // namespace love

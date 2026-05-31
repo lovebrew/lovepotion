@@ -1,21 +1,24 @@
 #pragma once
 
+#include <3ds/gpu/enums.h>
 #include <citro3d.h>
 
 #include "common/Map.hpp"
+#include "common/config.hpp"
 #include "common/pixelformat.hpp"
 
 #include "driver/display/Framebuffer.hpp"
 #include "driver/display/Renderer.tcc"
 
+#include "modules/graphics/Texture.tcc"
 #include "modules/graphics/renderstate.hpp"
 #include "modules/graphics/samplerstate.hpp"
+#include "modules/graphics/vertex.hpp"
 
 using C3D_IndexType = decltype(C3D_UNSIGNED_BYTE);
 
 namespace love
 {
-
     class citro3d : public RendererBase
     {
       public:
@@ -29,57 +32,54 @@ namespace love
 
         citro3d();
 
-        void initialize();
+        virtual void init() override;
 
-        void setupContext();
+        virtual void close() override;
 
-        void deInitialize();
+        virtual void clearColor(const Color& color) override;
 
-        void clear(const Color& color);
+        virtual void clear(double depth, int stencil) override;
 
-        void clearDepth(double value);
+        virtual void setClearDepth(double depth) override
+        {
+            LOVE_UNUSED(depth);
+        }
 
-        void clearStencil(int value);
+        virtual void setClearStencil(int stencil) override
+        {
+            LOVE_UNUSED(stencil);
+        }
 
-        void setStencilState(const StencilState& state);
+        virtual void setStencilState(const StencilState& state) override;
 
-        void setDepthWrites(CompareMode compare, bool write);
+        virtual void setViewport(const Rect& viewport) override;
 
-        C3D_RenderTarget* getFramebuffer();
+        virtual void setScissor(const Rect& scissor) override;
 
-        void bindFramebuffer(C3D_RenderTarget* framebuffer);
+        virtual void setCullMode(CullMode mode) override;
 
-        void present();
-
-        void setBlendState(const BlendState& state);
-
-        void setViewport(const Rect& viewport, bool tilt);
-
-        void setScissor(const Rect& scissor);
-
-        void setCullMode(CullMode mode);
-
-        void setColorMask(ColorChannelMask mask);
-
-        void setVertexWinding(Winding winding);
-
-        void setSamplerState(C3D_Tex* texture, SamplerState state);
+        virtual void setVertexAttributes(const VertexAttributes& attributes,
+                                         const BufferBindings& buffers) override;
 
         virtual void prepareDraw(GraphicsBase* graphics) override;
 
-        void setVertexAttributes(const VertexAttributes& attributes, const BufferBindings& buffers);
+        virtual void present() override;
+
+        C3D_RenderTarget* getFramebuffer();
+
+        C3D_RenderTarget* getInternalBackbuffer() const;
+
+        void bindFramebuffer(C3D_RenderTarget* framebuffer);
+
+        void setSamplerState(C3D_Tex* texture, SamplerState state);
 
         void bindTextureToUnit(TextureType target, C3D_Tex* texture, int unit);
 
         void bindTextureToUnit(TextureBase* texture, int unit);
 
-        C3D_RenderTarget* getInternalBackbuffer() const;
-
-        GPU_FORMATS getVertexComponents(DataFormat format, int& components);
-
         void setWideMode(bool wide)
         {
-            this->modeChanged([this, wide]() { gfxSetWide(wide); });
+            this->modeChanged([wide]() { gfxSetWide(wide); });
         }
 
         bool isWideMode() const
@@ -89,7 +89,7 @@ namespace love
 
         void set3DMode(bool enable)
         {
-            this->modeChanged([this, enable]() { gfxSet3D(enable); });
+            this->modeChanged([enable]() { gfxSet3D(enable); });
         }
 
         bool is3DMode() const
@@ -109,11 +109,29 @@ namespace love
 
         void setTexEnvMode(TextureBase* texture, bool isFont);
 
-        static GPU_TEXTURE_MODE_PARAM getTextureType(TextureType type);
-
-        static GPU_Primitive_t getPrimitiveType(PrimitiveType type);
-
         // clang-format off
+
+       ENUMMAP_DECLARE(PrimitiveModes, PrimitiveType, GPU_Primitive_t,
+            { PRIMITIVE_TRIANGLES,      GPU_TRIANGLES      },
+            { PRIMITIVE_TRIANGLE_STRIP, GPU_TRIANGLE_STRIP },
+            { PRIMITIVE_TRIANGLE_FAN,   GPU_TRIANGLE_FAN   }
+        );
+
+        ENUMMAP_DECLARE(TextureModes, TextureType, GPU_TEXTURE_MODE_PARAM,
+            { TEXTURE_2D,       GPU_TEX_2D       },
+            { TEXTURE_CUBE,     GPU_TEX_CUBE_MAP }
+        );
+
+        ENUMMAP_DECLARE(DataBaseTypes, DataBaseType, GPU_FORMATS,
+            { DATA_BASETYPE_FLOAT,  GPU_FLOAT }
+        );
+
+        ENUMMAP_DECLARE(SamplerModes, SamplerState::WrapMode, GPU_TEXTURE_WRAP_PARAM,
+            { SamplerState::WRAP_CLAMP,           GPU_CLAMP_TO_EDGE   },
+            { SamplerState::WRAP_REPEAT,          GPU_REPEAT          },
+            { SamplerState::WRAP_MIRRORED_REPEAT, GPU_MIRRORED_REPEAT }
+        );
+
         ENUMMAP_DECLARE(PixelFormats, PixelFormat, GPU_TEXCOLOR,
             { PIXELFORMAT_RGBA8_UNORM,  GPU_RGBA8    },
             { PIXELFORMAT_RGBA4_UNORM,  GPU_RGBA4    },
@@ -149,7 +167,7 @@ namespace love
             { BLENDFACTOR_ONE_MINUS_DST_COLOR,  GPU_ONE_MINUS_DST_COLOR  },
             { BLENDFACTOR_DST_ALPHA,            GPU_DST_ALPHA            },
             { BLENDFACTOR_ONE_MINUS_DST_ALPHA,  GPU_ONE_MINUS_DST_ALPHA  },
-            { BLENDFACTOR_SRC_ALPHA_SATURATED,  GPU_SRC_ALPHA_SATURATE   }
+            { BLENDFACTOR_SRC_ALPHA_SATURATED, GPU_SRC_ALPHA_SATURATE   }
         );
 
         ENUMMAP_DECLARE(StencilOps, StencilAction, GPU_STENCILOP,
@@ -181,23 +199,15 @@ namespace love
         // clang-format on
 
       private:
-        static GPU_TEXTURE_WRAP_PARAM getWrapMode(SamplerState::WrapMode mode);
-
         static int getTextureUnit(GPU_TEXUNIT unit);
 
         struct Context : public ContextBase
         {
-            C3D_Mtx modelView;
-            C3D_Mtx projection;
-
             C3D_RenderTarget* boundFramebuffer = nullptr;
-
-            int currentTextureUnit = 0;
             std::vector<C3D_Tex*> boundTextures[TEXTURE_MAX_ENUM + 1];
             TexEnvMode texEnvMode = TEXENV_MODE_MAX_ENUM;
             C3D_Tex* boundTexture = nullptr;
 
-            bool depthWrites = false;
             GPU_TESTFUNC testMode;
             GPU_WRITEMASK mask;
         } context;

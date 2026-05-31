@@ -120,7 +120,7 @@ namespace love
                     throw love::Exception(E_MESH_DUPLICATE_ATTRIBUTE_LOCATION, attribute.bindingLocation);
             }
 
-            if (attribute.name.empty())
+            if (!attribute.name.empty())
             {
                 int index = this->getAttachedAttributeIndex(attribute.bindingLocation);
                 if (index != i && index != -1)
@@ -278,11 +278,67 @@ namespace love
 
     void Mesh::attachAttribute(const std::string& name, BufferBase* buffer, Mesh* mesh,
                                const std::string& attachName, int startIndex, AttributeStep step)
-    {}
+    {
+        BufferAttribute oldAttribute {};
+        BufferAttribute newAttribute {};
+
+        int oldIndex = this->getAttachedAttributeIndex(name);
+        if (oldIndex != -1)
+            oldAttribute = this->attachedAttributes[oldIndex];
+        else if (this->attachedAttributes.size() + 1 > VertexAttributes::MAX)
+            throw love::Exception("A maximum of {:d} attributes can be attached at once.",
+                                  VertexAttributes::MAX);
+
+        newAttribute.name            = name;
+        newAttribute.buffer          = buffer;
+        newAttribute.mesh            = mesh;
+        newAttribute.enabled         = oldAttribute.buffer.get() ? oldAttribute.enabled : true;
+        newAttribute.nameInBuffer    = attachName;
+        newAttribute.indexInBuffer   = -1;
+        newAttribute.startArrayIndex = startIndex;
+        newAttribute.step            = step;
+
+        this->finalizeAttribute(newAttribute);
+
+        if (oldIndex != -1)
+            this->attachedAttributes[oldIndex] = newAttribute;
+        else
+            this->attachedAttributes.push_back(newAttribute);
+
+        this->attributesID.invalidate();
+    }
 
     void Mesh::attachAttribute(int bindingLocation, BufferBase* buffer, Mesh* mesh, int attachBindingLocation,
                                int startindex, AttributeStep step)
-    {}
+    {
+        BufferAttribute oldAttribute {};
+        BufferAttribute newAttribute {};
+
+        int oldIndex = this->getAttachedAttributeIndex(bindingLocation);
+        if (oldIndex != -1)
+            oldAttribute = this->attachedAttributes[oldIndex];
+        else if (this->attachedAttributes.size() + 1 > VertexAttributes::MAX)
+            throw love::Exception("A maximum of {:d} attributes can be attached at once.",
+                                  VertexAttributes::MAX);
+
+        newAttribute.bindingLocation         = bindingLocation;
+        newAttribute.buffer                  = buffer;
+        newAttribute.mesh                    = mesh;
+        newAttribute.enabled                 = oldAttribute.buffer.get() ? oldAttribute.enabled : true;
+        newAttribute.bindingLocationInBuffer = attachBindingLocation;
+        newAttribute.indexInBuffer           = -1;
+        newAttribute.startArrayIndex         = startindex;
+        newAttribute.step                    = step;
+
+        this->finalizeAttribute(newAttribute);
+
+        if (oldIndex != -1)
+            this->attachedAttributes[oldIndex] = newAttribute;
+        else
+            this->attachedAttributes.push_back(newAttribute);
+
+        this->attributesID.invalidate();
+    }
 
     bool Mesh::detachAttribute(const std::string& name)
     {
@@ -580,6 +636,7 @@ namespace love
 
                 attributes.set(location, member.declaration.format, offset, bufferIndex);
                 attributes.setBufferLayout(bufferIndex, stride, attribute.step);
+
                 buffers.set(bufferIndex, buffer, bufferOffset);
                 activeBuffers = std::max(activeBuffers, bufferIndex + 1);
             }

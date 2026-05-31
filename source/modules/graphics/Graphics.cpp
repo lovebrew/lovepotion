@@ -88,7 +88,7 @@ namespace love
         this->states.reserve(10);
         this->states.push_back(DisplayState());
 
-        this->noAttributesID = registerVertexAttributes(VertexAttributes {});
+        this->noAttributesID = registerVertexAttributes(VertexAttributes());
     }
 
     GraphicsBase::~GraphicsBase()

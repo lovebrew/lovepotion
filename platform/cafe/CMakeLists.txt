@@ -20,6 +20,7 @@ dkp_track_assets(${PROJECT_NAME}_cafe_content
     FILES
         color.gsh
         texture.gsh
+        video.gsh
 )
 
 dkp_track_assets(${PROJECT_NAME}_cafe_content

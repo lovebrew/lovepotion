@@ -1,3 +1,5 @@
+#include "common/config.hpp"
+
 #include "driver/display/citro3d.hpp"
 
 #include "modules/graphics/Buffer.hpp"
@@ -9,7 +11,9 @@
 #include "modules/graphics/Font.hpp"
 
 #include "common/Exception.hpp"
-#include "common/debug.hpp"
+
+#include <3ds/gpu/enums.h>
+#include <c3d/effect.h>
 
 namespace love
 {
@@ -132,17 +136,20 @@ namespace love
         if (color.hasValue || stencil.hasValue || depth.hasValue)
             this->flushBatchedDraws();
 
-        if (stencil.hasValue)
-            c3d.clearStencil(stencil.value);
-
-        if (depth.hasValue)
-            c3d.clearDepth(depth.value);
-
         if (color.hasValue)
         {
             gammaCorrectColor(color.value);
-            c3d.clear(color.value);
+            c3d.clearColor(color.value);
         }
+
+        if (stencil.hasValue)
+            c3d.setClearStencil(stencil.value);
+
+        if (depth.hasValue)
+            c3d.setClearDepth(depth.value);
+
+        if (depth.hasValue || stencil.hasValue)
+            c3d.clear(depth.value, stencil.value);
 
         if (!this->isRenderTargetActive())
             c3d.bindFramebuffer(c3d.getInternalBackbuffer());
@@ -177,16 +184,22 @@ namespace love
 
         for (int index = 0; index < numColors; index++)
         {
-            OptionalColor current = colors[index];
-
-            if (!current.hasValue)
+            if (!colors[index].hasValue)
                 continue;
 
-            Color value(current.value.r, current.value.g, current.value.b, current.value.a);
-
-            gammaCorrectColor(value);
-            c3d.clear(value);
+            Color c = colors[index].value;
+            gammaCorrectColor(c);
+            c3d.clearColor(c);
         }
+
+        if (stencil.hasValue)
+            c3d.setClearStencil(stencil.value);
+
+        if (depth.hasValue)
+            c3d.setClearDepth(depth.value);
+
+        if (stencil.hasValue || depth.hasValue)
+            c3d.clear(depth.value, stencil.value);
 
         if (!this->isRenderTargetActive())
             c3d.bindFramebuffer(c3d.getInternalBackbuffer());
@@ -297,26 +310,28 @@ namespace love
             this->flushBatchedDraws();
 
         state.winding = winding;
-
-        if (this->isRenderTargetActive())
-            winding = (winding == WINDING_CW) ? WINDING_CCW : WINDING_CW; // ???
-
-        c3d.setVertexWinding(winding);
     }
 
     void Graphics::setColorMask(ColorChannelMask mask)
     {
         this->flushBatchedDraws();
 
-        c3d.setColorMask(mask);
+        const auto& state = this->states.back();
+
+        auto bits = mask.get();
+        if (this->states.back().depthWrite)
+            bits |= GPU_WRITE_DEPTH;
+
+        GPU_TESTFUNC function;
+        citro3d::getConstant(state.depthTest, function);
+
         this->states.back().colorMask = mask;
+        C3D_DepthTest(state.depthWrite, function, GPU_WRITEMASK(bits));
     }
 
     void Graphics::setStencilState(const StencilState& state)
     {
         Graphics::flushBatchedDraws();
-        c3d.setStencilState(state);
-
         this->states.back().stencil = state;
     }
 
@@ -329,7 +344,13 @@ namespace love
         state.depthTest  = compare;
         state.depthWrite = write;
 
-        c3d.setDepthWrites(compare, write);
+        bool enabled = compare != COMPARE_ALWAYS || write;
+
+        GPU_TESTFUNC function;
+        citro3d::getConstant(compare, function);
+        const auto mask = GPU_WRITEMASK(state.colorMask.get() | GPU_WRITE_DEPTH);
+
+        C3D_DepthTest(enabled, function, mask);
     }
 
     void Graphics::setBlendState(const BlendState& state)
@@ -345,7 +366,23 @@ namespace love
         }
 
         if (state.enable)
-            c3d.setBlendState(state);
+        {
+            GPU_BLENDEQUATION opRGB;
+            citro3d::getConstant(state.operationRGB, opRGB);
+            GPU_BLENDEQUATION opA;
+            citro3d::getConstant(state.operationA, opA);
+
+            GPU_BLENDFACTOR srcRGB;
+            citro3d::getConstant(state.srcFactorRGB, srcRGB);
+            GPU_BLENDFACTOR srcA;
+            citro3d::getConstant(state.srcFactorA, srcA);
+            GPU_BLENDFACTOR dstRGB;
+            citro3d::getConstant(state.dstFactorRGB, dstRGB);
+            GPU_BLENDFACTOR dstA;
+            citro3d::getConstant(state.dstFactorA, dstA);
+
+            C3D_AlphaBlend(opRGB, opA, srcRGB, srcA, dstRGB, dstA);
+        }
 
         this->states.back().blend = state;
     }
@@ -380,12 +417,12 @@ namespace love
     bool Graphics::setMode(int width, int height, int pixelWidth, int pixelHeight, bool backBufferStencil,
                            bool backBufferDepth, int msaa)
     {
-        c3d.initialize();
+        LOVE_UNUSED(width, height, pixelWidth, pixelHeight, backBufferStencil, backBufferDepth, msaa);
+
+        c3d.init();
 
         this->created = true;
         this->initCapabilities();
-
-        c3d.setupContext();
 
         try
         {
@@ -442,12 +479,13 @@ namespace love
             return;
 
         this->flushBatchedDraws();
-        c3d.deInitialize();
+        c3d.close();
     }
 
     void Graphics::setRenderTargetsInternal(const RenderTargets& targets, int pixelWidth, int pixelHeight,
                                             bool hasSRGBTexture)
     {
+        LOVE_UNUSED(hasSRGBTexture);
         const auto& state   = this->states.back();
         const auto isWindow = targets.getFirstTarget().texture == nullptr;
 
@@ -457,7 +495,7 @@ namespace love
             c3d.bindFramebuffer((C3D_RenderTarget*)targets.getFirstTarget().texture->getRenderTargetHandle());
 
         bool tilt = isWindow ? true : false;
-        c3d.setViewport({ 0, 0, pixelWidth, pixelHeight }, tilt);
+        c3d.setViewport({ 0, 0, pixelWidth, pixelHeight });
 
         if (state.scissor)
             c3d.setScissor(state.scissorRect);
@@ -465,7 +503,7 @@ namespace love
 
     void Graphics::setViewport(int x, int y, int width, int height)
     {
-        c3d.setViewport({ x, y, width, height }, true);
+        c3d.setViewport({ x, y, width, height });
     }
 
     TextureBase* Graphics::newTexture(const TextureBase::Settings& settings, const TextureBase::Slices* data)
@@ -586,10 +624,12 @@ namespace love
         const auto* indices = (const uint16_t*)command.indexBuffer->getHandle();
         const int index     = BUFFER_OFFSET(command.indexBufferOffset);
 
-        const auto primitiveType = citro3d::getPrimitiveType(command.primitiveType);
-        const auto dataType      = C3D_UNSIGNED_SHORT;
+        GPU_Primitive_t primitive;
+        citro3d::getConstant(command.primitiveType, primitive);
 
-        C3D_DrawElements(primitiveType, command.indexCount, dataType, &indices[index]);
+        const auto dataType = C3D_UNSIGNED_SHORT;
+
+        C3D_DrawElements(primitive, command.indexCount, dataType, &indices[index]);
         ++this->drawCalls;
     }
 
@@ -603,9 +643,10 @@ namespace love
         c3d.setVertexAttributes(attributes, *command.buffers);
         c3d.bindTextureToUnit(command.texture, 0);
 
-        const auto primitiveType = citro3d::getPrimitiveType(command.primitiveType);
+        GPU_Primitive_t primitive;
+        citro3d::getConstant(command.primitiveType, primitive);
 
-        C3D_DrawArrays(primitiveType, command.vertexStart, command.vertexCount);
+        C3D_DrawArrays(primitive, command.vertexStart, command.vertexCount);
         ++this->drawCalls;
     }
 

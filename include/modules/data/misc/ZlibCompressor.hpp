@@ -84,7 +84,8 @@ namespace love
             {
                 inflateEnd(&stream);
 
-                if (error == Z_NEED_DICT || (error == Z_BUF_ERROR && stream.avail_in == 0))
+                if (error == Z_NEED_DICT ||
+                    (error == Z_BUF_ERROR && stream.avail_out > 0 && stream.avail_in == 0))
                     return Z_DATA_ERROR;
 
                 return error;

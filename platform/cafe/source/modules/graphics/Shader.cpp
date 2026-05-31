@@ -8,10 +8,12 @@
 #include "modules/graphics/Shader.hpp"
 #include "modules/graphics/ShaderStage.hpp"
 
+#include <cstddef>
 #include <gfd.h>
 #include <gx2/event.h>
 #include <gx2/mem.h>
 #include <gx2/utils.h>
+#include <memory>
 #include <whb/gfx.h>
 
 #include <malloc.h>
@@ -203,7 +205,7 @@ namespace love
 
     ptrdiff_t Shader::getHandle() const
     {
-        return 0;
+        return (ptrdiff_t)std::addressof(this->program);
     }
 
     void Shader::attach()

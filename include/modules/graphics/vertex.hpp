@@ -423,6 +423,8 @@ namespace love
 
     size_t getIndexDataSize(IndexDataType type);
 
+    size_t getVertexAttributeLocation(BuiltinVertexAttribute attribute);
+
     // clang-format off
     STRINGMAP_DECLARE(DataFormats, DataFormat,
         { "float",     DATAFORMAT_FLOAT      },

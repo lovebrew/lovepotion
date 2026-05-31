@@ -2,7 +2,6 @@
 #include "modules/graphics/Graphics.hpp"
 
 #include "driver/display/citro3d.hpp"
-#include "modules/graphics/DrawCommand.hpp"
 
 #include <tex3ds.h>
 
@@ -25,10 +24,8 @@ namespace love
 
         if (clear)
         {
-            c3d.clearDepth(1.0);
-            c3d.clearStencil(0);
-
-            c3d.clear({ 0, 0, 0, 0 });
+            c3d.clear(1.0, 0);
+            c3d.clearColor({ 0, 0, 0, 0 });
         }
     }
 

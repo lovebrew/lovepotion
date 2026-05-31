@@ -4,8 +4,8 @@
 
 #include <gx2/shaders.h>
 
-#include <array>
-#include <bitset>
+#include <cstdint>
+#include <vector>
 
 namespace love
 {
@@ -18,20 +18,17 @@ namespace love
 
         ~GX2AttributeLayout();
 
-        void reset();
-
-        void set(uint32_t index, const GX2Attribute& stream);
-
         void bind();
 
-        void rebuild();
+        void reset();
+
+        void rebuild(const std::vector<GX2AttribStream>& state);
 
       private:
         void destroy();
 
-        std::array<GX2Attribute, MAX_ATTRIBUTES> streams;
         GX2FetchShader fetchShader;
-        void* program;
+        uint8_t* program;
         bool dirty;
     };
 } // namespace love

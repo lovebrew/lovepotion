@@ -1,9 +1,10 @@
+#include "common/config.hpp"
 #include "common/screen.hpp"
 
 #include "driver/display/citro3d.hpp"
 #include "modules/graphics/Shader.hpp"
-
-#include "common/debug.hpp"
+#include "modules/graphics/vertex.hpp"
+#include <3ds/gpu/enums.h>
 
 namespace love
 {
@@ -12,20 +13,13 @@ namespace love
         this->targets.reserve(3);
     }
 
-    void citro3d::initialize()
+    void citro3d::init()
     {
         if (this->initialized)
             return;
 
-        gfxInitDefault();
-
         if (!C3D_Init(C3D_DEFAULT_CMDBUF_SIZE))
             throw love::Exception("Failed to initialize citro3d.");
-
-        C3D_CullFace(GPU_CULL_NONE);
-
-        this->context.depthWrites = false;
-        this->context.mask        = GPU_WRITE_COLOR;
 
         C3D_AttrInfo* attributes = C3D_GetAttrInfo();
         AttrInfo_Init(attributes);
@@ -34,10 +28,6 @@ namespace love
         AttrInfo_AddLoader(attributes, 1, GPU_FLOAT, 2); //< texcoord
         AttrInfo_AddLoader(attributes, 2, GPU_FLOAT, 4); //< color
 
-        Mtx_Identity(&this->context.modelView);
-        Mtx_Identity(&this->context.projection);
-
-        this->set3DMode(true);
         this->initialized = true;
     }
 
@@ -78,25 +68,13 @@ namespace love
         this->context.texEnvMode = mode;
     }
 
-    void citro3d::setupContext()
-    {
-        for (int i = 0; i < TEXTURE_MAX_ENUM + 1; i++)
-        {
-            this->context.boundTextures[i].clear();
-            this->context.boundTextures[i].resize(3, nullptr);
-        }
-    }
-
-    void citro3d::deInitialize()
+    void citro3d::close()
     {
         if (!this->initialized)
             return;
 
         this->destroyFramebuffers();
-
         C3D_Fini();
-        gfxExit();
-
         this->initialized = false;
     }
 
@@ -105,8 +83,18 @@ namespace love
         const auto info              = getScreenInfo();
         const size_t numFramebuffers = info.size();
 
-        for (size_t index = 0; index < numFramebuffers; ++index)
-            this->targets[index].create(info[index]);
+        this->targets.resize(numFramebuffers);
+
+        try
+        {
+            for (size_t index = 0; index < numFramebuffers; ++index)
+                this->targets[index].create(info[index]);
+        }
+        catch (...)
+        {
+            this->destroyFramebuffers();
+            throw;
+        }
     }
 
     void citro3d::destroyFramebuffers()
@@ -118,6 +106,9 @@ namespace love
             C3D_FrameEnd(0);
             this->inFrame = false;
         }
+
+        if (this->isDefaultFramebufferActive())
+            this->context.boundFramebuffer = nullptr;
 
         for (auto& target : this->targets)
             target.destroy();
@@ -148,7 +139,7 @@ namespace love
         return this->targets[love::currentScreen].get();
     }
 
-    void citro3d::clear(const Color& color)
+    void citro3d::clearColor(const Color& color)
     {
         if (!this->inFrame || !this->context.boundFramebuffer)
             return;
@@ -156,17 +147,15 @@ namespace love
         C3D_RenderTargetClear(this->getFramebuffer(), C3D_CLEAR_COLOR, color.abgr(), 0);
     }
 
-    void citro3d::clearDepth(double value)
+    void citro3d::clear(double depth, int stencil)
     {
+        LOVE_UNUSED(stencil);
         if (!this->inFrame || !this->context.boundFramebuffer)
             return;
 
-        const auto clear = uint32_t(std::clamp(value, 0.0, 1.0) * LOVE_UINT32_MAX);
+        const auto clear = uint32_t(std::clamp(depth, 0.0, 1.0) * LOVE_UINT32_MAX);
         C3D_RenderTargetClear(this->getFramebuffer(), C3D_CLEAR_DEPTH, 0, clear);
     }
-
-    void citro3d::clearStencil(int value)
-    {}
 
     void citro3d::setStencilState(const StencilState& state)
     {
@@ -180,18 +169,6 @@ namespace love
 
         C3D_StencilTest(enabled, testFunction, state.value, state.readMask, state.writeMask);
         C3D_StencilOp(GPU_STENCIL_KEEP, GPU_STENCIL_KEEP, stencilAction);
-    }
-
-    void citro3d::setDepthWrites(CompareMode compare, bool write)
-    {
-        this->context.depthWrites = compare != COMPARE_ALWAYS || write;
-        getConstant(compare, this->context.testMode);
-
-        uint8_t mask = this->context.colorMask.get();
-        if (this->context.depthWrites)
-            mask |= GPU_WRITE_DEPTH;
-
-        C3D_DepthTest(this->context.depthWrites, this->context.testMode, (GPU_WRITEMASK)mask);
     }
 
     C3D_RenderTarget* citro3d::getFramebuffer()
@@ -238,7 +215,7 @@ namespace love
         }
     }
 
-    void citro3d::setViewport(const Rect& v, bool tilt)
+    void citro3d::setViewport(const Rect& v)
     {
         this->context.viewport = v;
         C3D_SetViewport((uint32_t)v.x, (uint32_t)v.y, (uint32_t)v.w, (uint32_t)v.h);
@@ -283,53 +260,6 @@ namespace love
         this->context.cullMode = mode;
     }
 
-    void citro3d::setVertexWinding(Winding)
-    {}
-
-    void citro3d::setColorMask(ColorChannelMask mask)
-    {
-        this->context.colorMask = mask;
-
-        uint8_t write = mask.get();
-        if (this->context.depthWrites)
-            write |= GPU_WRITE_DEPTH;
-
-        C3D_DepthTest(this->context.depthWrites, this->context.testMode, (GPU_WRITEMASK)write);
-    }
-
-    void citro3d::setBlendState(const BlendState& state)
-    {
-        if (this->context.blendState == state)
-            return;
-
-        GPU_BLENDEQUATION operationRGB;
-        if (!citro3d::getConstant(state.operationRGB, operationRGB))
-            return;
-
-        GPU_BLENDEQUATION operationA;
-        if (!citro3d::getConstant(state.operationA, operationA))
-            return;
-
-        GPU_BLENDFACTOR sourceColor;
-        if (!citro3d::getConstant(state.srcFactorRGB, sourceColor))
-            return;
-
-        GPU_BLENDFACTOR destColor;
-        if (!citro3d::getConstant(state.dstFactorRGB, destColor))
-            return;
-
-        GPU_BLENDFACTOR sourceAlpha;
-        if (!citro3d::getConstant(state.srcFactorA, sourceAlpha))
-            return;
-
-        GPU_BLENDFACTOR destAlpha;
-        if (!citro3d::getConstant(state.dstFactorA, destAlpha))
-            return;
-
-        this->context.blendState = state;
-        C3D_AlphaBlend(operationRGB, operationA, sourceColor, destColor, sourceAlpha, destAlpha);
-    }
-
     void citro3d::setSamplerState(C3D_Tex* texture, SamplerState state)
     {
         auto magFilter = (state.minFilter == SamplerState::FILTER_NEAREST) ? GPU_NEAREST : GPU_LINEAR;
@@ -337,10 +267,13 @@ namespace love
 
         C3D_TexSetFilter(texture, magFilter, minFilter);
 
-        auto wrapU = citro3d::getWrapMode(state.wrapU);
-        auto wrapV = citro3d::getWrapMode(state.wrapV);
+        GPU_TEXTURE_WRAP_PARAM wrapS;
+        citro3d::getConstant(state.wrapU, wrapS);
 
-        C3D_TexSetWrap(texture, wrapU, wrapV);
+        GPU_TEXTURE_WRAP_PARAM wrapT;
+        citro3d::getConstant(state.wrapV, wrapT);
+
+        C3D_TexSetWrap(texture, wrapS, wrapT);
 
         float maxBias = 0xFFF;
 
@@ -378,27 +311,6 @@ namespace love
         this->bindTextureToUnit(textureType, handle, unit);
     }
 
-    GPU_FORMATS citro3d::getVertexComponents(DataFormat type, int& components)
-    {
-        switch (type)
-        {
-            case DATAFORMAT_FLOAT:
-                components = 1;
-                return GPU_FLOAT;
-            case DATAFORMAT_FLOAT_VEC2:
-                components = 2;
-                return GPU_FLOAT;
-            case DATAFORMAT_FLOAT_VEC3:
-                components = 3;
-                return GPU_FLOAT;
-            case DATAFORMAT_FLOAT_VEC4:
-                components = 4;
-                return GPU_FLOAT;
-            default:
-                throw love::Exception("Unsupported vertex attribute format: {:d}.", (int)type);
-        }
-    }
-
     void citro3d::setVertexAttributes(const VertexAttributes& attributes, const BufferBindings& buffers)
     {
         uint32_t i       = 0;
@@ -413,11 +325,12 @@ namespace love
             if (attributes.enableBits & bit)
             {
                 const auto& attribute = attributes.attributes[i];
+                const auto& format    = love::getDataFormatInfo(attribute.getFormat());
 
-                int components    = 0;
-                const auto format = this->getVertexComponents(attribute.getFormat(), components);
+                GPU_FORMATS attributeFormat;
+                citro3d::getConstant(format.baseType, attributeFormat);
 
-                AttrInfo_AddLoader(&info, i, format, components);
+                AttrInfo_AddLoader(&info, i, attributeFormat, format.components);
             }
             i++;
             allBits >>= 1u;
@@ -425,50 +338,6 @@ namespace love
 
         C3D_SetAttrInfo(&info);
         C3D_SetBufInfo((C3D_BufInfo*)buffers.info[0].buffer->getHandle());
-    }
-
-    GPU_TEXTURE_MODE_PARAM citro3d::getTextureType(TextureType type)
-    {
-        switch (type)
-        {
-            case TEXTURE_2D:
-            default:
-                return GPU_TEX_2D;
-            case TEXTURE_CUBE:
-                return GPU_TEX_CUBE_MAP;
-        }
-    }
-
-    GPU_TEXTURE_WRAP_PARAM citro3d::getWrapMode(SamplerState::WrapMode mode)
-    {
-        switch (mode)
-        {
-            case SamplerState::WRAP_CLAMP:
-                return GPU_CLAMP_TO_EDGE;
-            case SamplerState::WRAP_REPEAT:
-                return GPU_REPEAT;
-            case SamplerState::WRAP_MIRRORED_REPEAT:
-                return GPU_MIRRORED_REPEAT;
-            default:
-                return GPU_CLAMP_TO_EDGE;
-        }
-    }
-
-    GPU_Primitive_t citro3d::getPrimitiveType(PrimitiveType type)
-    {
-        switch (type)
-        {
-            case PRIMITIVE_TRIANGLES:
-                return GPU_TRIANGLES;
-            case PRIMITIVE_TRIANGLE_FAN:
-                return GPU_TRIANGLE_FAN;
-            case PRIMITIVE_TRIANGLE_STRIP:
-                return GPU_TRIANGLE_STRIP;
-            default:
-                break;
-        }
-
-        throw love::Exception("Invalid primitive type: {:d}.", (int)type);
     }
 
     int citro3d::getTextureUnit(GPU_TEXUNIT unit)

@@ -7,8 +7,6 @@
 
 #include "common/int.hpp"
 
-#include "common/debug.hpp"
-#include "common/screen.hpp"
 #include "modules/joystick/Joystick.tcc"
 #include "modules/joystick/kpad/Joystick.hpp"
 #include "modules/timer/Timer.hpp"

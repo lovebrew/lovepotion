@@ -14,40 +14,48 @@ namespace love
       public:
         GX2Attribute();
 
-        GX2Attribute(bool enabled) : stream {}, enabled(enabled)
-        {}
-
         GX2Attribute(uint32_t location, int components, GX2AttribFormat format, uint32_t offset);
 
-        constexpr std::strong_ordering operator<=>(const GX2Attribute& other) const noexcept = default;
-
-        bool operator==(const GX2Attribute& other);
+        bool operator==(const GX2Attribute& other) const;
 
         operator GX2AttribStream()
         {
             return this->stream;
         }
 
-        bool isEnabled() const
+        GX2Attribute& setLocation(uint32_t location)
         {
-            return this->enabled;
+            this->stream.location = location;
+            return *this;
         }
 
-        void update(uint32_t location, int components, GX2AttribFormat format, uint32_t offset);
-
-        void setBuffer(uint32_t buffer);
-
-        void setEnabled(bool enabled);
-
-        void setDivisor(uint32_t divisor);
-
-        GX2AttribStream getStream() const
+        GX2Attribute& setFormat(GX2AttribFormat format)
         {
-            return this->stream;
+            this->stream.format = format;
+            return *this;
+        }
+
+        GX2Attribute& setComponents(uint32_t components);
+
+        GX2Attribute& setOffset(uint32_t offset)
+        {
+            this->stream.offset = offset;
+            return *this;
+        }
+
+        GX2Attribute& setBuffer(uint32_t buffer)
+        {
+            this->stream.buffer = buffer;
+            return *this;
+        }
+
+        GX2Attribute& setDivisor(uint32_t divisor)
+        {
+            this->stream.aluDivisor = divisor;
+            return *this;
         }
 
       private:
         GX2AttribStream stream;
-        bool enabled;
     };
 } // namespace love
