@@ -3,50 +3,31 @@ name: Nintendo 3DS
 on: [push, pull_request]
 
 jobs:
-  N3DS-Release:
-    runs-on: ubuntu-latest
+    build:
+        runs-on: ubuntu-latest
 
-    container:
-      image: docker://devkitpro/devkitarm
-      options: --cpus 2
+        strategy:
+            matrix:
+                config: [release, debug]
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+        container:
+            image: docker://devkitpro/devkitarm
+            options: --cpus 2
 
-      - name: Build
-        run: catnip -T 3DS -DLIBRARY_LOADER='linktime' -DUSE_CURL_BACKEND=ON
+        steps:
+            - name: checkout
+              uses: actions/checkout@v7
 
-      - id: commit
-        uses: prompt/actions-commit-hash@v3
+            - name: compile
+              run: catnip -T 3DS ${{ matrix.config }}
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: Nintendo 3DS-${{ steps.commit.outputs.short }}
-          path: |
-            build/**/*.elf
-            build/**/*.3dsx
+            - id: commit
+              run: echo "short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
-  N3DS-Debug:
-    runs-on: ubuntu-latest
-
-    container:
-      image: docker://devkitpro/devkitarm
-      options: --cpus 2
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Build
-        run: catnip -T 3DS debug -DLIBRARY_LOADER='linktime' -DUSE_CURL_BACKEND=ON
-
-      - id: commit
-        uses: prompt/actions-commit-hash@v3
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: Nintendo 3DS (Debug)-${{ steps.commit.outputs.short }}
-          path: |
-            build/**/*.elf
-            build/**/*.3dsx
+            - name: upload
+              uses: actions/upload-artifact@v7
+              with:
+                  name: Nintendo 3DS-${{ steps.commit.outputs.short }} (${{ matrix.config }})
+                  path: |
+                      build/**/*.elf
+                      build/**/*.3dsx
