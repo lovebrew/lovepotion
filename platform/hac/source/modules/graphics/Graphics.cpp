@@ -54,7 +54,7 @@ namespace love
         if (this->batchedDrawState.indexBuffer)
             this->batchedDrawState.indexBuffer->release();
 
-        d3d.deInitialize();
+        d3d.close();
     }
 
     void Graphics::initCapabilities()
@@ -63,7 +63,6 @@ namespace love
         this->capabilities.features[FEATURE_MULTI_RENDER_TARGET_FORMATS]  = false;
         this->capabilities.features[FEATURE_CLAMP_ZERO]                   = true;
         this->capabilities.features[FEATURE_CLAMP_ONE]                    = true;
-        this->capabilities.features[FEATURE_BLEND_MINMAX]                 = true;
         this->capabilities.features[FEATURE_LIGHTEN]                      = true;
         this->capabilities.features[FEATURE_FULL_NPOT]                    = true;
         this->capabilities.features[FEATURE_PIXEL_SHADER_HIGHP]           = false;
@@ -72,13 +71,12 @@ namespace love
         this->capabilities.features[FEATURE_GLSL4]                        = false;
         this->capabilities.features[FEATURE_INSTANCING]                   = false;
         this->capabilities.features[FEATURE_TEXEL_BUFFER]                 = false;
-        this->capabilities.features[FEATURE_INDEX_BUFFER_32BIT]           = false;
-        this->capabilities.features[FEATURE_COPY_BUFFER_TO_TEXTURE]       = false; //< might be possible
         this->capabilities.features[FEATURE_COPY_TEXTURE_TO_BUFFER]       = false; //< might be possible
-        this->capabilities.features[FEATURE_COPY_RENDER_TARGET_TO_BUFFER] = false; //< might be possible
-        this->capabilities.features[FEATURE_MIPMAP_RANGE]                 = false;
         this->capabilities.features[FEATURE_INDIRECT_DRAW]                = false;
-        static_assert(FEATURE_MAX_ENUM == 19,  "Graphics::initCapabilities must be updated when adding a new graphics feature!");
+        this->capabilities.features[FEATURE_VERTEX_WRITE]                 = false;
+        this->capabilities.features[FEATURE_PIXEL_WRITE]                  = false;
+        this->capabilities.features[FEATURE_IMAGE_ATOMICS]                = false;
+        static_assert(FEATURE_MAX_ENUM == 16,  "Graphics::initCapabilities must be updated when adding a new graphics feature!");
 
         this->capabilities.limits[LIMIT_POINT_SIZE]                 = 8.0f;
         this->capabilities.limits[LIMIT_TEXTURE_SIZE]               = 4096;
@@ -134,9 +132,8 @@ namespace love
 
         d3d.bindFramebuffer();
 
-        d3d.clear(colors[0].value);
-
-        d3d.clearDepthStencil(stencil.value, depth.value);
+        d3d.clearColor(colors[0].value);
+        d3d.clear(depth.value, stencil.value);
     }
 
     void Graphics::present(void* screenshotCallback)
@@ -154,7 +151,7 @@ namespace love
         Shader::shaderSwitches = 0;
     }
 
-    void Graphics::setScissor(const Rect& scissor)
+    void Graphics::setScissor(const FRect& scissor)
     {
         this->flushBatchedDraws();
 
@@ -162,10 +159,10 @@ namespace love
         double dpiscale = this->getCurrentDPIScale();
 
         Rect rectangle {};
-        rectangle.x = scissor.x * dpiscale;
-        rectangle.y = scissor.y * dpiscale;
-        rectangle.w = scissor.w * dpiscale;
-        rectangle.h = scissor.h * dpiscale;
+        rectangle.x = (int)roundf(scissor.x * dpiscale);
+        rectangle.y = (int)roundf(scissor.y * dpiscale);
+        rectangle.w = (int)roundf(scissor.w * dpiscale);
+        rectangle.h = (int)roundf(scissor.h * dpiscale);
 
         d3d.setScissor(rectangle);
 
@@ -239,13 +236,6 @@ namespace love
         if (!(state == this->states.back().blend))
             this->flushBatchedDraws();
 
-        if (state.operationRGB == BLENDOP_MAX || state.operationA == BLENDOP_MAX ||
-            state.operationRGB == BLENDOP_MIN || state.operationA == BLENDOP_MIN)
-        {
-            if (!capabilities.features[FEATURE_BLEND_MINMAX])
-                throw love::Exception(E_BLEND_MIN_MAX_NOT_SUPPORTED);
-        }
-
         if (state.enable)
             d3d.setBlendState(state);
 
@@ -277,7 +267,7 @@ namespace love
         d3d.setViewport({ 0, 0, pixelWidth, pixelHeight });
 
         if (state.scissor)
-            d3d.setScissor(state.scissorRect);
+            this->setScissor(state.scissorRect);
     }
 
     BufferBase* Graphics::newBuffer(const Buffer::Settings& settings,
@@ -322,7 +312,7 @@ namespace love
     bool Graphics::setMode(int width, int height, int pixelWidth, int pixelHeight, bool backBufferStencil,
                            bool backBufferDepth, int msaa)
     {
-        d3d.initialize();
+        d3d.init();
 
         this->created = true;
         this->initCapabilities();

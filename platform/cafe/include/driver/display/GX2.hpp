@@ -34,15 +34,18 @@ namespace love
 
         ~GX2();
 
-        void initialize();
+        void init() override;
 
-        void deInitialize();
+        void close() override;
 
         int onForegroundAcquired();
 
         int onForegroundReleased();
 
-        void clearColor(const Color& color);
+        void clearColor(const Color& color) override;
+
+        void clear(double depth, int stencil) override
+        {}
 
         void clear(OptionalInt stencil, OptionalDouble depth, GX2ClearFlags flags);
 
@@ -82,9 +85,9 @@ namespace love
 
         void bindTextureToUnit(GX2Texture* texture, GX2Sampler* sampler, int unit);
 
-        void clearDepth(double value);
+        void setClearDepth(double value);
 
-        void clearStencil(int value);
+        void setClearStencil(int value) override;
 
         void setMode(int width, int height);
 

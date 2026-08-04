@@ -54,7 +54,7 @@ namespace love
 
         virtual void setViewport(const Rect& viewport) override;
 
-        virtual void setScissor(const Rect& scissor) override;
+        virtual void setScissor(const Rect& scissor) override {};
 
         virtual void setCullMode(CullMode mode) override;
 
@@ -229,6 +229,7 @@ namespace love
         std::vector<Framebuffer> targets;
 
         std::vector<std::function<void()>> deferred;
+        std::array<C3D_TexEnv, TEXENV_MODE_MAX_ENUM> environments;
     };
 
     extern citro3d c3d;

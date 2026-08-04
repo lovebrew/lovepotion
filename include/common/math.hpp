@@ -72,6 +72,22 @@ namespace love
         }
     };
 
+    struct FRect
+    {
+        float x, y, w, h;
+
+        FRect() : x(0), y(0), w(0), h(0)
+        {}
+
+        FRect(float x, float y, float w, float h) : x(x), y(y), w(w), h(h)
+        {}
+
+        bool operator==(const FRect& other) const
+        {
+            return x == other.x && y == other.y && w == other.w && h == other.h;
+        }
+    };
+
     /*
      ** Clamps 3DS textures between min
      ** and max texture size to prevent

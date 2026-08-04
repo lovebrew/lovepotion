@@ -48,17 +48,21 @@ namespace love
 
         ~deko3d();
 
-        void initialize();
+        void init() override;
 
-        void deInitialize();
+        void close() override;
 
-        void clear(const Color& color);
+        void clearColor(const Color& color) override;
 
-        void clearDepthStencil(int stencil, double depth);
+        void clear(double depth, int stencil) override;
 
         void bindFramebuffer(dk::Image* target = nullptr);
 
         void present();
+
+        void setClearDepth(double depth) override;
+
+        void setClearStencil(int stencil) override;
 
         void setBlendState(const BlendState& state);
 
@@ -268,6 +272,7 @@ namespace love
             dk::BlendState blend;
             dk::ColorState color;
             dk::DepthStencilState depthStencil;
+            float clearDepth;
 
             dk::Image* boundFramebuffer;
             bool descriptorsDirty;

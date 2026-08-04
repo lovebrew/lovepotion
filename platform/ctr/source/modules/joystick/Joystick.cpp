@@ -5,10 +5,10 @@
 
 namespace love
 {
-    Joystick::Joystick(int id) : JoystickBase(id), handle(nullptr)
+    Joystick::Joystick(int id) : JoystickBase(id)
     {}
 
-    Joystick::Joystick(int id, int index) : JoystickBase(id, index), handle(nullptr)
+    Joystick::Joystick(int id, int index) : JoystickBase(id, index)
     {
         this->open(index);
     }
@@ -16,6 +16,11 @@ namespace love
     Joystick::~Joystick()
     {
         this->close();
+    }
+
+    ptrdiff_t Joystick::getHandle() const
+    {
+        return (ptrdiff_t)this;
     }
 
     bool Joystick::open(int64_t deviceId)
@@ -37,19 +42,12 @@ namespace love
             this->name = "Unknown";
 
         this->joystickType = JOYSTICK_TYPE_GAMEPAD;
-        this->handle       = std::malloc(1);
 
         return this->isConnected();
     }
 
     void Joystick::close()
     {
-        if (this->handle != nullptr)
-        {
-            std::free(this->handle);
-            this->handle = nullptr;
-        }
-
         this->instanceId = -1;
     }
 

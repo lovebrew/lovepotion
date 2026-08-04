@@ -18,6 +18,8 @@ namespace love
         if (this->initialized)
             return;
 
+        gfxInitDefault();
+
         if (!C3D_Init(C3D_DEFAULT_CMDBUF_SIZE))
             throw love::Exception("Failed to initialize citro3d.");
 
@@ -28,6 +30,7 @@ namespace love
         AttrInfo_AddLoader(attributes, 1, GPU_FLOAT, 2); //< texcoord
         AttrInfo_AddLoader(attributes, 2, GPU_FLOAT, 4); //< color
 
+        this->set3DMode(true);
         this->initialized = true;
     }
 
@@ -75,6 +78,7 @@ namespace love
 
         this->destroyFramebuffers();
         C3D_Fini();
+        gfxExit();
         this->initialized = false;
     }
 
@@ -219,32 +223,6 @@ namespace love
     {
         this->context.viewport = v;
         C3D_SetViewport((uint32_t)v.x, (uint32_t)v.y, (uint32_t)v.w, (uint32_t)v.h);
-    }
-
-    static void calculateBounds(const Rect& bounds, Rect& out, const int width, const int height)
-    {
-        const auto left   = std::max(0, height - (bounds.y + bounds.h));
-        const auto top    = std::max(0, width - (bounds.x + bounds.w));
-        const auto right  = height - bounds.y;
-        const auto bottom = width - bounds.x;
-
-        out = { left, top, right, bottom };
-    }
-
-    void citro3d::setScissor(const Rect& scissor)
-    {
-        if (!this->context.boundFramebuffer)
-            return;
-
-        const int width  = this->context.boundFramebuffer->frameBuf.height;
-        const int height = this->context.boundFramebuffer->frameBuf.width;
-
-        calculateBounds(scissor, this->context.scissor, width, height);
-
-        // clang-format off
-        GPU_SCISSORMODE mode = (scissor != Rect::EMPTY) ? GPU_SCISSOR_NORMAL : GPU_SCISSOR_DISABLE;
-        C3D_SetScissor(mode, this->context.scissor.x, this->context.scissor.y, this->context.scissor.w, this->context.scissor.h);
-        // clang-format on
     }
 
     void citro3d::setCullMode(CullMode mode)

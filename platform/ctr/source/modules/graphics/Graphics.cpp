@@ -63,7 +63,6 @@ namespace love
         this->capabilities.features[FEATURE_MULTI_RENDER_TARGET_FORMATS]  = false;
         this->capabilities.features[FEATURE_CLAMP_ZERO]                   = true;
         this->capabilities.features[FEATURE_CLAMP_ONE]                    = true;
-        this->capabilities.features[FEATURE_BLEND_MINMAX]                 = true;
         this->capabilities.features[FEATURE_LIGHTEN]                      = true;
         this->capabilities.features[FEATURE_FULL_NPOT]                    = true;
         this->capabilities.features[FEATURE_PIXEL_SHADER_HIGHP]           = false;
@@ -72,13 +71,12 @@ namespace love
         this->capabilities.features[FEATURE_GLSL4]                        = false;
         this->capabilities.features[FEATURE_INSTANCING]                   = false;
         this->capabilities.features[FEATURE_TEXEL_BUFFER]                 = false;
-        this->capabilities.features[FEATURE_INDEX_BUFFER_32BIT]           = false;
-        this->capabilities.features[FEATURE_COPY_BUFFER_TO_TEXTURE]       = false; //< might be possible
         this->capabilities.features[FEATURE_COPY_TEXTURE_TO_BUFFER]       = false; //< might be possible
-        this->capabilities.features[FEATURE_COPY_RENDER_TARGET_TO_BUFFER] = false; //< might be possible
-        this->capabilities.features[FEATURE_MIPMAP_RANGE]                 = false;
         this->capabilities.features[FEATURE_INDIRECT_DRAW]                = false;
-        static_assert(FEATURE_MAX_ENUM == 19,  "Graphics::initCapabilities must be updated when adding a new graphics feature!");
+        this->capabilities.features[FEATURE_VERTEX_WRITE]                 = false;
+        this->capabilities.features[FEATURE_PIXEL_WRITE]                  = false;
+        this->capabilities.features[FEATURE_IMAGE_ATOMICS]                = false;
+        static_assert(FEATURE_MAX_ENUM == 16,  "Graphics::initCapabilities must be updated when adding a new graphics feature!");
 
         this->capabilities.limits[LIMIT_POINT_SIZE]                 = 8.0f;
         this->capabilities.limits[LIMIT_TEXTURE_SIZE]               = LOVE_TEX3DS_MAX;
@@ -274,20 +272,26 @@ namespace love
         this->gpuDrawingTime    = C3D_GetDrawingTime();
     }
 
-    void Graphics::setScissor(const Rect& scissor)
+    void Graphics::setScissor(const FRect& scissor)
     {
         this->flushBatchedDraws();
 
-        auto& state     = this->states.back();
+        auto& state = this->states.back();
+
         double dpiscale = this->getCurrentDPIScale();
 
         Rect rectangle {};
-        rectangle.x = scissor.x * dpiscale;
-        rectangle.y = scissor.y * dpiscale;
-        rectangle.w = scissor.w * dpiscale;
-        rectangle.h = scissor.h * dpiscale;
+        rectangle.x = (int)roundf(scissor.x * dpiscale);
+        rectangle.y = (int)roundf(scissor.y * dpiscale);
+        rectangle.w = (int)roundf(scissor.w * dpiscale);
+        rectangle.h = (int)roundf(scissor.h * dpiscale);
 
-        c3d.setScissor(rectangle);
+        float left   = 240 - (rectangle.y + rectangle.h);
+        float top    = this->getWidth() - (rectangle.x + rectangle.w);
+        float right  = 240 - rectangle.y;
+        float bottom = this->getWidth() - rectangle.x;
+
+        C3D_SetScissor(GPU_SCISSOR_NORMAL, left, top, right, bottom);
 
         state.scissor     = true;
         state.scissorRect = scissor;
@@ -299,7 +303,7 @@ namespace love
             this->flushBatchedDraws();
 
         this->states.back().scissor = false;
-        c3d.setScissor(Rect::EMPTY);
+        C3D_SetScissor(GPU_SCISSOR_DISABLE, 0, 0, 0, 0);
     }
 
     void Graphics::setFrontFaceWinding(Winding winding)
@@ -326,7 +330,8 @@ namespace love
         citro3d::getConstant(state.depthTest, function);
 
         this->states.back().colorMask = mask;
-        C3D_DepthTest(state.depthWrite, function, GPU_WRITEMASK(bits));
+        const bool enabled            = state.depthTest != COMPARE_ALWAYS || state.depthWrite;
+        C3D_DepthTest(enabled, function, GPU_WRITEMASK(bits));
     }
 
     void Graphics::setStencilState(const StencilState& state)
@@ -348,7 +353,7 @@ namespace love
 
         GPU_TESTFUNC function;
         citro3d::getConstant(compare, function);
-        const auto mask = GPU_WRITEMASK(state.colorMask.get() | GPU_WRITE_DEPTH);
+        const auto mask = GPU_WRITEMASK(state.colorMask.get() | (write ? GPU_WRITE_DEPTH : 0));
 
         C3D_DepthTest(enabled, function, mask);
     }
@@ -357,13 +362,6 @@ namespace love
     {
         if (!(state == this->states.back().blend))
             this->flushBatchedDraws();
-
-        if (state.operationRGB == BLENDOP_MAX || state.operationA == BLENDOP_MAX ||
-            state.operationRGB == BLENDOP_MIN || state.operationA == BLENDOP_MIN)
-        {
-            if (!capabilities.features[FEATURE_BLEND_MINMAX])
-                throw love::Exception(E_BLEND_MIN_MAX_NOT_SUPPORTED);
-        }
 
         if (state.enable)
         {
@@ -498,7 +496,7 @@ namespace love
         c3d.setViewport({ 0, 0, pixelWidth, pixelHeight });
 
         if (state.scissor)
-            c3d.setScissor(state.scissorRect);
+            this->setScissor(state.scissorRect);
     }
 
     void Graphics::setViewport(int x, int y, int width, int height)

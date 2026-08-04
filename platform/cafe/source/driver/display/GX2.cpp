@@ -42,7 +42,7 @@ namespace love
     GX2::~GX2()
     {}
 
-    void GX2::deInitialize()
+    void GX2::close()
     {
         if (this->inForeground)
             this->onForegroundReleased();
@@ -103,7 +103,7 @@ namespace love
         return gx2.onForegroundReleased();
     }
 
-    void GX2::initialize()
+    void GX2::init()
     {
         if (this->initialized)
             return;
@@ -200,13 +200,13 @@ namespace love
         GX2WaitForFlip();
     }
 
-    void GX2::clearDepth(double value)
+    void GX2::setClearDepth(double value)
     {
         this->context.depthClear = value;
         GX2SetClearDepth(&this->getInternalDepthbuffer(), (float)value);
     }
 
-    void GX2::clearStencil(int value)
+    void GX2::setClearStencil(int value)
     {
         this->context.writeMask = value;
         GX2SetClearStencil(&this->getInternalDepthbuffer(), (uint8_t)value);

@@ -578,17 +578,17 @@ int Wrap_Graphics::setScissor(lua_State* L)
 {
     int argc = lua_gettop(L);
 
-    if (argc == 0 || (argc == 4 && lua_isnil(L, 1) && lua_isnil(L, 2) && lua_isnil(L, 3) && lua_isnil(L, 4)))
+    if (argc == 0 || (argc == 4 && luax_allnil<4>(L)))
     {
         instance()->setScissor();
         return 0;
     }
 
-    Rect scissor {};
-    scissor.x = luaL_checkinteger(L, 1);
-    scissor.y = luaL_checkinteger(L, 2);
-    scissor.w = luaL_checkinteger(L, 3);
-    scissor.h = luaL_checkinteger(L, 4);
+    FRect scissor {};
+    scissor.x = luaL_checknumber(L, 1);
+    scissor.y = luaL_checknumber(L, 2);
+    scissor.w = luaL_checknumber(L, 3);
+    scissor.h = luaL_checknumber(L, 4);
 
     if (scissor.w < 0 || scissor.h < 0)
         return luaL_error(L, "Can't set scissor with negative width and/or height.");
@@ -600,11 +600,11 @@ int Wrap_Graphics::setScissor(lua_State* L)
 
 int Wrap_Graphics::intersectScissor(lua_State* L)
 {
-    Rect scissor {};
-    scissor.x = luaL_checkinteger(L, 1);
-    scissor.y = luaL_checkinteger(L, 2);
-    scissor.w = luaL_checkinteger(L, 3);
-    scissor.h = luaL_checkinteger(L, 4);
+    FRect scissor {};
+    scissor.x = luaL_checknumber(L, 1);
+    scissor.y = luaL_checknumber(L, 2);
+    scissor.w = luaL_checknumber(L, 3);
+    scissor.h = luaL_checknumber(L, 4);
 
     if (scissor.w < 0 || scissor.h < 0)
         return luaL_error(L, "Can't set scissor with negative width and/or height.");
@@ -616,14 +616,14 @@ int Wrap_Graphics::intersectScissor(lua_State* L)
 
 int Wrap_Graphics::getScissor(lua_State* L)
 {
-    Rect scissor {};
+    FRect scissor {};
     if (!instance()->getScissor(scissor))
         return 0;
 
-    lua_pushinteger(L, scissor.x);
-    lua_pushinteger(L, scissor.y);
-    lua_pushinteger(L, scissor.w);
-    lua_pushinteger(L, scissor.h);
+    lua_pushnumber(L, scissor.x);
+    lua_pushnumber(L, scissor.y);
+    lua_pushnumber(L, scissor.w);
+    lua_pushnumber(L, scissor.h);
 
     return 4;
 }
@@ -645,7 +645,11 @@ int Wrap_Graphics::push(lua_State* L)
 
     luax_catchexcept(L, [&]() { instance()->push(stackType); });
 
-    /* TODO: check transform type */
+    if (luax_istype(L, 1, Transform::type))
+    {
+        auto* transform = luax_totype<Transform>(L, 2);
+        luax_catchexcept(L, [&]() { instance()->applyTransform(transform->getMatrix()); });
+    }
 
     return 0;
 }

@@ -95,25 +95,22 @@ namespace love
 
         enum Feature
         {
-            FEATURE_MULTI_RENDER_TARGET_FORMATS,
+            FEATURE_MULTI_RENDER_TARGET_FORMATS, // Deprecated
             FEATURE_CLAMP_ZERO,
             FEATURE_CLAMP_ONE,
-            FEATURE_BLEND_MINMAX,
-            FEATURE_LIGHTEN, // Deprecated
-            FEATURE_FULL_NPOT,
-            FEATURE_PIXEL_SHADER_HIGHP,
-            FEATURE_SHADER_DERIVATIVES,
-            FEATURE_GLSL3,
+            FEATURE_LIGHTEN,            // Deprecated
+            FEATURE_FULL_NPOT,          // Deprecated
+            FEATURE_PIXEL_SHADER_HIGHP, // Deprecated
+            FEATURE_SHADER_DERIVATIVES, // Deprecated
+            FEATURE_GLSL3,              // Deprecated
             FEATURE_GLSL4,
-            FEATURE_INSTANCING,
+            FEATURE_INSTANCING, // Deprecated
             FEATURE_TEXEL_BUFFER,
-            FEATURE_INDEX_BUFFER_32BIT,
-            FEATURE_COPY_BUFFER,
-            FEATURE_COPY_BUFFER_TO_TEXTURE,
             FEATURE_COPY_TEXTURE_TO_BUFFER,
-            FEATURE_COPY_RENDER_TARGET_TO_BUFFER,
-            FEATURE_MIPMAP_RANGE,
             FEATURE_INDIRECT_DRAW,
+            FEATURE_VERTEX_WRITE,
+            FEATURE_PIXEL_WRITE,
+            FEATURE_IMAGE_ATOMICS,
             FEATURE_MAX_ENUM
         };
 
@@ -280,6 +277,29 @@ namespace love
             }
         };
 
+        struct BackbufferSettings
+        {
+            int width       = 0;
+            int height      = 0;
+            int pixelWidth  = 0;
+            int pixelHeight = 0;
+            bool stencil    = false;
+            bool depth      = false;
+            int msaa        = 0;
+
+            bool operator==(const BackbufferSettings& other) const
+            {
+                return width == other.width && height == other.height && pixelWidth == other.pixelWidth &&
+                       pixelHeight == other.pixelHeight && stencil == other.stencil && depth == other.depth &&
+                       msaa == other.msaa;
+            }
+
+            bool operator!=(const BackbufferSettings& other) const
+            {
+                return !(operator==(other));
+            }
+        };
+
         struct RenderTargets
         {
             std::vector<RenderTarget> colors;
@@ -329,8 +349,8 @@ namespace love
 
             float pointSize = 1.0f;
 
-            bool scissor     = false;
-            Rect scissorRect = Rect();
+            bool scissor      = false;
+            FRect scissorRect = FRect();
 
             StencilState stencil;
 
@@ -420,7 +440,7 @@ namespace love
             this->states.back().defaultSamplerState = state;
         }
 
-        virtual void setScissor(const Rect& scissor) = 0;
+        virtual void setScissor(const FRect& scissor) = 0;
 
         virtual void setScissor() = 0;
 
@@ -428,9 +448,9 @@ namespace love
 
         void setShader(ShaderBase* shader);
 
-        void intersectScissor(const Rect& scissor);
+        void intersectScissor(const FRect& scissor);
 
-        bool getScissor(Rect& scissor) const;
+        bool getScissor(FRect& scissor) const;
 
         void setProjection(const Matrix4& matrix);
 
@@ -680,10 +700,6 @@ namespace love
             this->pixelScaleStack.back() = 1.0;
         }
 
-        void validateStencilState(const StencilState& state) const;
-
-        void validateDepthState(bool depthWrite) const;
-
         int getWidth() const;
 
         int getHeight() const;
@@ -700,6 +716,8 @@ namespace love
         {
             this->deviceProjectionMatrix = projection;
         }
+
+        // virtual void backbufferChanged(const BackbufferSettings& settings) = 0;
 
         void backbufferChanged(int width, int height, double pixelWidth, double pixelHeight);
 
@@ -839,11 +857,50 @@ namespace love
             { "all",        STACK_ALL        },
             { "transform",  STACK_TRANSFORM  }
         );
+
+        STRINGMAP_DECLARE(Features, Feature,
+            { "multicanvasformats",  FEATURE_MULTI_RENDER_TARGET_FORMATS },
+            { "clampzero",           FEATURE_CLAMP_ZERO                  },
+            { "clampone",            FEATURE_CLAMP_ONE                   },
+            { "lighten",             FEATURE_LIGHTEN                     },
+            { "fullnpot",            FEATURE_FULL_NPOT                   },
+            { "pixelshaderhighp",    FEATURE_PIXEL_SHADER_HIGHP          },
+            { "shaderderivatives",   FEATURE_SHADER_DERIVATIVES          },
+            { "glsl3",               FEATURE_GLSL3                       },
+            { "glsl4",               FEATURE_GLSL4                       },
+            { "instancing",          FEATURE_INSTANCING                  },
+            { "texelbuffer",         FEATURE_TEXEL_BUFFER                },
+            { "copytexturetobuffer", FEATURE_COPY_TEXTURE_TO_BUFFER      },
+            { "indirectdraw",        FEATURE_INDIRECT_DRAW               },
+            { "vertexwrite",         FEATURE_VERTEX_WRITE                },
+            { "pixelwrite",          FEATURE_PIXEL_WRITE                 }
+        );
+
+        STRINGMAP_DECLARE(SystemLimits, SystemLimit,
+            { "pointsize",               LIMIT_POINT_SIZE                 },
+            { "texturesize",             LIMIT_TEXTURE_SIZE               },
+            { "texturelayers",           LIMIT_TEXTURE_LAYERS             },
+            { "volumetexturesize",       LIMIT_VOLUME_TEXTURE_SIZE        },
+            { "cubetexturesize",         LIMIT_CUBE_TEXTURE_SIZE          },
+            { "texelbuffersize",         LIMIT_TEXEL_BUFFER_SIZE          },
+            { "shaderstoragebuffersize", LIMIT_SHADER_STORAGE_BUFFER_SIZE },
+            { "threadgroupsx",           LIMIT_THREADGROUPS_X             },
+            { "threadgroupsy",           LIMIT_THREADGROUPS_Y             },
+            { "threadgroupsz",           LIMIT_THREADGROUPS_Z             },
+            { "multicanvas",             LIMIT_RENDER_TARGETS             },
+            { "texturemsaa",             LIMIT_TEXTURE_MSAA               },
+            { "anisotropy",              LIMIT_ANISOTROPY                 },
+        );
         // clang-format on
 
       protected:
         int calculateEllipsePoints(float a, float b) const;
 
+        void validateStencilState(const StencilState& state) const;
+
+        void validateDepthState(bool depthWrite) const;
+
+        BackbufferSettings backbufferSettings;
         bool created;
         bool active;
 

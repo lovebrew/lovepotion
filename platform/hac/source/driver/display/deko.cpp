@@ -34,7 +34,7 @@ namespace love
         }
     }
 
-    void deko3d::initialize()
+    void deko3d::init()
     {
         if (this->initialized)
             return;
@@ -75,7 +75,7 @@ namespace love
         this->initialized = true;
     }
 
-    void deko3d::deInitialize()
+    void deko3d::close()
     {
         if (!this->initialized)
             return;
@@ -135,7 +135,7 @@ namespace love
         }
     }
 
-    void deko3d::clear(const Color& color)
+    void deko3d::clearColor(const Color& color)
     {
         if (!this->inFrame)
             return;
@@ -143,20 +143,24 @@ namespace love
         this->commandBuffer.clearColor(0, DkColorMask_RGBA, color.r, color.g, color.b, color.a);
     }
 
-    void deko3d::clearDepthStencil(int stencil, double depth)
+    void deko3d::clear(double depth, int stencil)
     {
         if (!this->inFrame)
             return;
 
-        const float depthf = float(depth);
-        this->commandBuffer.clearDepthStencil(true, depthf, this->context.stencilState.writeMask, stencil);
+        this->commandBuffer.clearDepthStencil(true, this->context.clearDepth,
+                                              this->context.stencilState.writeMask, stencil);
     }
 
-    // dk::Image& deko3d::getInternalBackbuffer()
-    // {
-    //     this->ensureInFrame();
-    //     return this->framebuffers[this->framebufferSlot].getImage();
-    // }
+    void deko3d::setClearDepth(double depth)
+    {
+        this->context.clearDepth = float(depth);
+    }
+
+    void deko3d::setClearStencil(int stencil)
+    {
+        this->context.stencilState.writeMask = stencil;
+    }
 
     void deko3d::useProgram(const std::vector<dk::Shader*>& shaders)
     {

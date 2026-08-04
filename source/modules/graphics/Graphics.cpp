@@ -1,15 +1,19 @@
 #include "modules/graphics/Graphics.tcc"
 
+#include "common/pixelformat.hpp"
 #include "modules/graphics/Buffer.tcc"
 #include "modules/graphics/ParticleSystem.hpp"
 #include "modules/graphics/Polyline.hpp"
 #include "modules/graphics/SpriteBatch.hpp"
+#include "modules/graphics/Texture.tcc"
+#include "modules/graphics/renderstate.hpp"
 #include "modules/window/Window.tcc"
 
 #include "common/Console.hpp"
 #include "common/screen.hpp"
 
 #include <cmath>
+#include <tuple>
 
 namespace love
 {
@@ -63,6 +67,7 @@ namespace love
 
     GraphicsBase::GraphicsBase(const char* name) :
         Module(M_GRAPHICS, name),
+        backbufferSettings(),
         created(false),
         active(true),
         deviceProjectionMatrix(),
@@ -72,6 +77,7 @@ namespace love
         pixelHeight(0),
         drawCallsBatched(0),
         drawCalls(0),
+        renderTargetSwitchCount(0),
         quadIndexBuffer(nullptr),
         fanIndexBuffer(nullptr),
         batchedDrawState(),
@@ -303,8 +309,7 @@ namespace love
 
         bool gammaCorrect = isGammaCorrect();
 
-        const auto width  = this->getWidth();
-        const auto height = this->getHeight();
+        const auto [width, height] = std::make_tuple(this->getWidth(), this->getHeight());
         this->setRenderTargetsInternal(RenderTargets(), width, height, gammaCorrect);
 
         state.renderTargets = RenderTargetsStrongRef();
@@ -566,30 +571,6 @@ namespace love
         // return imagedata;
     }
 
-    void GraphicsBase::setScissor(const Rect& scissor)
-    {
-        this->flushBatchedDraws();
-
-        auto& state = this->states.back();
-
-        Rect rect {};
-        rect.x = scissor.x;
-        rect.y = scissor.y;
-        rect.w = std::max(0, scissor.w);
-        rect.h = std::max(0, scissor.h);
-
-        state.scissorRect = rect;
-        state.scissor     = true;
-    }
-
-    void GraphicsBase::setScissor()
-    {
-        if (this->states.back().scissor)
-            this->flushBatchedDraws();
-
-        this->states.back().scissor = false;
-    }
-
     void GraphicsBase::setShader(ShaderBase* shader)
     {
         if (shader == nullptr)
@@ -735,12 +716,12 @@ namespace love
             flushBatchedDraws();
 
             state.primitiveMode = command.primitiveMode;
+            state.indexedDraw   = indexedDraw;
             state.format        = command.format;
             state.texture       = command.texture;
             state.shaderType    = command.shaderType;
             state.isFont        = command.isFont;
             state.pushTransform = command.pushTransform;
-            state.indexedDraw   = indexedDraw;
         }
 
         if (state.lastVertexCount == 0)
@@ -835,7 +816,7 @@ namespace love
 
         this->pushIdentityTransform();
 
-        if (state.lastIndexCount > 0)
+        if (state.indexedDraw)
         {
             usedSizes[1] = sizeof(uint16_t) * state.lastIndexCount;
 
@@ -970,7 +951,14 @@ namespace love
     }
 
     void GraphicsBase::backbufferChanged(int width, int height, double pixelWidth, double pixelHeight)
-    {}
+    {
+        BackbufferSettings settings = this->backbufferSettings;
+        settings.width              = width;
+        settings.height             = height;
+        settings.pixelWidth         = pixelWidth;
+        settings.pixelHeight        = pixelHeight;
+        // this->backbufferChanged(settings);
+    }
 
     void GraphicsBase::advanceStreamBuffers()
     {
@@ -1078,6 +1066,38 @@ namespace love
         }
     }
 
+    void GraphicsBase::validateStencilState(const StencilState& state) const
+    {
+        if (state.action == STENCIL_KEEP)
+            return;
+
+        const auto& targets      = this->states.back().renderTargets;
+        TextureBase* destination = targets.depthStencil.texture.get();
+
+        // clang-format off
+        if (!this->isRenderTargetActive() && !this->backbufferSettings.stencil)
+            throw love::Exception("The window must have stenciling enabled to draw to the main screen's stencil buffer.");
+        else if (this->isRenderTargetActive() && (targets.temporaryFlags & TEMPORARY_RT_STENCIL) == 0 && (destination == nullptr || !isPixelFormatStencil(destination->getPixelFormat())))
+            throw love::Exception("Drawing to the stencil buffer with a Canvas active requires either stencil=true or a custom stencil-type Canvas to be used, in setCanvas.");
+        // clang-format on
+    }
+
+    void GraphicsBase::validateDepthState(bool depthWrite) const
+    {
+        if (!depthWrite)
+            return;
+
+        const auto& targets      = this->states.back().renderTargets;
+        TextureBase* destination = targets.depthStencil.texture.get();
+
+        // clang-format off
+        if (!isRenderTargetActive() && !this->backbufferSettings.depth)
+            throw love::Exception("The window must have depth enabled to draw to the main screen's depth buffer.");
+        else if (isRenderTargetActive() && (targets.temporaryFlags & TEMPORARY_RT_DEPTH) == 0 && (destination == nullptr || !isPixelFormatDepth(destination->getPixelFormat())))
+            throw love::Exception("Drawing to the depth buffer with a Canvas active requires either depth=true or a custom depth-type Canvas to be used, in setCanvas.");
+        // clang-format on
+    }
+
     int GraphicsBase::getWidth() const
     {
         auto& info = love::getScreenInfo(currentScreen);
@@ -1124,7 +1144,7 @@ namespace love
         return true;
     }
 
-    void GraphicsBase::intersectScissor(const Rect& scissor)
+    void GraphicsBase::intersectScissor(const FRect& scissor)
     {
         auto current = this->states.back().scissorRect;
 
@@ -1137,16 +1157,16 @@ namespace love
             current.h = std::numeric_limits<int>::max();
         }
 
-        int x1 = std::max(current.x, scissor.x);
-        int y1 = std::max(current.y, scissor.y);
-        int x2 = std::min(current.x + current.w, scissor.x + scissor.w);
-        int y2 = std::min(current.y + current.h, scissor.y + scissor.h);
+        float x1 = std::max(current.x, scissor.x);
+        float y1 = std::max(current.y, scissor.y);
+        float x2 = std::min(current.x + current.w, scissor.x + scissor.w);
+        float y2 = std::min(current.y + current.h, scissor.y + scissor.h);
 
-        Rect newScisssor = { x1, y1, std::max(0, x2 - x1), std::max(0, y2 - y1) };
+        FRect newScisssor = { x1, y1, std::max(0.0f, x2 - x1), std::max(0.0f, y2 - y1) };
         this->setScissor(newScisssor);
     }
 
-    bool GraphicsBase::getScissor(Rect& scissor) const
+    bool GraphicsBase::getScissor(FRect& scissor) const
     {
         const auto& state = this->states.back();
 

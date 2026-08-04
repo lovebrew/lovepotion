@@ -99,7 +99,6 @@ namespace love
 
         void shutdown()
         {
-            g_debugSocket.restore();
             for (auto it = services.rbegin(); it != services.rend(); ++it)
                 it->exit();
         }

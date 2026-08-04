@@ -22,7 +22,7 @@ namespace love
 
         void present(void* screenshotCallbackData) override;
 
-        void setScissor(const Rect& scissor) override;
+        void setScissor(const FRect& scissor) override;
 
         void setScissor() override;
 

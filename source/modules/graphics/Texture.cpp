@@ -262,11 +262,6 @@ namespace love
                 this->mipmapCount = std::min(totalMipmapCount, requestedMipmapCount);
             else
                 this->mipmapCount = totalMipmapCount;
-
-            // clang-format off
-            if (this->mipmapCount != totalMipmapCount && !capabilities.features[GraphicsBase::FEATURE_MIPMAP_RANGE])
-                throw love::Exception(E_CUSTOM_MIPMAP_RANGES_NOT_SUPPORTED, totalMipmapCount, this->mipmapCount);
-            // clang-format on
         }
 
         const char* mipmapError = nullptr;

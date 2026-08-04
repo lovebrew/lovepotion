@@ -366,6 +366,21 @@ namespace love
 
     // #region Other
 
+    template<size_t N>
+    bool luax_allnil(lua_State* L)
+    {
+        if (lua_gettop(L) != N)
+            return false;
+
+        for (size_t i = 1; i <= N; ++i)
+        {
+            if (!lua_isnil(L, i))
+                return false;
+        }
+
+        return true;
+    }
+
     // #endregion
 
     // #region Debug

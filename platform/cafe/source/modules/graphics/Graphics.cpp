@@ -65,7 +65,6 @@ namespace love
         this->capabilities.features[FEATURE_MULTI_RENDER_TARGET_FORMATS]  = false;
         this->capabilities.features[FEATURE_CLAMP_ZERO]                   = true;
         this->capabilities.features[FEATURE_CLAMP_ONE]                    = true;
-        this->capabilities.features[FEATURE_BLEND_MINMAX]                 = true;
         this->capabilities.features[FEATURE_LIGHTEN]                      = true;
         this->capabilities.features[FEATURE_FULL_NPOT]                    = true;
         this->capabilities.features[FEATURE_PIXEL_SHADER_HIGHP]           = false;
@@ -74,13 +73,12 @@ namespace love
         this->capabilities.features[FEATURE_GLSL4]                        = false;
         this->capabilities.features[FEATURE_INSTANCING]                   = false;
         this->capabilities.features[FEATURE_TEXEL_BUFFER]                 = false;
-        this->capabilities.features[FEATURE_INDEX_BUFFER_32BIT]           = false;
-        this->capabilities.features[FEATURE_COPY_BUFFER_TO_TEXTURE]       = false; //< might be possible
         this->capabilities.features[FEATURE_COPY_TEXTURE_TO_BUFFER]       = false; //< might be possible
-        this->capabilities.features[FEATURE_COPY_RENDER_TARGET_TO_BUFFER] = false; //< might be possible
-        this->capabilities.features[FEATURE_MIPMAP_RANGE]                 = false;
         this->capabilities.features[FEATURE_INDIRECT_DRAW]                = false;
-        static_assert(FEATURE_MAX_ENUM == 19,  "Graphics::initCapabilities must be updated when adding a new graphics feature!");
+        this->capabilities.features[FEATURE_VERTEX_WRITE]                 = false;
+        this->capabilities.features[FEATURE_PIXEL_WRITE]                  = false;
+        this->capabilities.features[FEATURE_IMAGE_ATOMICS]                = false;
+        static_assert(FEATURE_MAX_ENUM == 16,  "Graphics::initCapabilities must be updated when adding a new graphics feature!");
 
         this->capabilities.limits[LIMIT_POINT_SIZE]                 = 8.0f;
         this->capabilities.limits[LIMIT_TEXTURE_SIZE]               = 4096;
@@ -145,18 +143,18 @@ namespace love
         {
             Color col = color.value;
             gammaCorrectColor(col);
-            gx2.clearColor(col);
+            gx2.clearColor(col); // or gx2.setClearColor(col);
         }
 
         if (stencil.hasValue)
         {
-            gx2.clearStencil(stencil.value);
+            gx2.setClearStencil(stencil.value);
             flags |= GX2_CLEAR_FLAGS_STENCIL;
         }
 
         if (depth.hasValue)
         {
-            gx2.clearDepth(depth.value);
+            gx2.setClearDepth(depth.value);
             flags |= GX2_CLEAR_FLAGS_DEPTH;
         }
 
@@ -211,13 +209,13 @@ namespace love
 
         if (stencil.hasValue)
         {
-            gx2.clearStencil(stencil.value);
+            gx2.setClearStencil(stencil.value);
             flags |= GX2_CLEAR_FLAGS_STENCIL;
         }
 
         if (depth.hasValue)
         {
-            gx2.clearDepth(depth.value);
+            gx2.setClearDepth(depth.value);
             flags |= GX2_CLEAR_FLAGS_DEPTH;
         }
 
@@ -247,7 +245,7 @@ namespace love
         Shader::shaderSwitches = 0;
     }
 
-    void Graphics::setScissor(const Rect& scissor)
+    void Graphics::setScissor(const FRect& scissor)
     {
         this->flushBatchedDraws();
 
@@ -255,10 +253,10 @@ namespace love
         double dpiscale = this->getCurrentDPIScale();
 
         Rect rectangle {};
-        rectangle.x = scissor.x * dpiscale;
-        rectangle.y = scissor.y * dpiscale;
-        rectangle.w = scissor.w * dpiscale;
-        rectangle.h = scissor.h * dpiscale;
+        rectangle.x = (int)roundf(scissor.x * dpiscale);
+        rectangle.y = (int)roundf(scissor.y * dpiscale);
+        rectangle.w = (int)roundf(scissor.w * dpiscale);
+        rectangle.h = (int)roundf(scissor.h * dpiscale);
 
         gx2.setScissor(rectangle);
 
@@ -310,13 +308,6 @@ namespace love
     {
         if (!(state == this->states.back().blend))
             this->flushBatchedDraws();
-
-        if (state.operationRGB == BLENDOP_MAX || state.operationA == BLENDOP_MAX ||
-            state.operationRGB == BLENDOP_MIN || state.operationA == BLENDOP_MIN)
-        {
-            if (!capabilities.features[FEATURE_BLEND_MINMAX])
-                throw love::Exception(E_BLEND_MIN_MAX_NOT_SUPPORTED);
-        }
 
         if (state.enable)
             gx2.setBlendState(state);
@@ -408,7 +399,7 @@ namespace love
     bool Graphics::setMode(int width, int height, int pixelWidth, int pixelHeight, bool backBufferStencil,
                            bool backBufferDepth, int msaa)
     {
-        gx2.initialize();
+        gx2.init();
 
         this->created = true;
         this->initCapabilities();
@@ -471,7 +462,7 @@ namespace love
             return;
 
         this->flushBatchedDraws();
-        gx2.deInitialize();
+        gx2.close();
     }
 
     void Graphics::setViewport(int x, int y, int width, int height)

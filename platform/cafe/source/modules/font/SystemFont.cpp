@@ -12,7 +12,10 @@ namespace love
             throw love::Exception("Failed to load system font: {:s}", name);
     }
 
-    SystemFont::SystemFont(const SystemFont& other) : data(other.data), size(other.size)
+    SystemFont::SystemFont(const SystemFont& other) :
+        SystemFontBase(other.type),
+        data(other.data),
+        size(other.size)
     {}
 
     SystemFont::~SystemFont()
