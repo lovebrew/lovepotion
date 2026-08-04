@@ -40,6 +40,12 @@
     - LZ4 source repository : https://github.com/Cyan4973/lz4
     - LZ4 public forum : https://groups.google.com/forum/#!forum/lz4c
 
+ - simplewebp
+  Website: https://github.com/MikuAuahDark/simplewebp
+  Source download: https://github.com/MikuAuahDark/simplewebp/blob/d1a728a1f8ec7348ca2a5039b6dd813b83986fbb/simplewebp.h
+  License: 3-Clause BSD
+  Copyright (c) 2010 Google Inc., 2023 Miku AuahDark
+
 ## UTF8-CPP
 
 * Website: https://github.com/nemtrif/utfcpp

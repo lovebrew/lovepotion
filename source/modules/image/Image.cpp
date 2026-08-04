@@ -5,6 +5,7 @@
     #include "modules/image/magpie/JPGHandler.hpp"
     #include "modules/image/magpie/KTXHandler.hpp"
     #include "modules/image/magpie/PNGHandler.hpp"
+    #include "modules/image/magpie/WEBPHandler.hpp"
     #include "modules/image/magpie/ddsHandler.hpp"
 #else
     #include "modules/image/magpie/T3XHandler.hpp"
@@ -20,11 +21,7 @@ namespace love
 #if defined(__3DS__)
             new T3XHandler
 #else
-            new ASTCHandler,
-            new JPGHandler,
-            new KTXHandler,
-            new PNGHandler,
-            new DDSHandler
+            new ASTCHandler, new JPGHandler, new KTXHandler, new PNGHandler, new DDSHandler, new WEBPHandler
 #endif
         };
     }

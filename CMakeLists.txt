@@ -189,6 +189,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     libraries/wuff
     libraries/utf8
     libraries/ddsparse
+    libraries/simplewebp
 )
 
 # find source -type f -name \*.cpp | clip
@@ -358,6 +359,7 @@ if (NINTENDO_SWITCH OR NINTENDO_WIIU)
         source/modules/image/magpie/KTXHandler.cpp
         source/modules/image/magpie/PKMHandler.cpp
         source/modules/image/magpie/PNGHandler.cpp
+        source/modules/image/magpie/WEBPHandler.cpp
         source/modules/font/freetype/Font.cpp
         source/modules/font/freetype/TrueTypeRasterizer.cpp
         source/modules/graphics/freetype/Font.cpp
