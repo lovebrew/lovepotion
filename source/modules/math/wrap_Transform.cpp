@@ -24,6 +24,16 @@ int Wrap_Transform::inverse(lua_State* L)
     return 1;
 }
 
+int Wrap_Transform::inverseOf(lua_State* L)
+{
+    auto* self        = luax_checktransform(L, 1);
+    auto* destination = luax_checktransform(L, 2);
+    destination->setMatrix(self->getMatrix().inverse());
+
+    lua_pushvalue(L, 1);
+    return 1;
+}
+
 int Wrap_Transform::apply(lua_State* L)
 {
     auto* self  = luax_checktransform(L, 1);
@@ -215,6 +225,7 @@ static constexpr luaL_Reg functions[] =
 {
     { "clone",                 Wrap_Transform::clone                 },
     { "inverse",               Wrap_Transform::inverse               },
+    { "inverseOf",             Wrap_Transform::inverseOf             },
     { "apply",                 Wrap_Transform::apply                 },
     { "isAffine2DTransform",   Wrap_Transform::isAffine2DTransform   },
     { "translate",             Wrap_Transform::translate             },

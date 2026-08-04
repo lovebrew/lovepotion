@@ -18,6 +18,8 @@ namespace Wrap_Transform
 
     int inverse(lua_State* L);
 
+    int inverseOf(lua_State* L);
+
     int apply(lua_State* L);
 
     int isAffine2DTransform(lua_State* L);
