@@ -5,9 +5,16 @@
 #include "modules/graphics/Shader.hpp"
 #include "modules/graphics/vertex.hpp"
 #include <3ds/gpu/enums.h>
+#include <c3d/effect.h>
 
 namespace love
 {
+    citro3d::CleanClearState::CleanClearState(C3D_ClearBits flags) : flags(flags)
+    {}
+
+    citro3d::CleanClearState::~CleanClearState()
+    {}
+
     citro3d::citro3d() : context {}
     {
         this->targets.reserve(3);
@@ -240,8 +247,11 @@ namespace love
 
     void citro3d::setSamplerState(C3D_Tex* texture, SamplerState state)
     {
-        auto magFilter = (state.minFilter == SamplerState::FILTER_NEAREST) ? GPU_NEAREST : GPU_LINEAR;
-        auto minFilter = (state.magFilter == SamplerState::FILTER_NEAREST) ? GPU_NEAREST : GPU_LINEAR;
+        GPU_TEXTURE_FILTER_PARAM magFilter;
+        citro3d::getConstant(state.magFilter, magFilter);
+
+        GPU_TEXTURE_FILTER_PARAM minFilter;
+        citro3d::getConstant(state.minFilter, minFilter);
 
         C3D_TexSetFilter(texture, magFilter, minFilter);
 
@@ -306,7 +316,8 @@ namespace love
                 const auto& format    = love::getDataFormatInfo(attribute.getFormat());
 
                 GPU_FORMATS attributeFormat;
-                citro3d::getConstant(format.baseType, attributeFormat);
+                if (!citro3d::getConstant(format.baseType, attributeFormat))
+                    throw love::Exception("Invalid data base type: {:d}.", (int)format.baseType);
 
                 AttrInfo_AddLoader(&info, i, attributeFormat, format.components);
             }

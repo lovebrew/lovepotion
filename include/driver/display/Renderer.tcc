@@ -49,7 +49,7 @@ namespace love
       protected:
         struct ContextBase
         {
-            CullMode cullMode;
+            CullMode cullMode = CULL_MAX_ENUM;
             ColorChannelMask colorMask;
             BlendState blendState;
             StencilState stencilState;

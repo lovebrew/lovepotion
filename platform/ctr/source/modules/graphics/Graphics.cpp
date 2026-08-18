@@ -618,6 +618,7 @@ namespace love
         c3d.setTexEnvMode(command.texture, command.isFont);
         c3d.setVertexAttributes(attributes, *command.buffers);
         c3d.bindTextureToUnit(command.texture, 0);
+        c3d.setCullMode(command.cullMode);
 
         const auto* indices = (const uint16_t*)command.indexBuffer->getHandle();
         const int index     = BUFFER_OFFSET(command.indexBufferOffset);
@@ -640,6 +641,7 @@ namespace love
         c3d.setTexEnvMode(command.texture, command.isFont);
         c3d.setVertexAttributes(attributes, *command.buffers);
         c3d.bindTextureToUnit(command.texture, 0);
+        c3d.setCullMode(command.cullMode);
 
         GPU_Primitive_t primitive;
         citro3d::getConstant(command.primitiveType, primitive);

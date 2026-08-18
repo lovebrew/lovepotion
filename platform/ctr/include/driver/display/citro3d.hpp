@@ -1,10 +1,13 @@
 #pragma once
 
 #include <3ds/gpu/enums.h>
+#include <c3d/framebuffer.h>
 #include <citro3d.h>
+#include <cstdint>
 
 #include "common/Map.hpp"
 #include "common/config.hpp"
+#include "common/int.hpp"
 #include "common/pixelformat.hpp"
 
 #include "driver/display/Framebuffer.hpp"
@@ -28,6 +31,20 @@ namespace love
             TEXENV_MODE_TEXTURE,
             TEXENV_MODE_FONT,
             TEXENV_MODE_MAX_ENUM
+        };
+
+        class CleanClearState
+        {
+          public:
+            CleanClearState(C3D_ClearBits flags);
+            ~CleanClearState();
+
+          private:
+            C3D_ClearBits flags;
+            uint32_t colorWriteMask;
+            uint32_t stencilWriteMask;
+            bool depthWrites;
+            bool scissor;
         };
 
         citro3d();
@@ -64,6 +81,36 @@ namespace love
         virtual void prepareDraw(GraphicsBase* graphics) override;
 
         virtual void present() override;
+
+        void setDepthWrites(bool enabled)
+        {
+            this->state.depthWritesEnabled = enabled;
+        }
+
+        bool hasDepthWrites() const
+        {
+            return this->state.depthWritesEnabled;
+        }
+
+        void setStencilWriteMask(uint32_t mask)
+        {
+            this->state.stencilWriteMask = mask;
+        }
+
+        bool getStencilWriteMask() const
+        {
+            return this->state.stencilWriteMask;
+        }
+
+        void setColorWriteMask(uint32_t mask)
+        {
+            this->state.colorWriteMask = mask;
+        }
+
+        bool getColorWriteMask() const
+        {
+            return this->state.colorWriteMask;
+        }
 
         C3D_RenderTarget* getFramebuffer();
 
@@ -111,7 +158,12 @@ namespace love
 
         // clang-format off
 
-       ENUMMAP_DECLARE(PrimitiveModes, PrimitiveType, GPU_Primitive_t,
+        ENUMMAP_DECLARE(FilterModes, SamplerState::FilterMode, GPU_TEXTURE_FILTER_PARAM,
+            { SamplerState::FILTER_LINEAR,  GPU_LINEAR  },
+            { SamplerState::FILTER_NEAREST, GPU_NEAREST }
+        );
+
+        ENUMMAP_DECLARE(PrimitiveModes, PrimitiveType, GPU_Primitive_t,
             { PRIMITIVE_TRIANGLES,      GPU_TRIANGLES      },
             { PRIMITIVE_TRIANGLE_STRIP, GPU_TRIANGLE_STRIP },
             { PRIMITIVE_TRIANGLE_FAN,   GPU_TRIANGLE_FAN   }
@@ -230,6 +282,15 @@ namespace love
 
         std::vector<std::function<void()>> deferred;
         std::array<C3D_TexEnv, TEXENV_MODE_MAX_ENUM> environments;
+
+        struct
+        {
+            GPU_CULLMODE faceCullMode;
+            uint32_t enabledAttribArrays;
+            bool depthWritesEnabled   = true;
+            uint32_t stencilWriteMask = LOVE_UINT32_MAX;
+            uint32_t colorWriteMask   = LOVE_UINT32_MAX;
+        } state;
     };
 
     extern citro3d c3d;

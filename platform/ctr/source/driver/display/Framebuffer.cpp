@@ -1,9 +1,5 @@
-#include <algorithm>
-
-#include "common/Exception.hpp"
-
 #include "driver/display/Framebuffer.hpp"
-#include "driver/display/citro3d.hpp"
+#include "common/Exception.hpp"
 
 namespace love
 {
