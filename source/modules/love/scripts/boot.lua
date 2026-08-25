@@ -60,6 +60,8 @@ function love.boot()
 
     -- Is this one of those fancy "fused" games?
     local can_has_game = pcall(love.filesystem.setSource, exepath)
+    -- Installed title (CIA/NRO): no fused game on a file path -> use romfs:/
+    if not can_has_game then can_has_game = pcall(love.filesystem.setSource, "romfs:/") end
 
     -- It's a fused game, don't parse --game argument
     if can_has_game then

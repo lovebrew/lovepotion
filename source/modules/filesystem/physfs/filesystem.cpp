@@ -139,11 +139,16 @@ void Filesystem::Init(const char* arg0)
 {
     this->executablePath = getApplicationPath(arg0);
 
-    /* should only happen on Wii U */
-    if (this->executablePath.empty())
+    /* On Wii U an empty path is a real error (cannot locate the running .wuhb),
+       so keep the original behavior there. */
+    if (this->executablePath.empty() && love::Console::Is(love::Console::CAFE))
         throw love::Exception("Failed to get executable path.");
 
-    if (!PHYSFS_init(this->executablePath.c_str()))
+    /* Installed title (3DS CIA / Switch NRO): arg0 is empty or a placeholder, so
+       PHYSFS_init(exepath) fails. Retry with nullptr (best-effort base dir) so the
+       game can still be mounted -- from romfs:/ in that case (see boot.lua). */
+    const char* base = this->executablePath.empty() ? nullptr : this->executablePath.c_str();
+    if (!PHYSFS_init(base) && !PHYSFS_init(nullptr))
         throw love::Exception("Failed to initialize filesystem: %s", Filesystem::GetLastError());
 
     PHYSFS_setWriteDir(nullptr);
