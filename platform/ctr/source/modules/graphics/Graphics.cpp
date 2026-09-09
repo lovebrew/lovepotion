@@ -379,7 +379,7 @@ namespace love
             GPU_BLENDFACTOR dstA;
             citro3d::getConstant(state.dstFactorA, dstA);
 
-            C3D_AlphaBlend(opRGB, opA, srcRGB, srcA, dstRGB, dstA);
+            C3D_AlphaBlend(opRGB, opA, srcRGB, dstRGB, srcA, dstA);
         }
 
         this->states.back().blend = state;

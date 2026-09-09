@@ -1,7 +1,6 @@
 #pragma once
 
 #include <3ds/gpu/enums.h>
-#include <c3d/framebuffer.h>
 #include <citro3d.h>
 #include <cstdint>
 
