@@ -12,13 +12,31 @@
 
 #include "common/Exception.hpp"
 
+#include <3ds/allocator/linear.h>
 #include <3ds/gpu/enums.h>
 #include <c3d/effect.h>
+#include <cstdint>
+#include <cstdlib>
+#include <exception>
 
 namespace love
 {
-    Graphics::Graphics() : GraphicsBase("love.graphics.citro3d")
+    Graphics::Graphics() :
+        GraphicsBase("love.graphics.citro3d"),
+        bufferMapMemory(nullptr),
+        bufferMapMemorySize(2 * 1024 * 1024)
     {
+        c3d = citro3d();
+
+        try
+        {
+            this->bufferMapMemory = new uint8_t[this->bufferMapMemorySize];
+        }
+        catch (std::exception&)
+        {
+            // Handled in getBufferMapMemory.
+        }
+
         auto* window = Module::getInstance<WindowBase>(M_WINDOW);
 
         if (window != nullptr)
@@ -38,6 +56,8 @@ namespace love
 
     Graphics::~Graphics()
     {
+        delete[] this->bufferMapMemory;
+
         for (int index = 0; index < ShaderBase::STANDARD_MAX_ENUM; index++)
         {
             if (ShaderBase::standardShaders[index])
@@ -673,6 +693,19 @@ namespace love
             C3D_DrawElements(GPU_TRIANGLES, quadCount * 6, C3D_UNSIGNED_SHORT, &indices[offset]);
             ++drawCalls;
         }
+    }
+
+    void* Graphics::getBufferMapMemory(size_t size)
+    {
+        if (this->bufferMapMemory == nullptr || size > this->bufferMapMemorySize)
+            return std::malloc(size);
+        return this->bufferMapMemory;
+    }
+
+    void Graphics::releaseBufferMapMemory(void* memory)
+    {
+        if (memory != this->bufferMapMemory)
+            std::free(memory);
     }
 
     bool Graphics::isStereoscopic() const

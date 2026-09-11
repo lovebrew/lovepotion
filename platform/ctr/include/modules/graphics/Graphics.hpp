@@ -2,6 +2,7 @@
 
 #include "modules/graphics/Graphics.tcc"
 #include "modules/graphics/Texture.hpp"
+#include <cstdint>
 
 namespace love
 {
@@ -86,6 +87,10 @@ namespace love
         ShaderBase* newShaderInternal(StrongRef<ShaderStageBase> stages[SHADERSTAGE_MAX_ENUM],
                                       const ShaderBase::CompileOptions& options) override;
 
+        void* getBufferMapMemory(size_t size);
+
+        void releaseBufferMapMemory(void* memory);
+
         bool isStereoscopic() const override;
 
         void setStereoscopic(bool enable) override;
@@ -95,5 +100,9 @@ namespace love
         void setWideMode(bool enable) override;
 
         float getDepth() const override;
+
+      private:
+          uint8_t* bufferMapMemory = nullptr;
+          size_t bufferMapMemorySize = 0;
     };
 } // namespace love

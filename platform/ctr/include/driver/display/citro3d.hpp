@@ -3,6 +3,7 @@
 #include <3ds/gpu/enums.h>
 #include <citro3d.h>
 #include <cstdint>
+#include <vector>
 
 #include "common/Map.hpp"
 #include "common/config.hpp"
@@ -76,6 +77,8 @@ namespace love
 
         virtual void setVertexAttributes(const VertexAttributes& attributes,
                                          const BufferBindings& buffers) override;
+
+        bool bufferDataSubOrphan(C3D_BufInfo* buffer, uint8_t* data, size_t stride, size_t size);
 
         virtual void prepareDraw(GraphicsBase* graphics) override;
 
@@ -251,6 +254,8 @@ namespace love
 
       private:
         static int getTextureUnit(GPU_TEXUNIT unit);
+
+        std::vector<uint8_t*> orphans;
 
         struct Context : public ContextBase
         {

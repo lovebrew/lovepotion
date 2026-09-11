@@ -1,6 +1,7 @@
 #include "modules/graphics/SpriteBatch.hpp"
 
 #include "common/Console.hpp"
+#include "modules/graphics/Shader.tcc"
 
 #if defined(__3DS__)
     #include "driver/display/citro3d.hpp"
@@ -270,15 +271,19 @@ namespace love
         this->attributesID = graphics->registerVertexAttributes(attributes);
     }
 
-    static constexpr ShaderBase::StandardShader SHADER_TYPE =
-        (Console::is(Console::CTR)) ? ShaderBase::STANDARD_DEFAULT : ShaderBase::STANDARD_TEXTURE;
-
     void SpriteBatch::draw(GraphicsBase* graphics, const Matrix4& matrix)
     {
         if (this->next == 0)
             return;
 
         graphics->flushBatchedDraws();
+
+        if (this->texture.get())
+        {
+            if (ShaderBase::isDefaultActive())
+                ShaderBase::attachDefault(ShaderBase::STANDARD_DEFAULT);
+        }
+
         this->flush();
 
         bool attributesIDNeedsUpdate = !this->attributesID.isValid();
@@ -308,12 +313,11 @@ namespace love
 
         count = std::min(count, next - start);
 
-        if (count <= 0)
-            return;
-
 #if defined(__3DS__)
         c3d.setTexEnvMode(this->texture, false);
 #endif
-        graphics->drawQuads(start, count, this->attributesID, this->bufferBindings, this->texture);
+
+        if (count > 0)
+            graphics->drawQuads(start, count, this->attributesID, this->bufferBindings, this->texture);
     }
 } // namespace love

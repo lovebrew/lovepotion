@@ -1,10 +1,15 @@
 #include "modules/graphics/Buffer.hpp"
 
 #include "common/Exception.hpp"
-
+#include "common/Module.hpp"
+#include "driver/display/citro3d.hpp"
 #include "modules/graphics/Graphics.hpp"
 #include "modules/graphics/vertex.hpp"
 
+#include <3ds/allocator/linear.h>
+#include <c3d/buffers.h>
+#include <cmath>
+#include <cstdint>
 #include <cstdlib>
 #include <cstring>
 
@@ -19,10 +24,7 @@ namespace love
         length = this->getArrayLength();
 
         if (this->usage & BUFFERUSAGEFLAG_VERTEX)
-        {
             this->mapUsage = BUFFERUSAGE_VERTEX;
-            BufInfo_Init(&this->buffer);
-        }
         else if (this->usage & BUFFERUSAGEFLAG_INDEX)
             this->mapUsage = BUFFERUSAGE_INDEX;
 
@@ -54,6 +56,8 @@ namespace love
     Buffer::~Buffer()
     {
         this->unloadVolatile();
+        if (this->memoryMap != nullptr && this->ownsMemoryMap)
+            std::free(this->memoryMap);
     }
 
     bool Buffer::loadVolatile()
@@ -67,18 +71,14 @@ namespace love
     void Buffer::unloadVolatile()
     {
         this->mapped = false;
-        linearFree(this->bytes);
-        this->bytes = nullptr;
-        linearFree(this->staging);
-        this->staging = nullptr;
     }
 
     bool Buffer::load(const void* data)
     {
-        this->bytes = (uint8_t*)linearAlloc(this->getSize());
+        if (this->usage & BUFFERUSAGEFLAG_VERTEX)
+            BufInfo_Init(&this->buffer);
 
-        if (!this->bytes)
-            return false;
+        this->bytes = (uint8_t*)linearAlloc(this->getSize());
 
         if (this->mapUsage == BUFFERUSAGE_VERTEX)
         {
@@ -88,8 +88,6 @@ namespace love
 
         if (data != nullptr)
             std::memcpy(this->bytes, data, this->getSize());
-        else
-            std::memset(this->bytes, 0, this->getSize());
 
         return true;
     }
@@ -118,24 +116,33 @@ namespace love
         if (!Range(0, this->getSize()).contains(r))
             return nullptr;
 
-        this->mapped      = true;
-        this->mappedType  = map;
-        this->mappedRange = r;
+        uint8_t* data = nullptr;
 
         if (map == MAP_READ_ONLY)
-            return (void*)(this->bytes + offset);
-
-        try
+            return (void*)(this->memoryMap + offset);
+        else if (this->ownsMemoryMap)
         {
-            this->staging = (uint8_t*)linearAlloc(this->getSize());
+            if (this->memoryMap == nullptr)
+                this->memoryMap = (uint8_t*)std::malloc(this->getSize());
+            data = this->memoryMap;
         }
-        catch (std::bad_alloc&)
+        else
         {
-            this->mapped = false;
-            return nullptr;
+            auto gfx = Module::getInstance<Graphics>(Module::M_GRAPHICS);
+            data     = (uint8_t*)gfx->getBufferMapMemory(size);
         }
 
-        return (void*)this->staging;
+        if (data != nullptr)
+        {
+            this->mapped      = true;
+            this->mappedType  = map;
+            this->mappedRange = r;
+
+            if (!this->ownsMemoryMap)
+                this->memoryMap = data;
+        }
+
+        return data;
     }
 
     void Buffer::unmap(size_t offset, size_t size)
@@ -148,7 +155,12 @@ namespace love
         this->mapped = false;
 
         if (this->mappedType == MAP_READ_ONLY)
+        {
+            if (!this->ownsMemoryMap)
+                this->memoryMap = nullptr;
+
             return;
+        }
 
         if (this->supportsOrphan() && this->mappedRange.first == 0 &&
             this->mappedRange.getSize() == this->getSize())
@@ -157,8 +169,15 @@ namespace love
             size   = this->getSize();
         }
 
-        auto* data = this->staging + (offset - this->mappedRange.getOffset());
+        auto* data = this->memoryMap + (offset - this->mappedRange.getOffset());
         this->fill(offset, size, data);
+
+        if (!this->ownsMemoryMap)
+        {
+            auto* gfx = Module::getInstance<Graphics>(Module::M_GRAPHICS);
+            gfx->releaseBufferMapMemory(this->memoryMap);
+            this->memoryMap = nullptr;
+        }
     }
 
     bool Buffer::fill(size_t offset, size_t size, const void* data)
@@ -172,9 +191,19 @@ namespace love
             return false;
 
         if (this->supportsOrphan() && size == bufferSize)
-            std::memcpy(this->bytes, data, bufferSize);
+        {
+            if (this->usage & BUFFERUSAGEFLAG_VERTEX)
+                c3d.bufferDataSubOrphan(&this->buffer, (uint8_t*)data, this->arrayStride, size);
+            else
+                std::memcpy(this->bytes, data, size);
+        }
         else
-            std::memcpy(this->bytes + offset, data, size);
+        {
+            if (this->usage & BUFFERUSAGEFLAG_VERTEX)
+                c3d.bufferDataSubOrphan(&this->buffer, (uint8_t*)data + offset, this->arrayStride, size);
+            else
+                std::memcpy(this->bytes + offset, data, size);
+        }
 
         return true;
     }

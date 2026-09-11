@@ -4,8 +4,12 @@
 #include "driver/display/citro3d.hpp"
 #include "modules/graphics/Shader.hpp"
 #include "modules/graphics/vertex.hpp"
+#include <3ds/allocator/linear.h>
 #include <3ds/gpu/enums.h>
+#include <c3d/buffers.h>
 #include <c3d/effect.h>
+#include <cstdint>
+#include <sys/types.h>
 
 namespace love
 {
@@ -327,6 +331,35 @@ namespace love
 
         C3D_SetAttrInfo(&info);
         C3D_SetBufInfo((C3D_BufInfo*)buffers.info[0].buffer->getHandle());
+    }
+
+    bool citro3d::bufferDataSubOrphan(C3D_BufInfo* buffer, uint8_t* data, size_t stride, size_t size)
+    {
+        auto* oldBytes = data;
+        auto* newBytes = (uint8_t*)linearAlloc(size);
+
+        if (!newBytes)
+            return false;
+
+        std::memcpy(newBytes, oldBytes, size);
+        oldBytes = newBytes;
+
+        BufInfo_Init(buffer);
+        if (BufInfo_Add(buffer, newBytes, stride, 3, 0x210) < 0)
+        {
+            data = oldBytes;
+            linearFree(newBytes);
+            return false;
+        }
+
+        this->orphans.push_back(newBytes);
+        this->deferCallToEndOfFrame([&]() {
+            for (auto orphan : this->orphans)
+                linearFree(orphan);
+            this->orphans.clear();
+        });
+
+        return true;
     }
 
     int citro3d::getTextureUnit(GPU_TEXUNIT unit)

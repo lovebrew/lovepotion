@@ -26,9 +26,9 @@ int Wrap_Transform::inverse(lua_State* L)
 
 int Wrap_Transform::inverseOf(lua_State* L)
 {
-    auto* self        = luax_checktransform(L, 1);
-    auto* destination = luax_checktransform(L, 2);
-    destination->setMatrix(self->getMatrix().inverse());
+    auto* destination = luax_checktransform(L, 1);
+    auto* source      = luax_checktransform(L, 2);
+    destination->setMatrix(source->getMatrix().inverse());
 
     lua_pushvalue(L, 1);
     return 1;

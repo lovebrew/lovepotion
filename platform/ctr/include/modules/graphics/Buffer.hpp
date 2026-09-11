@@ -6,6 +6,7 @@
 #include "modules/graphics/Volatile.hpp"
 
 #include <citro3d.h>
+#include <vector>
 
 namespace love
 {
@@ -55,8 +56,10 @@ namespace love
         C3D_BufInfo buffer;
 
         BufferUsage mapUsage = BUFFERUSAGE_VERTEX;
+        uint8_t* memoryMap   = nullptr;
         uint8_t* bytes       = nullptr;
-        uint8_t* staging     = nullptr;
+
+        std::vector<uint8_t*> orphans;
 
         bool mapped        = false;
         bool ownsMemoryMap = false;

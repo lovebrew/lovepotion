@@ -1,11 +1,17 @@
 #include "common/Exception.hpp"
 #include "common/Matrix.hpp"
 
+#include "common/Object.hpp"
+#include "common/StrongRef.hpp"
 #include "common/int.hpp"
+#include "modules/graphics/Buffer.hpp"
 #include "modules/graphics/Graphics.tcc"
 #include "modules/graphics/Mesh.hpp"
 
 #include <algorithm>
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
 
 #include "modules/graphics/vertex.hpp"
 
@@ -122,7 +128,7 @@ namespace love
 
             if (!attribute.name.empty())
             {
-                int index = this->getAttachedAttributeIndex(attribute.bindingLocation);
+                int index = this->getAttachedAttributeIndex(attribute.name);
                 if (index != i && index != -1)
                     throw love::Exception(E_MESH_DUPLICATE_ATTRIBUTE_NAME, attribute.name.c_str());
             }
@@ -398,6 +404,7 @@ namespace love
                 size_t size   = this->modifiedVertexData.getSize();
                 this->vertexBuffer->fill(offset, size, this->vertexData + offset);
             }
+            this->modifiedVertexData.invalidate();
         }
 
         if (this->indexDataModified && this->indexData != nullptr && this->indexBuffer != nullptr)
@@ -469,6 +476,7 @@ namespace love
                 copyToIndexBuffer<uint16_t>(map, this->indexData, maxValue);
                 break;
             case INDEX_UINT32:
+            default:
                 copyToIndexBuffer<uint32_t>(map, this->indexData, maxValue);
                 break;
         }
@@ -477,7 +485,40 @@ namespace love
     }
 
     void Mesh::setVertexMap(IndexDataType datatype, const void* data, size_t datasize)
-    {}
+    {
+        const auto format = love::getIndexDataFormat(datatype);
+        bool recreate     = this->indexData == nullptr || this->indexBuffer.get() == nullptr ||
+                        datasize > this->indexBuffer->getSize() ||
+                        this->indexBuffer->getDataMember(0).declaration.format != format;
+
+        if (recreate)
+        {
+            auto* graphics = Module::getInstance<GraphicsBase>(Module::M_GRAPHICS);
+            auto usage =
+                this->vertexBuffer.get() ? this->vertexBuffer->getDataUsage() : BUFFERDATAUSAGE_DYNAMIC;
+            Buffer::Settings settings(BUFFERUSAGEFLAG_INDEX, usage);
+
+            auto buffer = StrongRef<BufferBase>(graphics->newBuffer(settings, format, nullptr, datasize, 0),
+                                                Acquire::NO_RETAIN);
+
+            auto data = (uint8_t*)std::realloc(this->indexData, datasize);
+            if (data == nullptr)
+                throw love::Exception(E_OUT_OF_MEMORY);
+
+            this->indexData   = data;
+            this->indexBuffer = buffer;
+        }
+
+        this->indexCount = datasize / love::getIndexDataSize(datatype);
+        this->useIndexBuffer = true;
+        this->indexType = datatype;
+
+        if (this->indexCount == 0)
+            return;
+
+        std::memcpy(this->indexData, data, datasize);
+        this->indexDataModified = true;
+    }
 
     void Mesh::setVertexMap()
     {

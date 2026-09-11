@@ -645,7 +645,7 @@ int Wrap_Graphics::push(lua_State* L)
 
     luax_catchexcept(L, [&]() { instance()->push(stackType); });
 
-    if (luax_istype(L, 1, Transform::type))
+    if (luax_istype(L, 2, Transform::type))
     {
         auto* transform = luax_totype<Transform>(L, 2);
         luax_catchexcept(L, [&]() { instance()->applyTransform(transform->getMatrix()); });
@@ -2758,7 +2758,7 @@ int Wrap_Graphics::flushBatch(lua_State* L)
 int Wrap_Graphics::setProjection(lua_State* L)
 {
     Transform* transform = luax_totype<Transform>(L, 1);
-    if (transform == nullptr)
+    if (transform != nullptr)
     {
         instance()->setProjection(transform->getMatrix());
         return 0;
