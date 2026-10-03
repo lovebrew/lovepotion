@@ -10,13 +10,13 @@ namespace love
         virtual ~QOIHandler()
         {}
 
-        bool canDecode(Data* data) override;
+        bool canDecode(Data* data) const override;
 
         bool canEncode(PixelFormat rawFormat, EncodedFormat encodedFormat) const override;
 
-        DecodedImage decode(Data*) override;
+        DecodedImage decode(Data*) const override;
 
-        EncodedImage encode(const DecodedImage& decodedImage, EncodedFormat encodedFormat) override;
+        EncodedImage encode(const DecodedImage& decodedImage, EncodedFormat encodedFormat) const override;
 
         void freeRawPixels(uint8_t* memory) override;
 

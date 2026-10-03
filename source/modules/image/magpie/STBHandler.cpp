@@ -31,7 +31,7 @@ namespace love
 {
     static_assert(sizeof(Color32) == 4, "sizeof(Color32) must be equal to 4 bytes!");
 
-    bool STBHandler::canDecode(Data* data)
+    bool STBHandler::canDecode(Data* data) const
     {
         int w    = 0;
         int h    = 0;
@@ -42,12 +42,12 @@ namespace love
         return status == 1 && w > 0 && h > 0;
     }
 
-    bool STBHandler::canEncode(PixelFormat rawFormat, EncodedFormat encodedFormat)
+    bool STBHandler::canEncode(PixelFormat rawFormat, EncodedFormat encodedFormat) const
     {
         return encodedFormat == ENCODED_TGA && rawFormat == PIXELFORMAT_RGBA8_UNORM;
     }
 
-    FormatHandler::DecodedImage STBHandler::decode(Data* data)
+    FormatHandler::DecodedImage STBHandler::decode(Data* data) const
     {
         DecodedImage image {};
 
@@ -80,7 +80,7 @@ namespace love
         return image;
     }
 
-    FormatHandler::EncodedImage STBHandler::encode(const DecodedImage& image, EncodedFormat encodedFormat)
+    FormatHandler::EncodedImage STBHandler::encode(const DecodedImage& image, EncodedFormat encodedFormat) const
     {
         if (!this->canEncode(image.format, encodedFormat))
             throw love::Exception("Cannot encode image (unsupported format).");

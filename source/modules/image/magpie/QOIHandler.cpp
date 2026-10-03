@@ -12,7 +12,7 @@
 
 namespace love
 {
-    bool QOIHandler::canDecode(Data* data)
+    bool QOIHandler::canDecode(Data* data) const
     {
         if (data->getSize() < sizeof(Header))
             return false;
@@ -28,7 +28,7 @@ namespace love
         return encodedFormat == ENCODED_QOI && rawFormat == PIXELFORMAT_RGBA8_UNORM;
     }
 
-    FormatHandler::DecodedImage QOIHandler::decode(Data* data)
+    FormatHandler::DecodedImage QOIHandler::decode(Data* data) const
     {
         DecodedImage image {};
 
@@ -45,7 +45,7 @@ namespace love
         return image;
     }
 
-    FormatHandler::EncodedImage QOIHandler::encode(const DecodedImage& image, EncodedFormat encodedFormat)
+    FormatHandler::EncodedImage QOIHandler::encode(const DecodedImage& image, EncodedFormat encodedFormat) const
     {
         EncodedImage encoded {};
 

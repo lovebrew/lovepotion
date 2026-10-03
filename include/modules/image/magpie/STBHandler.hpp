@@ -11,13 +11,13 @@ namespace love
         virtual ~STBHandler()
         {}
 
-        bool canDecode(Data* data) override;
+        bool canDecode(Data* data) const override;
 
-        bool canEncode(PixelFormat rawFormat, EncodedFormat encodedFormat) override;
+        bool canEncode(PixelFormat rawFormat, EncodedFormat encodedFormat) const override;
 
-        DecodedImage decode(Data* data) override;
+        DecodedImage decode(Data* data) const override;
 
-        EncodedImage encode(const DecodedImage& image, EncodedFormat encodedFormat) override;
+        EncodedImage encode(const DecodedImage& image, EncodedFormat encodedFormat) const override;
 
         void freeRawPixels(uint8_t* memory) override;
 

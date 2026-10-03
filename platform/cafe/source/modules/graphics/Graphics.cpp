@@ -322,8 +322,19 @@ namespace love
 
         gx2.setViewport({ 0, 0, pixelWidth, pixelHeight });
 
-        if (state.scissor)
-            gx2.setScissor(state.scissorRect);
+        if (state.scissor) {
+            FRect scissor = state.scissorRect;
+            double dpiscale = this->getCurrentDPIScale();
+
+            Rect rectangle {};
+            rectangle.x = (int)roundf(scissor.x * dpiscale);
+            rectangle.y = (int)roundf(scissor.y * dpiscale);
+            rectangle.w = (int)roundf(scissor.w * dpiscale);
+            rectangle.h = (int)roundf(scissor.h * dpiscale);
+
+            gx2.setScissor(rectangle);
+        }
+            
     }
 
     BufferBase* Graphics::newBuffer(const Buffer::Settings& settings,
