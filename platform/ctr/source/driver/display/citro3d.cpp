@@ -134,6 +134,11 @@ namespace love
         if (!this->inFrame)
         {
             C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+
+            for (auto& deferredFunc : this->deferred)
+                deferredFunc();
+            this->deferred.clear();
+
             this->inFrame = true;
         }
     }
@@ -221,12 +226,6 @@ namespace love
 
             Graphics::advanceStreamBuffersGlobal();
             this->inFrame = false;
-        }
-
-        for (size_t index = this->deferred.size(); index > 0; index--)
-        {
-            this->deferred[index - 1]();
-            this->deferred.erase(this->deferred.begin() + index - 1);
         }
     }
 

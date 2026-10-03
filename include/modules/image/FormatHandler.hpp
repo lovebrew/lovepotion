@@ -20,6 +20,7 @@ namespace love
             ENCODED_TGA,
             ENCODED_PNG,
             ENCODED_EXR,
+            ENCODED_QOI,
             ENCODED_MAX_ENUM
         };
 
@@ -34,8 +35,8 @@ namespace love
 
         struct EncodedImage
         {
-            size_t size;
-            uint8_t* data;
+            size_t size   = 0;
+            uint8_t* data = nullptr;
         };
 
         FormatHandler();

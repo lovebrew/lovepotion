@@ -104,6 +104,24 @@ namespace love
 
         if (this->fanIndexBuffer != nullptr)
             this->fanIndexBuffer->release();
+
+        for (int index = 0; index < ShaderBase::STANDARD_MAX_ENUM; index++)
+        {
+            if (ShaderBase::standardShaders[index])
+            {
+                ShaderBase::standardShaders[index]->release();
+                ShaderBase::standardShaders[index] = nullptr;
+            }
+        }
+
+        this->states.clear();
+        this->defaultFont.set(nullptr);
+
+        if (this->batchedDrawState.vertexBuffer)
+            this->batchedDrawState.vertexBuffer->release();
+
+        if (this->batchedDrawState.indexBuffer)
+            this->batchedDrawState.indexBuffer->release();
     }
 
     void GraphicsBase::createQuadIndexBuffer()

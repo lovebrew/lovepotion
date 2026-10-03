@@ -181,6 +181,8 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     include
     platform
     libraries/dr
+    libraries/qoi
+    libraries/stb
     libraries/lua53
     libraries/noise1234
     libraries/luasocket
@@ -360,6 +362,8 @@ if (NINTENDO_SWITCH OR NINTENDO_WIIU)
         source/modules/image/magpie/PKMHandler.cpp
         source/modules/image/magpie/PNGHandler.cpp
         source/modules/image/magpie/WEBPHandler.cpp
+        source/modules/image/magpie/QOIHandler.cpp
+        source/modules/image/magpie/STBHandler.cpp
         source/modules/font/freetype/Font.cpp
         source/modules/font/freetype/TrueTypeRasterizer.cpp
         source/modules/graphics/freetype/Font.cpp

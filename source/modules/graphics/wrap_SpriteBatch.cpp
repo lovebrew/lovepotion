@@ -68,7 +68,7 @@ int Wrap_SpriteBatch::clear(lua_State* L)
 int Wrap_SpriteBatch::flush(lua_State* L)
 {
     auto* self = luax_checkspritebatch(L, 1);
-    self->flush();
+    luax_catchexcept(L, [&]() { self->flush(); });
 
     return 0;
 }

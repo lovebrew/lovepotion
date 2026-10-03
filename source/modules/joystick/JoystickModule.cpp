@@ -1,5 +1,4 @@
 #include "common/Module.hpp"
-#include "common/debug.hpp"
 #include "driver/EventQueue.hpp"
 
 #include "modules/joystick/JoystickModule.hpp"

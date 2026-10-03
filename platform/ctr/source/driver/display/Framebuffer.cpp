@@ -1,5 +1,7 @@
-#include "driver/display/Framebuffer.hpp"
 #include "common/Exception.hpp"
+
+#include "driver/display/Framebuffer.hpp"
+#include "driver/display/citro3d.hpp"
 
 namespace love
 {
@@ -32,8 +34,10 @@ namespace love
         if (!this->target)
             return;
 
-        C3D_RenderTargetDelete(this->target);
-        this->target = nullptr;
+        c3d.deferCallToEndOfFrame([&] {
+            C3D_RenderTargetDelete(this->target);
+            this->target = nullptr;
+        });
     }
 
 } // namespace love

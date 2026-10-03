@@ -24,10 +24,10 @@ namespace love
         immutable(false)
     {
         if (size == 0 && length == 0)
-            throw love::Exception("Size or array length must be specified.");
+            throw love::Exception("Buffer size or array length must be specified.");
 
         if (bufferFormat.size() == 0)
-            throw love::Exception("Data format must contain values.");
+            throw love::Exception("Buffer data format must contain values.");
 
         const auto& capabilities = graphics->getCapabilities();
 

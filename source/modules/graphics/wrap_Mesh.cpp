@@ -41,7 +41,7 @@ int Wrap_Mesh::setVertices(lua_State* L)
         std::memcpy(bytes, data->getData(), size);
 
         self->setVertexDataModified(byteoffset, size);
-        self->flush();
+        luax_catchexcept(L, [&]() { self->flush(); });
         return 0;
     }
 
@@ -80,7 +80,7 @@ int Wrap_Mesh::setVertices(lua_State* L)
     }
 
     self->setVertexDataModified(byteoffset, count * stride);
-    self->flush();
+    luax_catchexcept(L, [&]() { self->flush(); });
 
     return 0;
 }
@@ -343,7 +343,7 @@ int Wrap_Mesh::getVertexBuffer(lua_State* L)
 int Wrap_Mesh::flush(lua_State* L)
 {
     auto* self = luax_checkmesh(L, 1);
-    self->flush();
+    luax_catchexcept(L, [&]() { self->flush(); });
 
     return 0;
 }

@@ -26,10 +26,7 @@ namespace love
         int64_t bytesRead = this->read(data->getData(), size);
 
         if (bytesRead < 0 || (bytesRead == 0 && bytesRead != size))
-        {
-            delete data;
             throw love::Exception("Could not read from file");
-        }
 
         if (bytesRead < size)
         {

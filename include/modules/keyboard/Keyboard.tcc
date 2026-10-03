@@ -51,7 +51,7 @@ namespace love
         {
             uint8_t type;                    // KeyboardType
             bool password;                   // Whether the input should be hidden
-            std::string_view hint;           // Hint text
+            std::string hint;                // Hint text
             uint32_t maxLength;              // Maximum length of the input
             KeyboardValidationInfo callback; // Callback function
         };

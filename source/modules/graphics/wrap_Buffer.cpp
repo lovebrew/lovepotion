@@ -20,6 +20,7 @@
 
 #include "modules/graphics/wrap_Buffer.hpp"
 #include "common/Data.hpp"
+#include "common/luax.hpp"
 #include <limits>
 
 using namespace love;
@@ -72,7 +73,8 @@ int Wrap_Buffer::setArrayData(lua_State* L)
         size_t dataOffset      = sourceIndex * stride;
         size_t dataSize        = std::min(data->getSize() - dataOffset, count * stride);
         const void* sourceData = (const uint8_t*)data->getData() + dataOffset;
-        self->fill(bufferOffset, dataSize, sourceData);
+
+        luax_catchexcept(L, [&]() { self->fill(bufferOffset, dataSize, sourceData); });
         return 0;
     }
 
@@ -103,7 +105,10 @@ int Wrap_Buffer::setArrayData(lua_State* L)
     if (destinationIndex + count > arrayLength)
         return luaL_error(L, E_BUFFER_TOO_MANY_ELEMENTS, arrayLength - destinationIndex, count);
 
-    char* data = (char*)self->map(BufferBase::MAP_WRITE_INVALIDATE, bufferOffset, count * stride);
+    char* data = nullptr;
+    luax_catchexcept(L, [&]() {
+        data = (char*)self->map(BufferBase::MAP_WRITE_INVALIDATE, bufferOffset, count * stride);
+    });
 
     if (tableOfTables)
     {
