@@ -23,6 +23,9 @@ static void love_STBIAssert(bool test, const char* teststr)
 #define STBI_IMAGE_STATIC
 #define STB_IMAGE_IMPLEMENTATION
 #define STBI_ASSERT(A) love_STBIAssert((A), #A)
+#if defined(__WIIU__)
+#define STBI_NO_THREAD_LOCALS
+#endif
 #include "stb_image.h"
 
 #include <cstdlib>
