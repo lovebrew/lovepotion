@@ -30,7 +30,7 @@ require("love.arg")
 require("love.callbacks")
 
 local function uridecode(s)
-    return s:gsub("%%%x%x", function(str)
+    return s:gsub("%%%x%x", function (str)
         return string.char(tonumber(str:sub(2), 16))
     end)
 end
@@ -41,7 +41,6 @@ local main_file = "main.lua"
 
 -- This can't be overridden.
 function love.boot()
-
     -- This is absolutely needed.
     require("love.filesystem")
 
@@ -133,7 +132,8 @@ function love.boot()
     -- before the save directory (the identity should be appended.)
     pcall(love.filesystem.setIdentity, identity, true)
 
-    if can_has_game and not (love.filesystem.getInfo(main_file) or (not custom_main_file and love.filesystem.getInfo("conf.lua"))) then
+    if can_has_game
+        and not (love.filesystem.getInfo(main_file) or (not custom_main_file and love.filesystem.getInfo("conf.lua"))) then
         no_game_code = true
     end
 
@@ -144,7 +144,6 @@ function love.boot()
 end
 
 function love.init()
-
     -- Create default configuration settings.
     -- NOTE: Adding a new module to the modules list
     -- will NOT make it load, see below.
@@ -166,7 +165,7 @@ function love.init()
             borderless = false,
             resizable = false,
             centered = true,
-            usedpiscale = true,
+            usedpiscale = true
         },
         modules = {
             data = true,
@@ -187,11 +186,11 @@ function love.init()
             font = true,
             thread = true,
             window = true,
-            video = false,
+            video = true
         },
         audio = {
             mixwithsystem = true,
-            mic = false,
+            mic = false
         },
         system = {
             speedup = false
@@ -204,7 +203,7 @@ function love.init()
         gammacorrect = false,
         highdpi = false,
         renderers = nil,
-        excluderenderers = nil,
+        excluderenderers = nil
     }
 
     -- Console hack, part 1.
@@ -246,7 +245,7 @@ function love.init()
         local renderers = love._getDefaultRenderers()
         if type(c.renderers) == "table" then
             renderers = {}
-            for i,v in ipairs(c.renderers) do
+            for i, v in ipairs(c.renderers) do
                 renderers[i] = v
             end
         end
@@ -268,8 +267,8 @@ function love.init()
         end
 
         if type(excluderenderers) == "table" then
-            for i,v in ipairs(excluderenderers) do
-                for j=#renderers, 1, -1 do
+            for i, v in ipairs(excluderenderers) do
+                for j = #renderers, 1, -1 do
                     if renderers[j] == v then
                         table.remove(renderers, j)
                         break
@@ -300,26 +299,9 @@ function love.init()
     end
 
     -- Gets desired modules.
-    for k,v in ipairs{
-        "data",
-        "thread",
-        "timer",
-        "event",
-        "keyboard",
-        "joystick",
-        "mouse",
-        "touch",
-        "sound",
-        "system",
-        "sensor",
-        "audio",
-        "image",
-        "video",
-        "font",
-        "window",
-        "graphics",
-        "math",
-        "physics",
+    for k, v in ipairs {
+        "data", "thread", "timer", "event", "keyboard", "joystick", "mouse", "touch", "sound", "system", "sensor",
+        "audio", "image", "video", "font", "window", "graphics", "math", "physics"
     } do
         if c.modules[v] then
             require("love." .. v)
@@ -335,8 +317,8 @@ function love.init()
     if not love.isVersionCompatible(c.version) then
         local major, minor, revision = c.version:match("^(%d+)%.(%d+)%.(%d+)$")
         if (not major or not minor or not revision) or (major ~= love._version_major and minor ~= love._version_minor) then
-            local msg = ("This game indicates it was made for version '%s' of LOVE.\n"..
-                "It may not be compatible with the running version (%s)."):format(c.version, love._version)
+            local msg = ("This game indicates it was made for version '%s' of LOVE.\n"
+                .. "It may not be compatible with the running version (%s)."):format(c.version, love._version)
 
             print(msg)
         end
@@ -349,26 +331,25 @@ function love.init()
     -- Setup window here.
     if c.window and c.modules.window then
         love.window.setTitle(c.window.title or c.title)
-        assert(love.window.setMode(c.window.width, c.window.height,
-        {
-            fullscreen = c.window.fullscreen,
-            fullscreentype = c.window.fullscreentype,
-            vsync = c.window.vsync,
-            msaa = c.window.msaa,
-            stencil = c.window.stencil,
-            depth = c.window.depth,
-            resizable = c.window.resizable,
-            minwidth = c.window.minwidth,
-            minheight = c.window.minheight,
-            borderless = c.window.borderless,
-            centered = c.window.centered,
-            displayindex = c.window.displayindex,
-            display = c.window.display, -- deprecated
-            highdpi = c.window.highdpi, -- deprecated
-            usedpiscale = c.window.usedpiscale,
-            x = c.window.x,
-            y = c.window.y,
-        }), "Could not set window mode")
+        assert(love.window.setMode(c.window.width, c.window.height, {
+                fullscreen = c.window.fullscreen,
+                fullscreentype = c.window.fullscreentype,
+                vsync = c.window.vsync,
+                msaa = c.window.msaa,
+                stencil = c.window.stencil,
+                depth = c.window.depth,
+                resizable = c.window.resizable,
+                minwidth = c.window.minwidth,
+                minheight = c.window.minheight,
+                borderless = c.window.borderless,
+                centered = c.window.centered,
+                displayindex = c.window.displayindex,
+                display = c.window.display, -- deprecated
+                highdpi = c.window.highdpi, -- deprecated
+                usedpiscale = c.window.usedpiscale,
+                x = c.window.x,
+                y = c.window.y
+            }), "Could not set window mode")
         if c.window.icon then
             assert(love.image, "If an icon is set in love.conf, love.image must be loaded!")
             love.window.setIcon(love.image.newImageData(c.window.icon))
@@ -379,7 +360,9 @@ function love.init()
     -- while. We'd rather hit that slowdown here than in event processing
     -- within the first frames.
     if love.event then
-        for _ = 1, 2 do love.event.pump() end
+        for _ = 1, 2 do
+            love.event.pump()
+        end
     end
 
     -- Our first timestep, because window creation can take some time
@@ -388,7 +371,7 @@ function love.init()
     end
 
     if love.filesystem then
-        --love.filesystem._setAndroidSaveExternal(c.externalstorage)
+        -- love.filesystem._setAndroidSaveExternal(c.externalstorage)
         love.filesystem.setIdentity(c.identity or love.filesystem.getIdentity(), c.appendidentity)
         if love.filesystem.getInfo(main_file) then
             require(main_file:gsub("%.lua$", ""))
@@ -398,24 +381,28 @@ function love.init()
     if no_game_code then
         local opts = love.arg.options
         local gamepath = opts.game.set and opts.game.arg[1] or ""
-        local gamestr = gamepath == "" and "" or " at ".. gamepath
-        error("No code to run" .. gamestr .. "\nYour game might be packaged incorrectly.\nMake sure " .. main_file.. " is at the top level of the zip or folder.")
+        local gamestr = gamepath == "" and "" or " at " .. gamepath
+        error(
+            "No code to run" .. gamestr .. "\nYour game might be packaged incorrectly.\nMake sure " .. main_file
+                .. " is at the top level of the zip or folder."
+        )
     elseif invalid_game_path then
-        error("Cannot load game at path '" .. invalid_game_path .. "'.\nMake sure a folder exists at the specified path.")
+        error("Cannot load game at path '" .. invalid_game_path
+                .. "'.\nMake sure a folder exists at the specified path.")
     end
 end
 
 local print, debug, tostring = print, debug, tostring
 
 local function error_printer(msg, layer)
-    print(debug.traceback("Error: " .. tostring(msg), 1+(layer or 1)):gsub("\n[^\n]+$", ""))
+    print(debug.traceback("Error: " .. tostring(msg), 1 + (layer or 1)):gsub("\n[^\n]+$", ""))
 end
 
 -----------------------------------------------------------
 -- The root of all calls.
 -----------------------------------------------------------
 
-return function()
+return function ()
     local func
     local inerror = false
 
@@ -459,4 +446,4 @@ return function()
 end
 
 -- DO NOT REMOVE THE NEXT LINE. It is used to load this file as a C++ string.
---)luastring"--"
+-- )luastring"--"

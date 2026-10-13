@@ -21,6 +21,7 @@
 #include "modules/graphics/TextBatch.hpp"
 #include "modules/graphics/Texture.tcc"
 #include "modules/graphics/vertex.hpp"
+#include "modules/video/VideoStream.hpp"
 
 #include "modules/graphics/Volatile.hpp"
 #include "modules/graphics/renderstate.hpp"
@@ -526,6 +527,8 @@ namespace love
                               const ShaderBase::CompileOptions& options);
 
         SpriteBatch* newSpriteBatch(TextureBase* texture, int size, BufferDataUsage usage);
+
+        Video* newVideo(VideoStream* stream, float dpiScale);
 
         virtual void initCapabilities() = 0;
 

@@ -165,10 +165,7 @@ namespace love
                     for (auto* c : this->capture)
                     {
                         if (deviceNames[index] == c->getName())
-                        {
                             *device = c;
-                            break;
-                        }
                     }
 
                     if (*device == nullptr)

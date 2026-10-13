@@ -129,6 +129,8 @@ namespace Wrap_Graphics
 
     int newArrayTexture(lua_State* L);
 
+    int newVideo(lua_State* L);
+
     int newCanvas(lua_State* L);
 
     int setCanvas(lua_State* L);

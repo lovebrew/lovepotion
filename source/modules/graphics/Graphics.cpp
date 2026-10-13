@@ -6,6 +6,7 @@
 #include "modules/graphics/Polyline.hpp"
 #include "modules/graphics/SpriteBatch.hpp"
 #include "modules/graphics/Texture.tcc"
+#include "modules/graphics/Video.hpp"
 #include "modules/graphics/renderstate.hpp"
 #include "modules/window/Window.tcc"
 
@@ -893,6 +894,11 @@ namespace love
     SpriteBatch* GraphicsBase::newSpriteBatch(TextureBase* texture, int size, BufferDataUsage usage)
     {
         return new SpriteBatch(this, texture, size, usage);
+    }
+
+    Video* GraphicsBase::newVideo(VideoStream* stream, float dpiScale)
+    {
+        return new Video(this, stream, dpiScale);
     }
 
     ShaderBase* GraphicsBase::newShader(const std::vector<std::string>& filepaths,

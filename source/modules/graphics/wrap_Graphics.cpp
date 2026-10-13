@@ -15,6 +15,7 @@
 #include "modules/graphics/wrap_SpriteBatch.hpp"
 #include "modules/graphics/wrap_TextBatch.hpp"
 #include "modules/graphics/wrap_Texture.hpp"
+#include "modules/graphics/wrap_Video.hpp"
 
 #include "modules/image/Image.hpp"
 #include "modules/image/ImageData.hpp"
@@ -28,6 +29,10 @@
 #include <lua.h>
 
 using namespace love;
+
+static constexpr char graphics_lua[] = {
+#include "modules/graphics/wrap_Graphics.lua"
+};
 
 #define instance() (Module::getInstance<GraphicsBase>(Module::M_GRAPHICS))
 
@@ -1974,6 +1979,25 @@ int Wrap_Graphics::newSpriteBatch(lua_State* L)
     return 1;
 }
 
+int Wrap_Graphics::newVideo(lua_State* L)
+{
+    luax_checkgraphicscreated(L);
+
+    if (!luax_istype(L, 1, VideoStream::type))
+        luax_convobj(L, 1, "video", "newVideoStream");
+
+    auto* stream = luax_checktype<VideoStream>(L, 1);
+    float dpiScale = luaL_optnumber(L, 2, 1.0f);
+    Video* video = nullptr;
+
+    luax_catchexcept(L, [&]() { video = instance()->newVideo(stream, dpiScale); });
+
+    luax_pushtype(L, video);
+    video->release();
+
+    return 1;
+}
+
 int Wrap_Graphics::newFont(lua_State* L)
 {
     luax_checkgraphicscreated(L);
@@ -2982,6 +3006,7 @@ static constexpr luaL_Reg functions[] =
 
     { "newTextBatch",           Wrap_Graphics::newTextBatch          },
     { "newSpriteBatch",         Wrap_Graphics::newSpriteBatch        },
+    { "_newVideo",              Wrap_Graphics::newVideo              },
 
     { "captureScreenshot",      Wrap_Graphics::captureScreenshot     },
 
@@ -3022,7 +3047,8 @@ static constexpr lua_CFunction types[] =
     love::open_spritebatch,
     love::open_particlesystem,
     love::open_mesh,
-    love::open_textbatch
+    love::open_textbatch,
+    love::open_video
 };
 // clang-format on
 
@@ -3042,5 +3068,15 @@ int Wrap_Graphics::open(lua_State* L)
     module.platformFunctions = platformFunctions;
     module.types             = types;
 
-    return luax_register_module(L, module);
+    int result = luax_register_module(L, module);
+
+    if (luaL_loadbuffer(L, (const char*)graphics_lua, sizeof(graphics_lua),
+                        "=[love \"wrap_Graphics.lua\"]") == 0)
+    {
+        lua_call(L, 0, 0);
+    }
+    else
+        lua_error(L);
+
+    return result;
 }

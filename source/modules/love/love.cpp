@@ -23,6 +23,7 @@
 #include "modules/thread/wrap_Thread.hpp"
 #include "modules/timer/wrap_Timer.hpp"
 #include "modules/touch/wrap_Touch.hpp"
+#include "modules/video/wrap_Video.hpp"
 #include "modules/window/wrap_Window.hpp"
 
 #include "boot.hpp"
@@ -47,7 +48,7 @@ static constexpr char nogame_lua[] = {
 };
 
 // clang-format off
-static constexpr std::array<const luaL_Reg, 21> modules =
+static constexpr std::array<const luaL_Reg, 22> modules =
 {{
     { "love.audio",      Wrap_Audio::open          },
     { "love.data",       Wrap_DataModule::open     },
@@ -66,6 +67,7 @@ static constexpr std::array<const luaL_Reg, 21> modules =
     { "love.timer",      Wrap_Timer::open          },
     { "love.touch",      Wrap_Touch::open          },
     { "love.window",     Wrap_Window::open         },
+    { "love.video",      Wrap_Video::open          },
     { "love.nogame",     love_openNoGame           },
     { "love.arg",        love_openArg              },
     { "love.callbacks",  love_openCallbacks        },

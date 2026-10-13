@@ -103,6 +103,14 @@ namespace love
             return STANDARD_TEXTURE;
         }
 
+        static constexpr StandardShader getVideoShader()
+        {
+            if constexpr (Console::is(Console::CTR))
+                return STANDARD_DEFAULT;
+
+            return STANDARD_VIDEO;
+        }
+
         ShaderBase(StrongRef<ShaderStageBase> stages[], const CompileOptions& options);
 
         virtual ~ShaderBase();
