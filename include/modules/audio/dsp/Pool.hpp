@@ -50,7 +50,7 @@ namespace love
                 int totalSources;
                 std::queue<size_t> available;
                 std::map<Source*, size_t> playing;
-                std::recursive_mutex mutex;
+                Mutex mutex;
             };
         } // namespace dsp
     } // namespace audio

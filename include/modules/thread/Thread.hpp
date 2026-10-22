@@ -1,8 +1,7 @@
 #pragma once
 
-#include "common/Object.hpp"
+#include "modules/thread/threads.hpp"
 
-#include <mutex>
 #include <thread>
 
 namespace love
@@ -29,6 +28,6 @@ namespace love
         std::atomic<bool> running;
 
         std::thread thread;
-        std::mutex mutex;
+        Mutex mutex;
     };
 } // namespace love

@@ -325,7 +325,7 @@ namespace love
 
     void Event::push(Message* message, bool pushFront)
     {
-        std::unique_lock lock(this->mutex);
+        Lock lock(this->mutex);
         message->retain();
 
         if (pushFront)
@@ -336,7 +336,7 @@ namespace love
 
     bool Event::poll(Message*& message)
     {
-        std::unique_lock lock(this->mutex);
+        Lock lock(this->mutex);
 
         if (this->messages.empty())
             return false;
@@ -349,7 +349,7 @@ namespace love
 
     void Event::clear()
     {
-        std::unique_lock lock(this->mutex);
+        Lock lock(this->mutex);
 
         LOVE_Event event {};
         while (EventQueue::getInstance().poll(&event))

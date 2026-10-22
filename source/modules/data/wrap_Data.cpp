@@ -57,7 +57,7 @@ int Wrap_Data::performAtomic(lua_State* L)
     int error  = 0;
 
     {
-        std::unique_lock lock(*self->getMutex());
+        Lock lock(self->getMutex());
         error = lua_pcall(L, lua_gettop(L) - 2, LUA_MULTRET, 0);
     }
 

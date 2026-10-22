@@ -7,7 +7,7 @@ namespace love
 {
     Type GlyphData::type("GlyphData", &Data::type);
 
-    GlyphData::GlyphData(uint32_t glyph, GlyphMetrics& metrics, PixelFormat format) :
+    GlyphData::GlyphData(uint32_t glyph, GlyphMetrics metrics, PixelFormat format) :
         glyph(glyph),
         metrics(metrics),
         data(nullptr),
@@ -23,7 +23,7 @@ namespace love
         }
     }
 
-    GlyphData::GlyphData(uint32_t glyph, GlyphMetrics& metrics, PixelFormat format, GlyphSheet sheet) :
+    GlyphData::GlyphData(uint32_t glyph, GlyphMetrics metrics, PixelFormat format, GlyphSheet sheet) :
         glyph(glyph),
         metrics(metrics),
         data(nullptr),

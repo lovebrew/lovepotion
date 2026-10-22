@@ -154,9 +154,76 @@ int Wrap_FontModule::newTrueTypeRasterizer(lua_State* L)
     return 1;
 }
 
+static void convertImageData(lua_State* L, int index)
+{
+    if (lua_type(L, 1) == LUA_TSTRING || luax_istype(L, index, FileBase::type) ||
+        luax_istype(L, index, FileData::type))
+    {
+        luax_convobj(L, index, "image", "newImageData");
+    }
+}
+
 int Wrap_FontModule::newBMFontRasterizer(lua_State* L)
 {
+    Rasterizer* rasterizer = nullptr;
+
+    auto* definition = luax_getfiledata(L, 1);
+    std::vector<ImageData*> images;
+    float dpiScale = (float)luaL_optnumber(L, 3, 1.0);
+
+    if (lua_istable(L, 2))
+    {
+        for (int i = 1; i <= (int)luax_objlen(L, 2); i++)
+        {
+            lua_rawgeti(L, 2, i);
+
+            convertImageData(L, -1);
+            auto* data = luax_checktype<ImageData>(L, -1);
+            images.push_back(data);
+            data->retain();
+
+            lua_pop(L, 1);
+        }
+    }
+    else if (!lua_isnoneornil(L, 2))
+    {
+        convertImageData(L, 2);
+        auto* data = luax_checktype<ImageData>(L, 2);
+        images.push_back(data);
+        data->retain();
+    }
+
+    // clang-format off
+    luax_catchexcept(L,
+        [&]() { rasterizer = instance()->newBMFontRasterizer(definition, images, dpiScale); },
+        [&](bool) { definition->release(); for (auto*data : images) data->release(); }
+    );
+    // clang-format on
+
+    luax_pushtype(L, rasterizer);
+    rasterizer->release();
+
     return 0;
+}
+
+int Wrap_FontModule::newImageRasterizer(lua_State* L)
+{
+    Rasterizer* rasterizer = nullptr;
+    convertImageData(L, 1);
+
+    ImageData* data    = luax_checktype<ImageData>(L, 1);
+    std::string glyphs = luax_checkstring(L, 2);
+    int spacing        = (int)luaL_optinteger(L, 3, 0);
+    float dpiScale     = (float)luaL_optnumber(L, 4, 1.0f);
+
+    // clang-format off
+    luax_catchexcept(L, [&]() { rasterizer = instance()->newImageRasterizer(data, glyphs, spacing, dpiScale); });
+    // clang-format on
+
+    luax_pushtype(L, rasterizer);
+    rasterizer->release();
+
+    return 1;
 }
 
 int Wrap_FontModule::newGlyphData(lua_State* L)
@@ -187,6 +254,7 @@ static constexpr luaL_Reg functions[] =
     { "newRasterizer",         Wrap_FontModule::newRasterizer         },
     { "newGlyphData",          Wrap_FontModule::newGlyphData          },
     { "newTrueTypeRasterizer", Wrap_FontModule::newTrueTypeRasterizer },
+    { "newImageRasterizer",    Wrap_FontModule::newImageRasterizer    },
     { "newBMFontRasterizer",   Wrap_FontModule::newBMFontRasterizer   }
 };
 

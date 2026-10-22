@@ -4,9 +4,9 @@
 #include "common/Module.hpp"
 
 #include "events.hpp"
+#include "modules/thread/threads.hpp"
 
 #include <deque>
-#include <mutex>
 
 namespace love
 {
@@ -30,7 +30,7 @@ namespace love
         Message* wait();
 
       private:
-        std::recursive_mutex mutex;
+        Mutex mutex;
         std::deque<Message*> messages;
 
         LOVE_Event event;

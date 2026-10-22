@@ -4,6 +4,7 @@
 
 #include <3ds.h>
 
+#include <3ds/services/apt.h>
 #include <malloc.h>
 #include <stdlib.h>
 
@@ -97,6 +98,8 @@ namespace love
                 errorHandler(buffer);
                 return EXIT_FAILURE;
             }
+
+            // APT_SetAppCpuTimeLimit(30);
 
             return 0;
         }

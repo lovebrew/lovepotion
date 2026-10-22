@@ -17,7 +17,7 @@ namespace love
 
     Channel* ThreadModule::getChannel(const std::string& name)
     {
-        std::unique_lock lock(this->mutex);
+        Lock lock(this->mutex);
 
         auto it = this->channels.find(name);
         if (it != this->channels.end())

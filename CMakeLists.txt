@@ -250,6 +250,8 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/filesystem/wrap_NativeFile.cpp
     source/modules/font/Font.cpp
     source/modules/font/GlyphData.cpp
+    source/modules/font/ImageRasterizer
+    source/modules/font/BMFontRasterizer
     source/modules/font/Rasterizer.cpp
     source/modules/font/TextShaper.cpp
     source/modules/font/GenericShaper.cpp
@@ -314,6 +316,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/system/wrap_System.cpp
     source/modules/thread/Channel.cpp
     source/modules/thread/LuaThread.cpp
+    source/modules/thread/threads.cpp
     source/modules/thread/Thread.cpp
     source/modules/thread/Threadable.cpp
     source/modules/thread/ThreadModule.cpp

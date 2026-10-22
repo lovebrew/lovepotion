@@ -25,7 +25,7 @@ namespace love
                 bool has = false;
 
                 {
-                    std::unique_lock lock(this->mutex);
+                    Lock lock(this->mutex);
                     has = !this->available.empty();
                 }
 
@@ -37,7 +37,7 @@ namespace love
                 bool playing = false;
 
                 {
-                    std::unique_lock lock(this->mutex);
+                    Lock lock(this->mutex);
                     playing = (this->playing.find(source) != this->playing.end());
                 }
 
@@ -46,7 +46,7 @@ namespace love
 
             void Pool::update()
             {
-                std::unique_lock lock(this->mutex);
+                Lock lock(this->mutex);
                 std::vector<Source*> release;
 
                 for (const auto& iterator : this->playing)
@@ -135,9 +135,9 @@ namespace love
                 return sources;
             }
 
-            std::unique_lock<std::recursive_mutex> Pool::lock()
+            Lock Pool::lock()
             {
-                return std::unique_lock(this->mutex);
+                return Lock(this->mutex);
             }
         } // namespace dsp
     } // namespace audio

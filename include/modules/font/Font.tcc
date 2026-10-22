@@ -2,7 +2,6 @@
 
 #include "common/Module.hpp"
 #include "common/StrongRef.hpp"
-#include "common/int.hpp"
 
 #include "modules/filesystem/FileData.hpp"
 #include "modules/font/Rasterizer.hpp"
@@ -28,6 +27,12 @@ namespace love
 
         virtual Rasterizer* newTrueTypeRasterizer(Data* data, int size,
                                                   const Rasterizer::Settings& settings) const = 0;
+
+        virtual Rasterizer* newBMFontRasterizer(FileData* definition, const std::vector<ImageData*>& images,
+                                                float dpiScale);
+
+        virtual Rasterizer* newImageRasterizer(ImageData* data, const std::string& glyphs, int spacing,
+                                               float dpiScale);
 
         virtual GlyphData* newGlyphData(Rasterizer* rasterizer, const std::string& glyph) const;
 

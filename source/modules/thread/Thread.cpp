@@ -9,13 +9,13 @@ namespace love
     Thread::~Thread()
     {
         if (this->thread.joinable())
-            this->thread.join();
+            this->thread.detach();
     }
 
     void Thread::wait()
     {
         {
-            std::unique_lock lock(this->mutex);
+            Lock lock(this->mutex);
 
             if (!this->thread.joinable())
                 return;
@@ -27,7 +27,7 @@ namespace love
 
     bool Thread::start()
     {
-        std::unique_lock lock(this->mutex);
+        Lock lock(this->mutex);
 
         if (this->running)
             return false;
@@ -36,12 +36,18 @@ namespace love
             this->thread.join();
 
         this->threadable->retain();
+        this->running = true;
 
-        this->thread  = std::thread(&love::Thread::runner, this);
-        this->running = this->thread.joinable();
-
-        if (!this->running)
+        try
+        {
+            this->thread = std::thread(&love::Thread::runner, this);
+        }
+        catch (...)
+        {
+            this->running = false;
             this->threadable->release();
+            throw;
+        }
 
         return this->running;
     }

@@ -2,9 +2,7 @@
 
 #include "common/Object.hpp"
 #include "common/Variant.hpp"
-
-#include <condition_variable>
-#include <mutex>
+#include "modules/thread/threads.hpp"
 
 #include <queue>
 
@@ -53,8 +51,8 @@ namespace love
         uint64_t sent;
         uint64_t received;
 
-        std::recursive_mutex mutex;
-        std::condition_variable_any condvar;
+        Mutex mutex;
+        Conditional condvar;
 
         std::queue<Variant> queue;
     };

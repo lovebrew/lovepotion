@@ -39,9 +39,9 @@ namespace love
       public:
         static Type type;
 
-        GlyphData(uint32_t glyph, GlyphMetrics& metrics, PixelFormat format);
+        GlyphData(uint32_t glyph, GlyphMetrics metrics, PixelFormat format);
 
-        GlyphData(uint32_t glyph, GlyphMetrics& metrics, PixelFormat format, GlyphSheet sheet);
+        GlyphData(uint32_t glyph, GlyphMetrics metrics, PixelFormat format, GlyphSheet sheet);
 
         GlyphData(const GlyphData& other);
 

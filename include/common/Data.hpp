@@ -1,10 +1,9 @@
 #pragma once
 
 #include "common/Object.hpp"
+#include "modules/thread/threads.hpp"
 
 #include <stddef.h>
-
-#include <mutex>
 
 namespace love
 {
@@ -24,10 +23,9 @@ namespace love
 
         virtual size_t getSize() const = 0;
 
-        std::mutex* getMutex();
+        Mutex& getMutex();
 
       private:
-        std::mutex* mutex = nullptr;
-        std::once_flag mutexCreated;
+        Mutex mutex;
     };
 } // namespace love

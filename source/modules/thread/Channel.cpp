@@ -1,8 +1,6 @@
 #include "modules/thread/Channel.hpp"
 #include "modules/timer/Timer.hpp"
 
-using std::chrono_literals::operator""ms;
-
 namespace love
 {
     Type Channel::type("Channel", &Object::type);
@@ -12,28 +10,28 @@ namespace love
 
     uint64_t Channel::push(const Variant& value)
     {
-        std::unique_lock lock(this->mutex);
+        Lock lock(this->mutex);
 
         this->queue.push(value);
-        this->condvar.notify_all();
+        this->condvar.broadcast();
 
         return ++this->sent;
     }
 
     bool Channel::supply(const Variant& value)
     {
-        std::unique_lock lock(this->mutex);
+        Lock lock(this->mutex);
         uint64_t id = this->push(value);
 
         while (this->received < id)
-            this->condvar.wait(lock);
+            this->condvar.wait(this->mutex);
 
         return true;
     }
 
     bool Channel::supply(const Variant& value, double timeout)
     {
-        std::unique_lock lock(this->mutex);
+        Lock lock(this->mutex);
         uint64_t id = this->push(value);
 
         while (timeout >= 0)
@@ -42,7 +40,7 @@ namespace love
                 return true;
 
             double start = Timer::getTime();
-            this->condvar.wait_for(lock, timeout * 1000ms);
+            this->condvar.wait(this->mutex, timeout * 1000);
             double stop = Timer::getTime();
 
             timeout -= (stop - start);
@@ -53,7 +51,7 @@ namespace love
 
     bool Channel::pop(Variant* value)
     {
-        std::unique_lock lock(this->mutex);
+        Lock lock(this->mutex);
 
         if (this->queue.empty())
             return false;
@@ -62,24 +60,24 @@ namespace love
         this->queue.pop();
 
         this->received++;
-        this->condvar.notify_all();
+        this->condvar.broadcast();
 
         return true;
     }
 
     bool Channel::demand(Variant* value)
     {
-        std::unique_lock lock(this->mutex);
+        Lock lock(this->mutex);
 
         while (!this->pop(value))
-            this->condvar.wait(lock);
+            this->condvar.wait(this->mutex);
 
         return true;
     }
 
     bool Channel::demand(Variant* value, double timeout)
     {
-        std::unique_lock lock(this->mutex);
+        Lock lock(this->mutex);
 
         while (timeout >= 0)
         {
@@ -87,7 +85,7 @@ namespace love
                 return true;
 
             double start = Timer::getTime();
-            this->condvar.wait_for(lock, timeout * 1000ms);
+            this->condvar.wait(this->mutex, timeout * 1000);
             double stop = Timer::getTime();
 
             timeout -= (stop - start);
@@ -98,7 +96,7 @@ namespace love
 
     bool Channel::peek(Variant* value)
     {
-        std::unique_lock lock(this->mutex);
+        Lock lock(this->mutex);
 
         if (this->queue.empty())
             return false;
@@ -110,27 +108,25 @@ namespace love
 
     int Channel::getCount()
     {
-        std::unique_lock lock(this->mutex);
-
+        Lock lock(this->mutex);
         return (int)this->queue.size();
     }
 
     bool Channel::hasRead(uint64_t id)
     {
-        std::unique_lock lock(this->mutex);
-
+        Lock lock(this->mutex);
         return this->received >= id;
     }
 
     void Channel::clear()
     {
-        std::unique_lock lock(this->mutex);
+        Lock lock(this->mutex);
 
         while (!this->queue.empty())
             this->queue.pop();
 
         this->received = this->sent;
-        this->condvar.notify_all();
+        this->condvar.broadcast();
     }
 
     void Channel::lockMutex()
