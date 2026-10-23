@@ -30,7 +30,19 @@ static std::filesystem::path translatePath(const std::filesystem::path& input)
     auto path = std::filesystem::path(input);
 
     if (std::find(textures.begin(), textures.end(), input.extension()) != textures.end())
-        return path.replace_extension(".t3x");
+    {
+        auto convertedPath = path;
+        convertedPath.replace_extension(".t3x");
+
+        if (instance()->exists(convertedPath.c_str()))
+            return convertedPath;
+
+        if (input.extension() == ".png" || input.extension() == ".jpg" ||
+            input.extension() == ".jpeg")
+            return path;
+
+        return convertedPath;
+    }
     else if (std::find(fonts.begin(), fonts.end(), input.extension()) != fonts.end())
         return path.replace_extension(".bcfnt");
 

@@ -2,6 +2,8 @@
 
 #if defined(__3DS__)
     #include "modules/image/magpie/T3XHandler.hpp"
+    #include "modules/image/magpie/JPGHandler.hpp"
+    #include "modules/image/magpie/PNGHandler.hpp"
 #else
     #include "modules/image/magpie/JPGHandler.hpp"
     #include "modules/image/magpie/PNGHandler.hpp"
@@ -21,7 +23,11 @@ namespace love
         float16Init();
 
 #if defined(__3DS__)
-        this->formatHandlers = { new T3XHandler };
+        this->formatHandlers = {
+            new T3XHandler,
+            new PNGHandler,
+            new JPGHandler
+        };
 #else
         // clang-format off
         this->formatHandlers = {

@@ -340,6 +340,9 @@ if(NINTENDO_3DS)
     add_subdirectory(platform/ctr)
 
     target_sources(${PROJECT_NAME} PRIVATE
+        source/modules/image/magpie/JPGHandler.cpp
+        source/modules/image/magpie/PNGHandler.cpp
+        source/modules/image/magpie/TileImage.cpp
         source/modules/image/magpie/T3XHandler.cpp
     )
 endif()

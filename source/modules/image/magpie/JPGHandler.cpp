@@ -1,7 +1,14 @@
 #include "common/Exception.hpp"
+#include "common/Color.hpp"
+#include "common/math.hpp"
 
 #include "modules/image/magpie/JPGHandler.hpp"
 
+#if defined(__3DS__)
+    #include "modules/image/magpie/TileImage.hpp"
+#endif
+
+#include <cstddef>
 #include <turbojpeg.h>
 
 namespace love
@@ -49,17 +56,27 @@ namespace love
         image.size   = (width * height) * sizeof(uint32_t);
         image.data   = new uint8_t[image.size];
 
+#if defined(__3DS__)
+        const auto format = TJPF_ABGR; // Why.
+#else
         const auto format = TJPF_RGBA;
+#endif
         const auto flags  = TJFLAG_ACCURATEDCT;
 
         if (tjDecompress2(handle, (uint8_t*)data->getData(), size, image.data, width, 0, height, format,
                           flags) < 0)
         {
             tjDestroy(handle);
+            delete[] image.data;
             throw love::Exception("Failed to decompress JPEG image: {:s}", tjGetErrorStr());
         }
 
         tjDestroy(handle);
+
+#if defined(__3DS__)
+    tileImage(image);
+#endif
+
         return image;
     }
 } // namespace love
