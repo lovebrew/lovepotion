@@ -111,7 +111,7 @@ namespace love
         unsigned char* indata = (unsigned char*)data->getData();
         size_t insize         = data->getSize();
 
-        LodePNGState state;
+        lodepng::State state;
         unsigned status = lodepng_inspect(&width, &height, &state, indata, insize);
 
         return status == 0 && width > 0 && height > 0;
@@ -125,7 +125,7 @@ namespace love
 
         DecodedImage img;
 
-        LodePNGState state;
+        lodepng::State state;
         unsigned status = lodepng_inspect(&width, &height, &state, indata, insize);
 
         if (status != 0)
@@ -168,6 +168,16 @@ namespace love
 #endif
 
 #if defined(__3DS__)
+        size_t imageSize = img.size / 4;
+        for (size_t i = 0; i < imageSize; i++) {
+            unsigned char *p = img.data + 4 * i;
+            unsigned char r = p[0], g = p[1], b = p[2], a = p[3];
+            p[0] = a;
+            p[1] = b;
+            p[2] = g;
+            p[3] = r;
+        }
+        
         tileImage(img);
 #endif
 
@@ -188,7 +198,7 @@ namespace love
 
         EncodedImage encimg;
 
-        LodePNGState state;
+        lodepng::State state;
 
         state.info_raw.colortype = LCT_RGBA;
         state.info_raw.bitdepth  = img.format == PIXELFORMAT_RGBA16_UNORM ? 16 : 8;
