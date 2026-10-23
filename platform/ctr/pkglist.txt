@@ -7,7 +7,6 @@
 3ds-liblua51
 3ds-libmodplug
 3ds-libpng
-3ds-libjpeg-turbo
 3ds-libogg
 3ds-libtheora
 3ds-libvorbisidec

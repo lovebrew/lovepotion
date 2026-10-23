@@ -340,8 +340,8 @@ if(NINTENDO_3DS)
     add_subdirectory(platform/ctr)
 
     target_sources(${PROJECT_NAME} PRIVATE
-        source/modules/image/magpie/JPGHandler.cpp
         source/modules/image/magpie/PNGHandler.cpp
+        source/modules/image/magpie/STBHandler.cpp
         source/modules/image/magpie/TileImage.cpp
         source/modules/image/magpie/T3XHandler.cpp
     )
@@ -360,7 +360,6 @@ if (NINTENDO_SWITCH OR NINTENDO_WIIU)
     target_sources(${PROJECT_NAME} PRIVATE
         source/modules/image/magpie/ASTCHandler.cpp
         source/modules/image/magpie/ddsHandler.cpp
-        source/modules/image/magpie/JPGHandler.cpp
         source/modules/image/magpie/KTXHandler.cpp
         source/modules/image/magpie/PKMHandler.cpp
         source/modules/image/magpie/PNGHandler.cpp
