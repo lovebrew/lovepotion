@@ -31,7 +31,7 @@ dkp_track_assets(${PROJECT_NAME}_cafe_content
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
-    Freetype::Freetype brotlidec brotlicommon bz2 png turbojpeg ddsparse
+    Freetype::Freetype brotlidec brotlicommon bz2 ddsparse
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE

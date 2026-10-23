@@ -3,11 +3,16 @@
 #include "common/config.hpp"
 #include "common/pixelformat.hpp"
 #include "modules/image/FormatHandler.hpp"
+#include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <exception>
 
 #include "modules/image/magpie/STBHandler.hpp"
+
+#if defined(__3DS__)
+    #include "modules/image/magpie/TileImage.hpp"
+#endif
 
 static void love_STBIAssert(bool test, const char* teststr)
 {
@@ -79,6 +84,20 @@ namespace love
 
             throw love::Exception("Could not decode image with stb_image ({:s}).", error);
         }
+
+#if defined(__3DS__)
+        size_t imageSize = image.size / 4;
+        for (size_t i = 0; i < imageSize; i++) {
+            unsigned char *p = image.data + 4 * i;
+            unsigned char r = p[0], g = p[1], b = p[2], a = p[3];
+            p[0] = a;
+            p[1] = b;
+            p[2] = g;
+            p[3] = r;
+        }
+        
+        tileImage(image);
+#endif
 
         return image;
     }

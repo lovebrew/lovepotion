@@ -1,62 +1,187 @@
+#include "common/Color.hpp"
 #include "common/Exception.hpp"
+#include "common/math.hpp"
+#include <cstdlib>
 
 #include "modules/image/magpie/PNGHandler.hpp"
 
+#if defined(__3DS__)
+    #include "modules/image/magpie/TileImage.hpp"
+#endif
+
+#include "lodepng.h"
+#include <cstddef>
 #include <libpng16/png.h>
 
+#include <zlib.h>
+
 #include <algorithm>
+#include <memory>
 
 namespace love
 {
-    bool PNGHandler::canDecode(Data* data) const
+    // Custom PNG decompression function for LodePNG, using zlib.
+    static unsigned zlibDecompress(unsigned char** out, size_t* outsize, const unsigned char* in,
+                                   size_t insize, const LodePNGDecompressSettings* /*settings*/)
     {
-        png_image image {};
-        image.version = PNG_IMAGE_VERSION;
+        int status = Z_OK;
 
-        png_image_begin_read_from_memory(&image, data->getData(), data->getSize());
+        uLongf outdatasize     = insize;
+        size_t sizemultiplier  = 0;
+        unsigned char* outdata = out != nullptr ? *out : nullptr;
 
-        if (PNG_IMAGE_FAILED(image))
+        while (true)
         {
-            png_image_free(&image);
-            return false;
+            // Enough size to hold the decompressed data, hopefully.
+            outdatasize = insize << (++sizemultiplier);
+
+            // LodePNG uses malloc, realloc, and free.
+            // Since version 2014-08-23, LodePNG passes in an existing pointer in
+            // the 'out' argument that it expects to be realloc'd. Not doing so can
+            // result in a memory leak.
+            if (outdata != nullptr)
+                outdata = (unsigned char*)realloc(outdata, outdatasize);
+            else
+                outdata = (unsigned char*)malloc(outdatasize);
+
+            if (!outdata)
+                return 83; // "Memory allocation failed" error code for LodePNG.
+
+            // Use zlib to decompress the PNG data.
+            status = uncompress(outdata, &outdatasize, in, insize);
+
+            // If the out buffer was big enough, break out of the loop.
+            if (status != Z_BUF_ERROR)
+                break;
+
+            // Otherwise delete the out buffer and try again with a larger size...
+            free(outdata);
+            outdata = nullptr;
         }
 
-        png_image_free(&image);
-        return true;
+        if (status != Z_OK)
+        {
+            free(outdata);
+            return 10000; // "Unknown error code" for LodePNG.
+        }
+
+        if (out != nullptr)
+            *out = outdata;
+
+        if (outsize != nullptr)
+            *outsize = outdatasize;
+
+        return 0; // Success.
+    }
+
+    // Custom PNG compression function for LodePNG, using zlib.
+    static unsigned zlibCompress(unsigned char** out, size_t* outsize, const unsigned char* in, size_t insize,
+                                 const LodePNGCompressSettings* /*settings*/)
+    {
+        // Get the maximum compressed size of the data.
+        uLongf outdatasize = compressBound(insize);
+
+        // LodePNG uses malloc, realloc, and free.
+        unsigned char* outdata = (unsigned char*)malloc(outdatasize);
+
+        if (!outdata)
+            return 83; // "Memory allocation failed" error code for LodePNG.
+
+        // Use zlib to compress the PNG data.
+        int status = compress(outdata, &outdatasize, in, insize);
+
+        if (status != Z_OK)
+        {
+            free(outdata);
+            return 10000; // "Unknown error code" for LodePNG.
+        }
+
+        if (out != nullptr)
+            *out = outdata;
+
+        if (outsize != nullptr)
+            *outsize = (size_t)outdatasize;
+
+        return 0; // Success.
+    }
+
+    bool PNGHandler::canDecode(Data* data) const
+    {
+        unsigned int width = 0, height = 0;
+        unsigned char* indata = (unsigned char*)data->getData();
+        size_t insize         = data->getSize();
+
+        lodepng::State state;
+        unsigned status = lodepng_inspect(&width, &height, &state, indata, insize);
+
+        return status == 0 && width > 0 && height > 0;
     }
 
     FormatHandler::DecodedImage PNGHandler::decode(Data* data) const
     {
-        png_image image {};
-        image.version = PNG_IMAGE_VERSION;
+        unsigned int width = 0, height = 0;
+        unsigned char* indata = (unsigned char*)data->getData();
+        size_t insize         = data->getSize();
 
-        png_image_begin_read_from_memory(&image, data->getData(), data->getSize());
+        DecodedImage img;
 
-        if (PNG_IMAGE_FAILED(image))
+        lodepng::State state;
+        unsigned status = lodepng_inspect(&width, &height, &state, indata, insize);
+
+        if (status != 0)
         {
-            png_image_free(&image);
-            throw love::Exception("Failed to read PNG image: {:s}", image.message);
+            const char* err = lodepng_error_text(status);
+            throw love::Exception("Could not decode PNG image (%s)", err);
         }
 
-        image.format = PNG_FORMAT_RGBA;
+        state.decoder.zlibsettings.custom_zlib = zlibDecompress;
+        state.info_raw.colortype               = LCT_RGBA;
 
-        DecodedImage result {};
-        result.width  = image.width;
-        result.height = image.height;
-        result.format = PIXELFORMAT_RGBA8_UNORM;
-        result.size   = (image.width * image.height) * sizeof(uint32_t);
-        result.data   = new uint8_t[result.size];
+        if (state.info_png.color.bitdepth == 16)
+            state.info_raw.bitdepth = 16;
+        else
+            state.info_raw.bitdepth = 8;
 
-        png_image_finish_read(&image, nullptr, result.data, PNG_IMAGE_ROW_STRIDE(image), nullptr);
+        status = lodepng_decode(&img.data, &width, &height, &state, indata, insize);
 
-        if (PNG_IMAGE_FAILED(image))
+        if (status != 0)
         {
-            png_image_free(&image);
-            throw love::Exception("Failed to read PNG image: {:s}", image.message);
+            const char* err = lodepng_error_text(status);
+            throw love::Exception("Could not decode PNG image (%s)", err);
         }
 
-        png_image_free(&image);
-        return result;
+        img.width  = (int)width;
+        img.height = (int)height;
+        img.size   = width * height * (state.info_raw.bitdepth * 4 / 8);
+        img.format = state.info_raw.bitdepth == 16 ? PIXELFORMAT_RGBA16_UNORM : PIXELFORMAT_RGBA8_UNORM;
+
+// LodePNG keeps raw 16 bit images stored as big-endian.
+#ifndef LOVE_BIG_ENDIAN
+        if (state.info_raw.bitdepth == 16)
+        {
+            uint16_t* pixeldata       = (uint16_t*)img.data;
+            size_t numpixelcomponents = img.size / sizeof(uint16_t);
+
+            for (size_t i = 0; i < numpixelcomponents; i++)
+                pixeldata[i] = swap_uint16(pixeldata[i]);
+        }
+#endif
+
+#if defined(__3DS__)
+        size_t imageSize = img.size / 4;
+        for (size_t i = 0; i < imageSize; i++) {
+            unsigned char *p = img.data + 4 * i;
+            unsigned char r = p[0], g = p[1], b = p[2], a = p[3];
+            p[0] = a;
+            p[1] = b;
+            p[2] = g;
+            p[3] = r;
+        }
+        
+        tileImage(img);
+#endif
+
+        return img;
     }
 
     bool PNGHandler::canEncode(PixelFormat rawFormat, EncodedFormat encodedFormat) const
@@ -65,39 +190,61 @@ namespace love
                (rawFormat == PIXELFORMAT_RGBA8_UNORM || rawFormat == PIXELFORMAT_RGBA16_UNORM);
     }
 
-    FormatHandler::EncodedImage PNGHandler::encode(const DecodedImage& decoded,
+    FormatHandler::EncodedImage PNGHandler::encode(const DecodedImage& img,
                                                    EncodedFormat encodedFormat) const
     {
-        if (!this->canEncode(decoded.format, encodedFormat))
+        if (!canEncode(img.format, encodedFormat))
             throw love::Exception("PNG encoder cannot encode to non-PNG format.");
 
-        EncodedImage result {};
+        EncodedImage encimg;
 
-        png_image image {};
-        image.width   = decoded.width;
-        image.height  = decoded.height;
-        image.version = PNG_IMAGE_VERSION;
-        image.format  = PNG_FORMAT_RGBA;
+        lodepng::State state;
 
-        png_image_write_get_memory_size(image, result.size, 1, decoded.data, PNG_IMAGE_ROW_STRIDE(image),
-                                        NULL);
+        state.info_raw.colortype = LCT_RGBA;
+        state.info_raw.bitdepth  = img.format == PIXELFORMAT_RGBA16_UNORM ? 16 : 8;
 
-        if (PNG_IMAGE_FAILED(image))
+        state.info_png.color.colortype = LCT_RGBA;
+        state.info_png.color.bitdepth  = state.info_raw.bitdepth;
+
+        state.encoder.zlibsettings.custom_zlib = zlibCompress;
+
+        const uint8_t* data   = img.data;
+        uint16_t* swappeddata = nullptr;
+
+        // LodePNG expects big-endian raw pixel data when encoding a 16 bit image.
+#ifndef LOVE_BIG_ENDIAN
+        if (state.info_raw.bitdepth == 16)
         {
-            png_image_free(&image);
-            throw love::Exception("Failed to write PNG image: {:s}", image.message);
+            try
+            {
+                swappeddata = new uint16_t[img.size / sizeof(uint16_t)];
+            }
+            catch (std::exception&)
+            {
+                throw love::Exception("Out of memory.");
+            }
+
+            const uint16_t* rawdata     = (const uint16_t*)img.data;
+            size_t numpixelcomponents = img.size / sizeof(uint16_t);
+
+            for (size_t i = 0; i < numpixelcomponents; i++)
+                swappeddata[i] = swap_uint16(rawdata[i]);
+
+            data = (const uint8_t*)swappeddata;
+        }
+#endif
+
+        unsigned status = lodepng_encode(&encimg.data, &encimg.size, data, img.width, img.height, &state);
+
+        if (swappeddata != nullptr)
+            delete[] swappeddata;
+
+        if (status != 0)
+        {
+            const char* err = lodepng_error_text(status);
+            throw love::Exception("Could not encode PNG image (%s)", err);
         }
 
-        result.data = new uint8_t[result.size];
-        png_image_write_to_memory(&image, result.data, &result.size, 1, decoded.data,
-                                  PNG_IMAGE_ROW_STRIDE(image), NULL);
-
-        if (PNG_IMAGE_FAILED(image))
-        {
-            png_image_free(&image);
-            throw love::Exception("Failed to write PNG image: {:s}", image.message);
-        }
-
-        return result;
+        return encimg;
     }
 } // namespace love

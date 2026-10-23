@@ -177,6 +177,11 @@ add_library(noise1234
     libraries/noise1234/simplexnoise1234.h
 )
 
+add_library(lodepng
+    libraries/lodepng/lodepng.cpp
+    libraries/lodepng/lodepng.h
+)
+
 target_include_directories(${PROJECT_NAME} PRIVATE
     include
     platform
@@ -185,6 +190,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     libraries/stb
     libraries/lua53
     libraries/noise1234
+    libraries/lodepng
     libraries/luasocket
     libraries/luahttps
     libraries/physfs
@@ -340,6 +346,9 @@ if(NINTENDO_3DS)
     add_subdirectory(platform/ctr)
 
     target_sources(${PROJECT_NAME} PRIVATE
+        source/modules/image/magpie/PNGHandler.cpp
+        source/modules/image/magpie/STBHandler.cpp
+        source/modules/image/magpie/TileImage.cpp
         source/modules/image/magpie/T3XHandler.cpp
     )
 endif()
@@ -357,7 +366,6 @@ if (NINTENDO_SWITCH OR NINTENDO_WIIU)
     target_sources(${PROJECT_NAME} PRIVATE
         source/modules/image/magpie/ASTCHandler.cpp
         source/modules/image/magpie/ddsHandler.cpp
-        source/modules/image/magpie/JPGHandler.cpp
         source/modules/image/magpie/KTXHandler.cpp
         source/modules/image/magpie/PKMHandler.cpp
         source/modules/image/magpie/PNGHandler.cpp
@@ -384,5 +392,5 @@ endif()
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     ${APP_LIBS} z luabit lua53 ogg modplug luahttps PkgConfig::libcurl luasocket
-    love_physfs wuff noise1234 PkgConfig::lua51 PkgConfig::liblz4
+    love_physfs wuff noise1234 lodepng PkgConfig::lua51 PkgConfig::liblz4
 )
