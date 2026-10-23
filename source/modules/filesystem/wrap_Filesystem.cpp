@@ -37,11 +37,7 @@ static std::filesystem::path translatePath(const std::filesystem::path& input)
         if (instance()->exists(convertedPath.c_str()))
             return convertedPath;
 
-        if (input.extension() == ".png" || input.extension() == ".jpg" ||
-            input.extension() == ".jpeg")
-            return path;
-
-        return convertedPath;
+        return path;
     }
     else if (std::find(fonts.begin(), fonts.end(), input.extension()) != fonts.end())
         return path.replace_extension(".bcfnt");

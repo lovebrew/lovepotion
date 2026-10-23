@@ -6,7 +6,6 @@ ppc-libconfig
 ppc-liblua51
 ppc-libmodplug
 ppc-libogg
-ppc-libpng
 ppc-libtheora
 ppc-libvorbis
 ppc-libvorbisidec

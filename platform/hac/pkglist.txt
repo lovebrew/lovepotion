@@ -7,7 +7,6 @@ switch-libconfig
 switch-liblua51
 switch-libmodplug
 switch-libogg
-switch-libpng
 switch-libtheora
 switch-libvorbisidec
 switch-lz4
