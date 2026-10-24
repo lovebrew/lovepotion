@@ -25,11 +25,17 @@ freely, subject to the following restrictions:
 local love          = require("love")
 local is_debug, log = pcall(require, "love.log")
 local file          = nil
-if is_debug then
-    file = log.new("callbacks.log")
+-- callbacks.lua is loaded before love.filesystem.init, so the log can only be
+-- opened afterwards (absolute path). See ensureLogFile().
+local function ensureLogFile()
+    if is_debug and not file then
+        file = log.new("callbacks.log")
+    end
 end
 
 function love.createhandlers()
+
+    ensureLogFile()
 
     -- Standard callback handlers.
     love.handlers = setmetatable({
@@ -134,16 +140,16 @@ function love.createhandlers()
                 return love.gamepadaxis(joystick, axis, value)
             end
         end,
-        -- joystickadded = function(joystick)
-        --     if love.joystickadded then
-        --         return love.joystickadded(joystick)
-        --     end
-        -- end,
-        -- joystickremoved = function(joystick)
-        --     if love.joystickremoved then
-        --         return love.joystickremoved(joystick)
-        --     end
-        -- end,
+        joystickadded = function(joystick)
+            if love.joystickadded then
+                return love.joystickadded(joystick)
+            end
+        end,
+        joystickremoved = function(joystick)
+            if love.joystickremoved then
+                return love.joystickremoved(joystick)
+            end
+        end,
         focus = function(focused)
             if love.focus then
                 return love.focus(focused)

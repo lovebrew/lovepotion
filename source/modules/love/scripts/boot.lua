@@ -32,9 +32,8 @@ require("love.callbacks")
 
 local is_debug, log = pcall(require, "love.log")
 local file          = nil
-if is_debug then
-    file = log.new("boot.log")
-end
+-- boot.log is created AFTER love.filesystem.init (see love.boot); otherwise
+-- the path stays relative and Wii U's fopen does not work.
 
 local function uridecode(s)
     return s:gsub("%%%x%x", function(str)
@@ -57,6 +56,11 @@ function love.boot()
     local arg0 = love.arg.getLow(love.rawGameArguments)
 
     love.filesystem.init(arg0)
+
+    -- The filesystem is now initialized, so the log path is absolute.
+    if is_debug and not file then
+        file = log.new("boot.log")
+    end
 
     local exepath = love.filesystem.getExecutablePath()
     if #exepath == 0 then
@@ -153,6 +157,69 @@ function love.boot()
 end
 
 function love.init()
+
+    -- Diagnostics shown on the error screen itself (no file I/O required).
+    -- Keep the "DIAG build=..." prefix so we know which binary ran.
+    local function buildDiagnostics()
+        local lines = {}
+
+        local function add(key, value)
+            table.insert(lines, key .. "=" .. tostring(value))
+        end
+
+        table.insert(lines, "DIAG build=teste-v4")
+
+        local okcwd, cwd = pcall(love.filesystem.getWorkingDirectory)
+        cwd = okcwd and cwd or "?"
+        add("cwd", cwd)
+
+        local okexec, exec = pcall(love.filesystem.getExecutablePath)
+        exec = okexec and exec or "?"
+        add("exepath", exec)
+
+        local oksrc, src = pcall(love.filesystem.getSource)
+        add("source", oksrc and src or "?")
+        add("fused", love.filesystem.isFused())
+
+        local okid, identity = pcall(love.filesystem.getIdentity)
+        add("identity", okid and identity or "?")
+
+        local function testRead(path)
+            local file = io.open(path, "rb")
+            if not file then
+                return path .. " = FAILED"
+            end
+
+            local size = file:seek("end")
+            file:close()
+
+            return path .. " = OK (" .. tostring(size) .. ")"
+        end
+
+        for _, path in ipairs {
+            "/vol/content/game",
+            "/vol/content/game/main.lua",
+            "/vol/content/game.love",
+            "/vol/content/shaders/color.gsh",
+            tostring(exec),
+            tostring(cwd) .. "/LoveTeste.wuhb",
+        } do
+            table.insert(lines, testRead(path))
+        end
+
+        local writePath = tostring(cwd) .. "/write-test.txt"
+        local writeFile, writeError = io.open(writePath, "w")
+        if writeFile then
+            writeFile:write("ok\n")
+            writeFile:close()
+            table.insert(lines, "write " .. writePath .. " = OK")
+        else
+            table.insert(lines, "write " .. writePath .. " = FAILED (" .. tostring(writeError) .. ")")
+        end
+
+        return table.concat(lines, "\n")
+    end
+
 
     -- Create default configuration settings.
     -- NOTE: Adding a new module to the modules list
@@ -407,9 +474,9 @@ function love.init()
         local gamepath = opts.game.set and opts.game.arg[1] or ""
         local gamestr = gamepath == "" and "" or " at " .. '"' .. gamepath .. '"'
 
-        error(("No code to run %s\nYour game might be packaged incorrectly.\nMake sure %s is at the top level of the zip or folder."):format(gamestr, main_file))
+        error(("No code to run %s\nYour game might be packaged incorrectly.\nMake sure %s is at the top level of the zip or folder.\n\n%s"):format(gamestr, main_file, buildDiagnostics()))
     elseif invalid_game_path then
-        error(("Cannot load game at path '%s'.\nMake sure a folder exists at the specified path."):format(invalid_game_path))
+        error(("Cannot load game at path '%s'.\nMake sure a folder exists at the specified path.\n\n%s"):format(invalid_game_path, buildDiagnostics()))
     end
 end
 
