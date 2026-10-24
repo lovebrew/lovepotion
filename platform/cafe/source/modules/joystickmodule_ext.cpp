@@ -4,6 +4,7 @@
 #include <utilities/wpad.hpp>
 
 #include <objects/gamepad.hpp>
+#include <objects/procontroller.hpp>
 
 using namespace love;
 
@@ -47,6 +48,8 @@ static Joystick<Console::Which>* openByType(guid::GamepadType type, int index)
     {
         case guid::GAMEPAD_TYPE_WII_U_GAMEPAD:
             return new Gamepad(index);
+        case guid::GAMEPAD_TYPE_WII_PRO:
+            return new ProController(index);
         default:
             return nullptr;
     }
@@ -62,14 +65,15 @@ Joystick<Console::Which>* JoystickModule<Console::CAFE>::AddJoystick(int index)
 
     if (index != 0)
     {
-        KPADStatus status {};
-        KPADError error = KPAD_ERROR_OK;
+        WPADExtensionType extension = (WPADExtensionType)0xFF;
 
-        KPADReadEx((KPADChan)index, &status, 1, &error);
+        // WPADProbe usa canais 0..3; o nosso id de joystick comeca em 1.
+        if (WPADProbe((WPADChan)(index - 1), &extension) != KPAD_ERROR_OK)
+            return nullptr;
 
-        if (error == KPAD_ERROR_OK && status.extensionType != 0xFF)
-            type = wpad::GetWPADType((KPADExtensionType)status.extensionType);
-        else
+        type = wpad::GetWPADType((KPADExtensionType)extension);
+
+        if (type == guid::GAMEPAD_TYPE_UNKNOWN)
             return nullptr;
     }
 
@@ -89,6 +93,11 @@ Joystick<Console::Which>* JoystickModule<Console::CAFE>::AddJoystick(int index)
     if (!joystick)
     {
         joystick = openByType(type, (int)this->joysticks.size());
+
+        // Extensao sem suporte (ex.: Wii Remote) nao deve virar joystick.
+        if (!joystick)
+            return nullptr;
+
         this->joysticks.push_back(joystick);
     }
 

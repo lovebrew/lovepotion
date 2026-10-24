@@ -1,5 +1,6 @@
 #include <modules/joystickmodule_ext.hpp>
 #include <utilities/driver/hid_ext.hpp>
+#include <utilities/wpad.hpp>
 
 #include <modules/keyboard_ext.hpp>
 
@@ -68,11 +69,29 @@ bool HID<Console::CAFE>::Poll(LOVE_Event* event)
 
     this->CheckFocus();
 
+    // Hotplug do Pro Controller: consultamos o estado real dos canais WPAD e
+    // avisamos o modulo de joystick quando um controle entra ou sai.
+    if (Module())
+    {
+        for (size_t channel = 0; channel < wpad::MAX_JOYSTICKS; channel++)
+        {
+            WPADExtensionType extension = (WPADExtensionType)0xFF;
+            int32_t status = WPADProbe((WPADChan)channel, &extension);
+
+            const bool connected =
+                (status == KPAD_ERROR_OK) && (extension == WPAD_EXT_PRO_CONTROLLER);
+            const bool known = Module()->GetJoystickFromId((int)channel + 1) != nullptr;
+
+            if (connected != known)
+                this->SendJoystickStatus(channel + 1, connected);
+        }
+    }
+
     if (Module())
     {
         for (size_t index = 0; index < (size_t)Module()->GetJoystickCount(); index++)
         {
-            auto* joystick = Module()->GetJoystickFromId(index);
+            auto* joystick = Module()->GetJoystick((int)index);
 
             if (joystick)
             {
@@ -84,7 +103,7 @@ bool HID<Console::CAFE>::Poll(LOVE_Event* event)
                     const auto sensor = (Sensor::SensorType)index;
 
                     if (joystick->IsSensorEnabled(sensor))
-                        this->SendJoystickSensorUpdated(index, sensor,
+                        this->SendJoystickSensorUpdated(joystick->GetInstanceID(), sensor,
                                                         joystick->GetSensorData(sensor));
                 }
 
@@ -150,7 +169,7 @@ bool HID<Console::CAFE>::Poll(LOVE_Event* event)
                     newEvent.subType = SUBTYPE_GAMEPADDOWN;
 
                     newEvent.padButton.name   = *Joystick<>::buttonTypes.ReverseFind(input.button);
-                    newEvent.padButton.id     = joystick->GetID();
+                    newEvent.padButton.id     = joystick->GetInstanceID();
                     newEvent.padButton.button = input.buttonNumber;
                 }
 
@@ -162,7 +181,7 @@ bool HID<Console::CAFE>::Poll(LOVE_Event* event)
                     newEvent.subType = SUBTYPE_GAMEPADUP;
 
                     newEvent.padButton.name   = *Joystick<>::buttonTypes.ReverseFind(input.button);
-                    newEvent.padButton.id     = joystick->GetID();
+                    newEvent.padButton.id     = joystick->GetInstanceID();
                     newEvent.padButton.button = input.buttonNumber;
                 }
 
