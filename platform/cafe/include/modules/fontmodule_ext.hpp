@@ -78,8 +78,5 @@ namespace love
           "taiwanese", OS_SHAREDDATATYPE_FONT_TAIWANESE
         };
         // clang-format on
-
-      private:
-        FT_Library library;
     };
 } // namespace love
