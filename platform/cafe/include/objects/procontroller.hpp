@@ -24,7 +24,7 @@ namespace love
 
         bool IsConnected() const
         {
-            return true;
+            return this->connected;
         }
 
         virtual bool IsDown(JoystickInput& result) override;

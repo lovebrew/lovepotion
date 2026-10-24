@@ -50,12 +50,22 @@ bool ProController::Open(int index)
 {
     this->Close();
 
+    WPADExtensionType extension = (WPADExtensionType)0xFF;
+
+    // Canais WPAD sao 0..3; o id do joystick do Pro Controller comeca em 1.
+    if (WPADProbe((WPADChan)(index - 1), &extension) != KPAD_ERROR_OK)
+        return false;
+
+    if (extension != WPAD_EXT_PRO_CONTROLLER)
+        return false;
+
     this->name = guid::GetGamepadName(this->GetGamepadType());
     this->guid = guid::GetGamepadGUID(this->GetGamepadType());
 
     this->instanceId = index;
+    this->connected  = true;
 
-    return this->IsConnected();
+    return true;
 }
 
 void ProController::Update()
@@ -68,9 +78,9 @@ void ProController::Update()
     if (error == KPAD_ERROR_NO_SAMPLES)
         return;
 
-    this->buttonStates.pressed  = this->state.trigger;
-    this->buttonStates.released = this->state.release;
-    this->buttonStates.held     = this->state.hold;
+    this->buttonStates.pressed  = this->state.pro.trigger;
+    this->buttonStates.released = this->state.pro.release;
+    this->buttonStates.held     = this->state.pro.hold;
 
     this->leftStick  = { this->state.pro.leftStick.x, this->state.pro.leftStick.y };
     this->rightStick = { this->state.pro.rightStick.x, this->state.pro.rightStick.y };
@@ -181,9 +191,9 @@ bool ProController::IsUp(JoystickInput& result)
 float ProController::GetAxis(int index)
 {
     if (index == 0 || index == 1)
-        return (index == 1) ? this->leftStick.dx : this->leftStick.dy;
+        return (index == 1) ? this->leftStick.dx : -this->leftStick.dy;
     else if (index == 2 || index == 3)
-        return (index == 3) ? this->rightStick.dx : this->rightStick.dy;
+        return (index == 3) ? this->rightStick.dx : -this->rightStick.dy;
     else if (index == 4)
         return this->triggers[0x0].down;
     else if (index == 5)
@@ -218,7 +228,7 @@ float ProController::GetGamepadAxis(GamepadAxis axis)
         return 0.0f;
 
     int getAxis = (int)axis;
-    return this->GetAxis(getAxis - 1);
+    return this->GetAxis(getAxis);
 }
 
 std::vector<float> ProController::GetAxes()

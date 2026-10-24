@@ -191,9 +191,9 @@ bool Gamepad::IsUp(JoystickInput& result)
 float Gamepad::GetAxis(int index)
 {
     if (index == 0 || index == 1)
-        return (index == 1) ? this->leftStick.dx : this->leftStick.dy;
+        return (index == 1) ? this->leftStick.dx : -this->leftStick.dy;
     else if (index == 2 || index == 3)
-        return (index == 3) ? this->rightStick.dx : this->rightStick.dy;
+        return (index == 3) ? this->rightStick.dx : -this->rightStick.dy;
     else if (index == 4)
         return this->triggers[0x0].down;
     else if (index == 5)
@@ -228,7 +228,7 @@ float Gamepad::GetGamepadAxis(GamepadAxis axis)
         return 0.0f;
 
     int getAxis = (int)axis;
-    return this->GetAxis(getAxis - 1);
+    return this->GetAxis(getAxis);
 }
 
 std::vector<float> Gamepad::GetAxes()

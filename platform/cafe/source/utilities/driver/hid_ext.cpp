@@ -1,5 +1,6 @@
 #include <modules/joystickmodule_ext.hpp>
 #include <utilities/driver/hid_ext.hpp>
+#include <utilities/wpad.hpp>
 
 #include <modules/keyboard_ext.hpp>
 
@@ -62,6 +63,20 @@ void HID<Console::CAFE>::_Poll()
     if (!Module())
         return;
 
+    // Hotplug do Pro Controller: consulta os canais WPAD e avisa o modulo.
+    for (size_t channel = 0; channel < wpad::MAX_JOYSTICKS; channel++)
+    {
+        WPADExtensionType extension = (WPADExtensionType)0xFF;
+        int32_t status              = WPADProbe((WPADChan)channel, &extension);
+
+        const bool connected =
+            (status == KPAD_ERROR_OK) && (extension == WPAD_EXT_PRO_CONTROLLER);
+        const bool known = Module()->GetJoystickFromId((int)channel + 1) != nullptr;
+
+        if (connected != known)
+            this->SendJoystickStatus(channel + 1, connected);
+    }
+
     auto status = ((Gamepad*)Module()->GetJoystickFromId(0))->GetVPADStatus();
 
     if (Keyboard()->IsShowing())
@@ -101,7 +116,7 @@ void HID<Console::CAFE>::_Poll()
 
     for (size_t index = 0; index < (size_t)Module()->GetJoystickCount(); index++)
     {
-        auto* joystick = Module()->GetJoystickFromId(index);
+        auto* joystick = Module()->GetJoystick((int)index);
 
         if (joystick)
         {
@@ -113,21 +128,21 @@ void HID<Console::CAFE>::_Poll()
                 const auto sensor = (Sensor::SensorType)index;
 
                 if (joystick->IsSensorEnabled(sensor))
-                    this->SendJoystickSensorUpdated(index, sensor, joystick->GetSensorData(sensor));
+                    this->SendJoystickSensorUpdated(joystick->GetInstanceID(), sensor, joystick->GetSensorData(sensor));
             }
 
             if (joystick->IsDown(input))
-                this->SendGamepadPress(true, joystick->GetID(), input.button, input.buttonNumber);
+                this->SendGamepadPress(true, joystick->GetInstanceID(), input.button, input.buttonNumber);
 
             if (joystick->IsUp(input))
-                this->SendGamepadPress(false, joystick->GetID(), input.button, input.buttonNumber);
+                this->SendGamepadPress(false, joystick->GetInstanceID(), input.button, input.buttonNumber);
 
             for (size_t index = 0; index < Joystick<>::GAMEPAD_AXIS_MAX_ENUM; index++)
             {
                 const auto axis  = (Joystick<>::GamepadAxis)index;
                 const auto value = joystick->GetAxis(axis);
 
-                this->SendGamepadAxis(joystick->GetID(), axis, index, value);
+                this->SendGamepadAxis(joystick->GetInstanceID(), axis, index, value);
             }
         }
     }

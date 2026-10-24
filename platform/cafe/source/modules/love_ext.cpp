@@ -33,6 +33,10 @@ void love::PreInit<Console::CAFE>()
 
     KPADInit();
 
+    // URCC = lets the app receive the Wii U Pro Controller through KPAD.
+    // Without it the console never delivers the controller to the application.
+    WPADEnableURCC(1);
+
     ACInitialize();
 
     FSInit();

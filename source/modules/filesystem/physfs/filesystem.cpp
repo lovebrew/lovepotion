@@ -11,10 +11,13 @@
     #include <coreinit/dynload.h>
 #endif
 
+#include <dirent.h>
 #include <unistd.h>
 
 #include <algorithm>
+#include <cctype>
 #include <filesystem>
+#include <vector>
 
 #define APPDATA_FOLDER ""
 #define APPDATA_PREFIX ""
@@ -27,8 +30,77 @@ using namespace love::physfs;
 
 #include <utilities/log/logfile.hpp>
 
+/* RL_GetPathOfRunningExecutable() returns a path relative to the SD root
+   ("wiiu/apps/lovepotion/lovepotion.wuhb"), but physfs opens files relative
+   to the process working directory. Without making the path absolute, the
+   mount of the .wuhb itself fails and LÖVE falls back to "--game game"
+   (the sd:/.../lovepotion/game folder). */
+static std::string toAbsoluteSdPath(const std::string& path)
+{
+#if defined(__WIIU__)
+    if (!path.empty() && path[0] != '/' && path.compare(0, 3, "fs:") != 0)
+        return "fs:/vol/external01/" + path;
+#endif
+
+    return path;
+}
+
+#if defined(__WIIU__)
+static std::string getWorkingDir()
+{
+    char buffer[1024];
+
+    if (getcwd(buffer, sizeof(buffer)) == nullptr)
+        return std::string {};
+
+    return std::string(buffer);
+}
+#endif
+
 static std::string getApplicationPath(std::string origin)
 {
+#if defined(__WIIU__)
+    if (love::Console::Is(love::Console::CAFE))
+    {
+        /* pre5 defines __EMULATION__ in every build, so the fixed path below
+           (wiiu/apps/lovepotion) always won. Try the real path reported by
+           Aroma first; if it is unavailable, fall back to the legacy path. */
+        OSDynLoad_Module module;
+        const auto success = 0;
+        const auto name    = "RL_GetPathOfRunningExecutable";
+
+        if (OSDynLoad_Acquire("homebrew_rpx_loader", &module) == OS_DYNLOAD_OK)
+        {
+            char path[256] = { 0 };
+
+            bool (*RL_GetPathOfRunningExecutable)(char*, uint32_t);
+            auto** ptrFunction = reinterpret_cast<void**>(&RL_GetPathOfRunningExecutable);
+
+            // clang-format off
+            if (OSDynLoad_FindExport(module, OS_DYNLOAD_EXPORT_FUNC, name, ptrFunction) == OS_DYNLOAD_OK)
+            {
+                if (RL_GetPathOfRunningExecutable(path, sizeof(path)) == success && path[0] != '\0')
+                {
+                    const auto executable = toAbsoluteSdPath(path);
+
+                    return executable;
+                }
+            }
+            // clang-format on
+        }
+
+        /* Fallback: use the cwd (the app folder) so saves land in the right
+           place even when the RL API is unavailable. */
+        const auto cwd = getWorkingDir();
+        if (!cwd.empty())
+        {
+            const auto executable = cwd + "/lovepotion.wuhb";
+
+            return executable;
+        }
+    }
+#endif
+
 #if defined(__EMULATION__)
     if (love::Console::Is(love::Console::CTR))
         return "sdmc:/lovepotion.3dsx";
@@ -41,28 +113,7 @@ static std::string getApplicationPath(std::string origin)
     if (!love::Console::Is(love::Console::CAFE))
         return origin;
 
-#if defined(__WIIU__)
-    OSDynLoad_Module module;
-    const auto success = 0;
-    const auto name    = "RL_GetPathOfRunningExecutable";
-
-    if (OSDynLoad_Acquire("homebrew_rpx_loader", &module) == OS_DYNLOAD_OK)
-    {
-        char path[256];
-
-        bool (*RL_GetPathOfRunningExecutable)(char*, uint32_t);
-        auto** ptrFunction = reinterpret_cast<void**>(&RL_GetPathOfRunningExecutable);
-
-        // clang-format off
-        if (OSDynLoad_FindExport(module, OS_DYNLOAD_EXPORT_FUNC, name, ptrFunction) == OS_DYNLOAD_OK)
-        {
-            if (RL_GetPathOfRunningExecutable(path, sizeof(path)) == success)
-                return path;
-        }
-        // clang-format on
-    }
     return std::string {};
-#endif
 }
 
 Filesystem::Filesystem() :
@@ -241,13 +292,82 @@ bool Filesystem::SetSource(const char* source)
     if (!this->gameSource.empty())
         return false;
 
-    std::string search = source;
-    if (!PHYSFS_mount(search.c_str(), nullptr, 1))
-        return false;
+    std::vector<std::string> candidates;
 
-    this->gameSource = search;
+#if defined(__WIIU__)
+    /* The game embedded in the WUHB content/ folder is mounted by Aroma at
+       /vol/content (that is where the shaders come from). This path does not
+       depend on where the .wuhb sits on the SD card or on its filename. */
+    candidates.push_back("/vol/content/game");
+    candidates.push_back("/vol/content/game.love");
+#endif
 
-    return true;
+    candidates.push_back(source);
+
+    /* Second chance: path relative to the SD root. */
+    candidates.push_back(toAbsoluteSdPath(source));
+
+#if defined(__WIIU__)
+    /* The cwd is the app folder (Aroma starts the RPX with that cwd). Using
+       the executable name inside the cwd handles the case where the pre5
+       fixed path (wiiu/apps/lovepotion) is not where the .wuhb actually is. */
+    const auto cwd  = getWorkingDir();
+    const auto leaf = std::filesystem::path(source).filename().string();
+
+    if (!cwd.empty() && !leaf.empty())
+        candidates.push_back(cwd + PATH_SEPARATOR + leaf);
+
+    candidates.push_back("fs:/vol/external01/wiiu/apps/lovepotion/lovepotion.wuhb");
+
+    if (!cwd.empty())
+        candidates.push_back(cwd + PATH_SEPARATOR + "lovepotion.wuhb");
+
+    /* Last resort: the app folder may contain the .wuhb under any name.
+       Use opendir/readdir (newlib's std::filesystem may not work with the
+       "fs:" prefix). */
+    if (!cwd.empty())
+    {
+        if (DIR* directory = opendir(cwd.c_str()))
+        {
+            while (struct dirent* entry = readdir(directory))
+            {
+                std::string name = entry->d_name;
+                if (name == "." || name == "..")
+                    continue;
+
+                std::string extension = std::filesystem::path(name).extension().string();
+                std::transform(extension.begin(), extension.end(), extension.begin(),
+                    [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+
+                if (extension == ".wuhb" || extension == ".rpx")
+                    candidates.push_back(cwd + PATH_SEPARATOR + name);
+            }
+
+            closedir(directory);
+        }
+    }
+#endif
+
+    std::vector<std::string> tried;
+
+    for (const auto& candidate : candidates)
+    {
+        if (candidate.empty())
+            continue;
+
+        if (std::find(tried.begin(), tried.end(), candidate) != tried.end())
+            continue;
+
+        tried.push_back(candidate);
+
+        if (PHYSFS_mount(candidate.c_str(), nullptr, 1))
+        {
+            this->gameSource = candidate;
+            return true;
+        }
+    }
+
+    return false;
 }
 
 std::string Filesystem::GetSource() const
