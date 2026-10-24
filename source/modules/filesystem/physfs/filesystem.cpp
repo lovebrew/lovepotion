@@ -12,12 +12,10 @@
 #endif
 
 #include <dirent.h>
-#include <sys/stat.h>
 #include <unistd.h>
 
 #include <algorithm>
 #include <cctype>
-#include <cstdio>
 #include <filesystem>
 #include <vector>
 
@@ -57,38 +55,6 @@ static std::string getWorkingDir()
 
     return std::string(buffer);
 }
-
-static void logSourceLine(const std::string& line)
-{
-    /* O fopen() com caminho relativo não funciona no devoptab do Wii U:
-       precisamos do caminho absoluto. Mantém um buffer e reescreve o arquivo
-       com "w" (o modo "a" não cria o arquivo de forma confiável aqui). */
-    static std::string buffer;
-
-    buffer += line;
-    buffer += "\n";
-
-    const auto cwd = getWorkingDir();
-
-    std::string paths[2];
-    int count = 0;
-
-    if (!cwd.empty())
-        paths[count++] = cwd + "/src.log";
-
-    paths[count++] = "fs:/vol/external01/src.log";
-
-    for (int index = 0; index < count; index++)
-    {
-        FILE* file = fopen(paths[index].c_str(), "w");
-        if (!file)
-            continue;
-
-        fprintf(file, "%s", buffer.c_str());
-        fclose(file);
-        return;
-    }
-}
 #endif
 
 static std::string getApplicationPath(std::string origin)
@@ -117,8 +83,6 @@ static std::string getApplicationPath(std::string origin)
                 {
                     const auto executable = toAbsoluteSdPath(path);
 
-                    logSourceLine("exepath(RL)=" + executable);
-
                     return executable;
                 }
             }
@@ -131,8 +95,6 @@ static std::string getApplicationPath(std::string origin)
         if (!cwd.empty())
         {
             const auto executable = cwd + "/lovepotion.wuhb";
-
-            logSourceLine("exepath(fallback)=" + executable);
 
             return executable;
         }
@@ -240,13 +202,6 @@ void Filesystem::Init(const char* arg0)
     PHYSFS_setWriteDir(nullptr);
 
     this->SetSymlinksEnabled(false);
-
-#if defined(__WIIU__)
-    /* Depois do PHYSFS_init: o caminho do cwd já está resolvido. */
-    logSourceLine("--- boot ---");
-    logSourceLine("exepath=" + this->executablePath);
-    logSourceLine("cwd=" + getWorkingDir());
-#endif
 }
 
 void Filesystem::SetFused(bool fused)
@@ -375,8 +330,6 @@ bool Filesystem::SetSource(const char* source)
        "fs:" prefix). */
     if (!cwd.empty())
     {
-        logSourceLine("cwd listing (" + cwd + "):");
-
         if (DIR* directory = opendir(cwd.c_str()))
         {
             while (struct dirent* entry = readdir(directory))
@@ -389,22 +342,11 @@ bool Filesystem::SetSource(const char* source)
                 std::transform(extension.begin(), extension.end(), extension.begin(),
                     [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
-                struct stat status {};
-                const auto fullPath = cwd + PATH_SEPARATOR + name;
-                const bool hasStatus = stat(fullPath.c_str(), &status) == 0;
-
-                logSourceLine("  " + name + " (" +
-                    (hasStatus ? std::to_string(static_cast<long long>(status.st_size)) : "?") + ")");
-
                 if (extension == ".wuhb" || extension == ".rpx")
-                    candidates.push_back(fullPath);
+                    candidates.push_back(cwd + PATH_SEPARATOR + name);
             }
 
             closedir(directory);
-        }
-        else
-        {
-            logSourceLine("  (opendir falhou)");
         }
     }
 #endif
@@ -423,17 +365,9 @@ bool Filesystem::SetSource(const char* source)
 
         if (PHYSFS_mount(candidate.c_str(), nullptr, 1))
         {
-#if defined(__WIIU__)
-            logSourceLine("mount OK   " + candidate);
-#endif
             this->gameSource = candidate;
             return true;
         }
-
-#if defined(__WIIU__)
-        const char* error = Filesystem::GetLastError();
-        logSourceLine("mount FAIL " + candidate + " (" + (error ? error : "?") + ")");
-#endif
     }
 
     return false;
