@@ -47,6 +47,7 @@ dkp_install_assets(${PROJECT_NAME}_ctr_romfs
 target_link_libraries(${PROJECT_NAME} PRIVATE
     citro3d$<$<CONFIG:Debug>:d>
     vorbisidec
+    ddsparse
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE

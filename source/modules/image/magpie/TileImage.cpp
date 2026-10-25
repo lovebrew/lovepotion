@@ -21,13 +21,14 @@ namespace love
 
         const auto tiledSize = love::getPixelFormatSliceSize(image.format, image.width, image.height, true);
         auto* tiledData = new uint8_t[tiledSize] {};
+        auto widthPo2 = NextPo2(image.width);
 
         for (int y = 0; y < image.height; y++)
         {
             for (int x = 0; x < image.width; x++)
             {
                 const auto* source = (const uint32_t*)sourceData.get() + y * image.width + x;
-                *colorFromTile<uint32_t>(tiledData, NextPo2(image.width), x, y) = *source;
+                *colorFromTile<uint32_t>(tiledData, widthPo2, x, y) = *source;
             }
         }
 

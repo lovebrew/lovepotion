@@ -182,6 +182,12 @@ add_library(lodepng
     libraries/lodepng/lodepng.h
 )
 
+add_library(ddsparse
+    libraries/ddsparse/ddsparse.cpp
+    libraries/ddsparse/ddsparse.h
+    libraries/ddsparse/ddsinfo.h
+)
+
 target_include_directories(${PROJECT_NAME} PRIVATE
     include
     platform
@@ -348,6 +354,9 @@ if(NINTENDO_3DS)
     target_sources(${PROJECT_NAME} PRIVATE
         source/modules/image/magpie/PNGHandler.cpp
         source/modules/image/magpie/STBHandler.cpp
+        source/modules/image/magpie/DDSHandler.cpp
+        source/modules/image/magpie/WEBPHandler.cpp
+        source/modules/image/magpie/QOIHandler.cpp
         source/modules/image/magpie/TileImage.cpp
         source/modules/image/magpie/T3XHandler.cpp
     )
@@ -365,7 +374,7 @@ if (NINTENDO_SWITCH OR NINTENDO_WIIU)
 
     target_sources(${PROJECT_NAME} PRIVATE
         source/modules/image/magpie/ASTCHandler.cpp
-        source/modules/image/magpie/ddsHandler.cpp
+        source/modules/image/magpie/DDSHandler.cpp
         source/modules/image/magpie/KTXHandler.cpp
         source/modules/image/magpie/PKMHandler.cpp
         source/modules/image/magpie/PNGHandler.cpp
@@ -375,12 +384,6 @@ if (NINTENDO_SWITCH OR NINTENDO_WIIU)
         source/modules/font/freetype/Font.cpp
         source/modules/font/freetype/TrueTypeRasterizer.cpp
         source/modules/graphics/freetype/Font.cpp
-    )
-
-    add_library(ddsparse
-        libraries/ddsparse/ddsparse.cpp
-        libraries/ddsparse/ddsparse.h
-        libraries/ddsparse/ddsinfo.h
     )
 endif()
 

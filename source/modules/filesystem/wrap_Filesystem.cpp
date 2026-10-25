@@ -31,11 +31,11 @@ static std::filesystem::path translatePath(const std::filesystem::path& input)
 
     if (std::find(textures.begin(), textures.end(), input.extension()) != textures.end())
     {
-        auto convertedPath = path;
-        convertedPath.replace_extension(".t3x");
+        // auto convertedPath = path;
+        // convertedPath.replace_extension(".t3x");
 
-        if (instance()->exists(convertedPath.c_str()))
-            return convertedPath;
+        // if (instance()->exists(convertedPath.c_str()))
+        //     return convertedPath;
 
         return path;
     }

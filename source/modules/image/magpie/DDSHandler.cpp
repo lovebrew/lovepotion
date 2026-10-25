@@ -1,7 +1,8 @@
 #include "common/Exception.hpp"
 
 #include "modules/image/ImageData.hpp"
-#include "modules/image/magpie/ddsHandler.hpp"
+#include "modules/image/magpie/TileImage.hpp"
+#include "modules/image/magpie/DDSHandler.hpp"
 
 #include <ddsparse.h>
 using namespace dds::dxinfo;
@@ -178,6 +179,20 @@ namespace love
                 }
             }
         }
+
+#if defined(__3DS__)
+        size_t imageSize = image.size / 4;
+        for (size_t i = 0; i < imageSize; i++) {
+            unsigned char *p = image.data + 4 * i;
+            unsigned char r = p[0], g = p[1], b = p[2], a = p[3];
+            p[0] = a;
+            p[1] = b;
+            p[2] = g;
+            p[3] = r;
+        }
+
+        tileImage(image);
+#endif
 
         return image;
     }

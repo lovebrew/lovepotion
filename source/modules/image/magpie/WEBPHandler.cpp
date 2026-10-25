@@ -1,6 +1,7 @@
 #include "modules/image/magpie/WEBPHandler.hpp"
 
 #include "common/Exception.hpp"
+#include "modules/image/magpie/TileImage.hpp"
 
 #include <new>
 
@@ -53,6 +54,20 @@ namespace love
         image.height = height;
         image.size   = imageSize;
         image.data   = buffer;
+
+#if defined(__3DS__)
+        imageSize = image.size / 4;
+        for (size_t i = 0; i < imageSize; i++) {
+            unsigned char *p = image.data + 4 * i;
+            unsigned char r = p[0], g = p[1], b = p[2], a = p[3];
+            p[0] = a;
+            p[1] = b;
+            p[2] = g;
+            p[3] = r;
+        }
+
+        tileImage(image);
+#endif
 
         return image;
     }
