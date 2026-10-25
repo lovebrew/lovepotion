@@ -192,7 +192,8 @@ namespace love
             result += names[index];
         }
 
-        return luaL_error(L, E_INVALID_ENUM, name, value.length(), value.data(), result.c_str());
+        const std::string v(value);
+        return luaL_error(L, E_INVALID_ENUM, name, v.c_str(), result.c_str());
     }
 
     template<typename T>
