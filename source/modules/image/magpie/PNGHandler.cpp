@@ -17,6 +17,7 @@
 
 #include <algorithm>
 #include <memory>
+#include <vector>
 
 namespace love
 {
@@ -178,7 +179,7 @@ namespace love
             p[3] = r;
         }
         
-        tileImage(img);
+        tileImage(img, std::free);
 #endif
 
         return img;
@@ -186,8 +187,12 @@ namespace love
 
     bool PNGHandler::canEncode(PixelFormat rawFormat, EncodedFormat encodedFormat) const
     {
+#if defined(__3DS__)
+        return encodedFormat == ENCODED_PNG && rawFormat == PIXELFORMAT_RGBA8_UNORM;
+#else
         return encodedFormat == ENCODED_PNG &&
                (rawFormat == PIXELFORMAT_RGBA8_UNORM || rawFormat == PIXELFORMAT_RGBA16_UNORM);
+#endif
     }
 
     FormatHandler::EncodedImage PNGHandler::encode(const DecodedImage& img,
@@ -210,6 +215,27 @@ namespace love
 
         const uint8_t* data   = img.data;
         uint16_t* swappeddata = nullptr;
+
+#if defined(__3DS__)
+        std::vector<uint8_t> linearData(img.size);
+        const auto widthPo2 = NextPo2(img.width);
+
+        for (int y = 0; y < img.height; y++)
+        {
+            for (int x = 0; x < img.width; x++)
+            {
+                const auto* tiled = (const uint8_t*)colorFromTile<uint32_t>(img.data, widthPo2, x, y);
+                auto* pixel = linearData.data() + (y * img.width + x) * 4;
+
+                pixel[0] = tiled[3];
+                pixel[1] = tiled[2];
+                pixel[2] = tiled[1];
+                pixel[3] = tiled[0];
+            }
+        }
+
+        data = linearData.data();
+#endif
 
         // LodePNG expects big-endian raw pixel data when encoding a 16 bit image.
 #ifndef LOVE_BIG_ENDIAN
@@ -246,5 +272,19 @@ namespace love
         }
 
         return encimg;
+    }
+
+    void PNGHandler::freeRawPixels(uint8_t* memory)
+    {
+#if defined(__3DS__)
+        delete[] memory;
+#else
+        std::free(memory);
+#endif
+    }
+
+    void PNGHandler::freeEncodedImage(uint8_t* memory)
+    {
+        std::free(memory);
     }
 } // namespace love

@@ -21,6 +21,7 @@ namespace love
             ENCODED_PNG,
             ENCODED_EXR,
             ENCODED_QOI,
+            ENCODED_JPG,
             ENCODED_MAX_ENUM
         };
 

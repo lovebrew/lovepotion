@@ -9,6 +9,7 @@
 #define QOI_NO_STDIO
 #include "qoi.h"
 
+#include <cstdlib>
 #include <cstring>
 
 namespace love
@@ -54,7 +55,7 @@ namespace love
             p[3] = r;
         }
 
-        tileImage(image);
+        tileImage(image, std::free);
 #endif
 
         return image;
@@ -62,6 +63,9 @@ namespace love
 
     FormatHandler::EncodedImage QOIHandler::encode(const DecodedImage& image, EncodedFormat encodedFormat) const
     {
+        if (!canEncode(image.format, encodedFormat))
+            throw love::Exception("Cannot encode image to QOI.");
+
         EncodedImage encoded {};
 
         qoi_desc description {};
@@ -70,16 +74,38 @@ namespace love
         description.channels   = 4;
         description.colorspace = QOI_SRGB;
 
+#if defined(__3DS__)
+        auto linearData = untileImage(image);
+        for (size_t i = 0; i < image.size; i += 4)
+        {
+            uint8_t r = linearData[i];
+            uint8_t g = linearData[i + 1];
+            linearData[i] = linearData[i + 3];
+            linearData[i + 1] = linearData[i + 2];
+            linearData[i + 2] = g;
+            linearData[i + 3] = r;
+        }
+        int encodedSize = 0;
+        encoded.data = (uint8_t*)qoi_encode(linearData.get(), &description, &encodedSize);
+#else
+        int encodedSize = 0;
+        encoded.data = (uint8_t*)qoi_encode(image.data, &description, &encodedSize);
+#endif
 
         if (encoded.data == nullptr)
             throw love::Exception("Could not encode image with QOI.");
 
+        encoded.size = (size_t)encodedSize;
         return encoded;
     }
 
     void QOIHandler::freeRawPixels(uint8_t* memory)
     {
+#if defined(__3DS__)
+        delete[] memory;
+#else
         std::free(memory);
+#endif
     }
 
     void QOIHandler::freeEncodedImage(uint8_t* memory)

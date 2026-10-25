@@ -88,7 +88,10 @@ namespace love
         STRINGMAP_DECLARE(EncodedFormats, FormatHandler::EncodedFormat,
             { "png", FormatHandler::ENCODED_PNG },
             { "tga", FormatHandler::ENCODED_TGA },
-            { "exr", FormatHandler::ENCODED_EXR }
+            { "exr", FormatHandler::ENCODED_EXR },
+            { "qoi", FormatHandler::ENCODED_QOI },
+            { "jpg", FormatHandler::ENCODED_JPG },
+            { "jpeg", FormatHandler::ENCODED_JPG }
         );
         // clang-format on
 

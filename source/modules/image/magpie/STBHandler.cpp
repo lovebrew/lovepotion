@@ -7,6 +7,8 @@
 #include <cstdint>
 #include <cstring>
 #include <exception>
+#include <limits>
+#include <vector>
 
 #include "modules/image/magpie/STBHandler.hpp"
 
@@ -33,10 +35,64 @@ static void love_STBIAssert(bool test, const char* teststr)
 #endif
 #include "stb_image.h"
 
+#define STBI_WRITE_NO_STDIO
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+
 #include <cstdlib>
 
 namespace love
 {
+    struct STBWriteBuffer
+    {
+        uint8_t* data = nullptr;
+        size_t size = 0;
+        size_t capacity = 0;
+        bool failed = false;
+    };
+
+    static void stbWriteCallback(void* context, void* data, int size)
+    {
+        auto* buffer = (STBWriteBuffer*)context;
+        if (size <= 0 || buffer->failed)
+            return;
+
+        const auto bytes = (size_t)size;
+        if (bytes > std::numeric_limits<size_t>::max() - buffer->size)
+        {
+            buffer->failed = true;
+            return;
+        }
+
+        const auto required = buffer->size + bytes;
+        if (required > buffer->capacity)
+        {
+            size_t capacity = buffer->capacity == 0 ? 4096 : buffer->capacity;
+            while (capacity < required)
+            {
+                if (capacity > std::numeric_limits<size_t>::max() / 2)
+                {
+                    capacity = required;
+                    break;
+                }
+                capacity *= 2;
+            }
+
+            auto* resized = (uint8_t*)std::realloc(buffer->data, capacity);
+            if (resized == nullptr)
+            {
+                buffer->failed = true;
+                return;
+            }
+
+            buffer->data = resized;
+            buffer->capacity = capacity;
+        }
+
+        std::memcpy(buffer->data + buffer->size, data, bytes);
+        buffer->size = required;
+    }
+
     static_assert(sizeof(Color32) == 4, "sizeof(Color32) must be equal to 4 bytes!");
 
     bool STBHandler::canDecode(Data* data) const
@@ -52,7 +108,8 @@ namespace love
 
     bool STBHandler::canEncode(PixelFormat rawFormat, EncodedFormat encodedFormat) const
     {
-        return encodedFormat == ENCODED_TGA && rawFormat == PIXELFORMAT_RGBA8_UNORM;
+        return (encodedFormat == ENCODED_TGA || encodedFormat == ENCODED_JPG) &&
+               rawFormat == PIXELFORMAT_RGBA8_UNORM;
     }
 
     FormatHandler::DecodedImage STBHandler::decode(Data* data) const
@@ -96,7 +153,7 @@ namespace love
             p[3] = r;
         }
         
-        tileImage(image);
+        tileImage(image, stbi_image_free);
 #endif
 
         return image;
@@ -107,8 +164,79 @@ namespace love
         if (!this->canEncode(image.format, encodedFormat))
             throw love::Exception("Cannot encode image (unsupported format).");
 
+        if (encodedFormat == ENCODED_JPG)
+        {
+            if (image.width <= 0 || image.height <= 0 || image.data == nullptr)
+                throw love::Exception("Cannot encode JPG image with these dimensions.");
+
+            const auto maxPixelCount = (size_t)std::numeric_limits<int>::max() / 3;
+            if ((size_t)image.width > maxPixelCount / (size_t)image.height)
+                throw love::Exception("JPG image is too large to encode.");
+
+            const size_t pixelCount = size_t(image.width) * image.height;
+            if (pixelCount > std::numeric_limits<size_t>::max() / 4 || image.size < pixelCount * 4)
+                throw love::Exception("Invalid pixel data for JPG encoding.");
+
+            std::vector<uint8_t> rgb(pixelCount * 3);
+#if defined(__3DS__)
+            auto linearData = untileImage(image);
+            const auto* source = linearData.get();
+#else
+            const auto* source = image.data;
+#endif
+
+            for (size_t i = 0; i < pixelCount; i++)
+            {
+                const auto sourceOffset = i * 4;
+                const auto targetOffset = i * 3;
+#if defined(__3DS__)
+                rgb[targetOffset] = source[sourceOffset + 3];
+                rgb[targetOffset + 1] = source[sourceOffset + 2];
+                rgb[targetOffset + 2] = source[sourceOffset + 1];
+#else
+                rgb[targetOffset] = source[sourceOffset];
+                rgb[targetOffset + 1] = source[sourceOffset + 1];
+                rgb[targetOffset + 2] = source[sourceOffset + 2];
+#endif
+            }
+
+            STBWriteBuffer output;
+            const int success = stbi_write_jpg_to_func(stbWriteCallback, &output, image.width, image.height, 3,
+                                                       rgb.data(), 90);
+            if (!success || output.failed || output.size == 0)
+            {
+                std::free(output.data);
+                throw love::Exception("Could not encode JPG image.");
+            }
+
+            EncodedImage encoded {};
+            try
+            {
+                encoded.data = new uint8_t[output.size];
+            }
+            catch (std::exception&)
+            {
+                std::free(output.data);
+                throw love::Exception(E_OUT_OF_MEMORY);
+            }
+
+            std::memcpy(encoded.data, output.data, output.size);
+            encoded.size = output.size;
+            std::free(output.data);
+            return encoded;
+        }
+
+        if (image.width <= 0 || image.height <= 0 || image.width > 65535 || image.height > 65535)
+            throw love::Exception("Cannot encode TGA image with these dimensions.");
+
+        const size_t maxPixelCount = (std::numeric_limits<size_t>::max() - STBHandler::HEADER_LENGTH) /
+                                     STBHandler::BPP;
+        if (size_t(image.width) > maxPixelCount / size_t(image.height))
+            throw love::Exception("TGA image is too large to encode.");
+
         EncodedImage encoded {};
-        encoded.size = (image.width * image.height * STBHandler::BPP);
+        const size_t pixelSize = size_t(image.width) * image.height * STBHandler::BPP;
+        encoded.size = STBHandler::HEADER_LENGTH + pixelSize;
 
         try
         {
@@ -125,7 +253,7 @@ namespace love
         encoded.data[2] = 2;                     // image type
         encoded.data[3] = encoded.data[4] = 0;   // colormap start
         encoded.data[5] = encoded.data[6] = 0;   // colormap length
-        encoded.data[7]                   = 32;  // colormap bits
+        encoded.data[7]                   = 0;   // colormap bits
         encoded.data[8] = encoded.data[9] = 0;   // x origin
         encoded.data[10] = encoded.data[11] = 0; // y origin
         // Targa is little endian, so:
@@ -134,21 +262,33 @@ namespace love
         encoded.data[14] = image.height & 255;  // least significant byte of height
         encoded.data[15] = image.height >> 8;   // most significant byte of height
         encoded.data[16] = STBHandler::BPP * 8; // bits per pixel
-        encoded.data[17] = 0x20;                // descriptor bits (flip bits: 0x10 horizontal, 0x20 vertical)
+        encoded.data[17] = 0x28;                // top-left origin and 8 alpha bits
 
-        const auto size = image.width * image.height * STBHandler::BPP;
-        std::memcpy(encoded.data + STBHandler::HEADER_LENGTH, image.data, size);
+#if defined(__3DS__)
+        auto linearData = untileImage(image);
+        auto* source = linearData.get();
 
-        auto* pixels = (Color32*)encoded.data + STBHandler::HEADER_LENGTH;
-        for (int y = 0; y < image.height; y++)
+        for (size_t i = 0; i < pixelSize; i += STBHandler::BPP)
         {
-            for (int x = 0; x < image.width; x++)
-            {
-                uint8_t r                     = pixels[y * image.width + x].r;
-                uint8_t b                     = pixels[y * image.width + x].b;
-                pixels[y * image.width + x].r = b;
-                pixels[y * image.width + x].b = r;
-            }
+            uint8_t r = source[i];
+            uint8_t g = source[i + 1];
+            source[i] = source[i + 3];
+            source[i + 1] = source[i + 2];
+            source[i + 2] = g;
+            source[i + 3] = r;
+        }
+#else
+        const auto* source = image.data;
+#endif
+
+        std::memcpy(encoded.data + STBHandler::HEADER_LENGTH, source, pixelSize);
+
+        auto* pixels = encoded.data + STBHandler::HEADER_LENGTH;
+        for (size_t i = 0; i < pixelSize; i += STBHandler::BPP)
+        {
+            uint8_t r = pixels[i];
+            pixels[i] = pixels[i + 2];
+            pixels[i + 2] = r;
         }
 
         return encoded;
@@ -156,7 +296,11 @@ namespace love
 
     void STBHandler::freeRawPixels(uint8_t* memory)
     {
+#if defined(__3DS__)
+        delete[] memory;
+#else
         stbi_image_free(memory);
+#endif
     }
 
     void STBHandler::freeEncodedImage(uint8_t* memory)
