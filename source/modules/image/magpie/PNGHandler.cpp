@@ -169,17 +169,7 @@ namespace love
 #endif
 
 #if defined(__3DS__)
-        size_t imageSize = img.size / 4;
-        for (size_t i = 0; i < imageSize; i++) {
-            unsigned char *p = img.data + 4 * i;
-            unsigned char r = p[0], g = p[1], b = p[2], a = p[3];
-            p[0] = a;
-            p[1] = b;
-            p[2] = g;
-            p[3] = r;
-        }
-        
-        tileImage(img, std::free);
+        TileImage::tile(img, std::free);
 #endif
 
         return img;

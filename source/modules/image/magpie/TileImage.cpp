@@ -9,17 +9,17 @@
 
 namespace love
 {
-    static void deletePixelBuffer(void* memory)
+    void TileImage::deletePixelBuffer(void* memory)
     {
         delete[] (uint8_t*)memory;
     }
 
-    void tileImage(FormatHandler::DecodedImage& image)
+    void TileImage::tile(FormatHandler::DecodedImage& image)
     {
-        tileImage(image, deletePixelBuffer);
+        tile(image, TileImage::deletePixelBuffer);
     }
 
-    void tileImage(FormatHandler::DecodedImage& image, void (*freeSource)(void*))
+    void TileImage::tile(FormatHandler::DecodedImage& image, void (*freeSource)(void*))
     {
         const auto width  = static_cast<size_t>(image.width);
         const auto height = static_cast<size_t>(image.height);
@@ -30,6 +30,18 @@ namespace love
         else if (width < LOVE_TEX3DS_MIN || height < LOVE_TEX3DS_MIN)
             throw love::Exception("Texture dimensions are too small.");
 
+        // swap color channels
+        size_t imageSize = image.size / 4;
+        for (size_t i = 0; i < imageSize; i++) {
+            unsigned char *p = image.data + 4 * i;
+            unsigned char r = p[0], g = p[1], b = p[2], a = p[3];
+            p[0] = a;
+            p[1] = b;
+            p[2] = g;
+            p[3] = r;
+        }
+
+        // tile
         const auto tiledSize = love::getPixelFormatSliceSize(image.format, image.width, image.height, true);
         auto* tiledData = new uint8_t[tiledSize] {};
         auto widthPo2 = NextPo2(image.width);
@@ -46,7 +58,7 @@ namespace love
         image.data = tiledData;
     }
 
-    std::unique_ptr<uint8_t[]> untileImage(const FormatHandler::DecodedImage& image)
+    std::unique_ptr<uint8_t[]> TileImage::untile(const FormatHandler::DecodedImage& image)
     {
         const auto widthPo2 = NextPo2(image.width);
         auto linearData = std::make_unique<uint8_t[]>(image.size);

@@ -24,8 +24,8 @@ static void love_STBIAssert(bool test, const char* teststr)
 
 #define STBI_ONLY_JPEG
 #define STBI_ONLY_BMP
+#define STBI_ONLY_PIC
 #define STBI_ONLY_TGA
-#define STBI_ONLY_HDR
 #define STBI_NO_STDIO
 #define STBI_IMAGE_STATIC
 #define STB_IMAGE_IMPLEMENTATION
@@ -143,17 +143,7 @@ namespace love
         }
 
 #if defined(__3DS__)
-        size_t imageSize = image.size / 4;
-        for (size_t i = 0; i < imageSize; i++) {
-            unsigned char *p = image.data + 4 * i;
-            unsigned char r = p[0], g = p[1], b = p[2], a = p[3];
-            p[0] = a;
-            p[1] = b;
-            p[2] = g;
-            p[3] = r;
-        }
-        
-        tileImage(image, stbi_image_free);
+        TileImage::tile(image, stbi_image_free);
 #endif
 
         return image;
@@ -179,7 +169,7 @@ namespace love
 
             std::vector<uint8_t> rgb(pixelCount * 3);
 #if defined(__3DS__)
-            auto linearData = untileImage(image);
+            auto linearData = TileImage::untile(image);
             const auto* source = linearData.get();
 #else
             const auto* source = image.data;
@@ -265,7 +255,7 @@ namespace love
         encoded.data[17] = 0x28;                // top-left origin and 8 alpha bits
 
 #if defined(__3DS__)
-        auto linearData = untileImage(image);
+        auto linearData = TileImage::untile(image);
         auto* source = linearData.get();
 
         for (size_t i = 0; i < pixelSize; i += STBHandler::BPP)

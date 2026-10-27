@@ -2,7 +2,9 @@
 #include "common/pixelformat.hpp"
 
 #include "modules/image/FormatHandler.hpp"
-#include "modules/image/magpie/TileImage.hpp"
+#if defined(__3DS__)
+    #include "modules/image/magpie/TileImage.hpp"
+#endif
 #include "modules/image/magpie/QOIHandler.hpp"
 
 #define QOI_IMPLEMENTATION
@@ -45,17 +47,7 @@ namespace love
             throw love::Exception("Could not decode image with QOI.");
 
 #if defined(__3DS__)
-        size_t imageSize = image.size / 4;
-        for (size_t i = 0; i < imageSize; i++) {
-            unsigned char *p = image.data + 4 * i;
-            unsigned char r = p[0], g = p[1], b = p[2], a = p[3];
-            p[0] = a;
-            p[1] = b;
-            p[2] = g;
-            p[3] = r;
-        }
-
-        tileImage(image, std::free);
+        TileImage::tile(image, std::free);
 #endif
 
         return image;
@@ -75,7 +67,7 @@ namespace love
         description.colorspace = QOI_SRGB;
 
 #if defined(__3DS__)
-        auto linearData = untileImage(image);
+        auto linearData = TileImage::untile(image);
         for (size_t i = 0; i < image.size; i += 4)
         {
             uint8_t r = linearData[i];
