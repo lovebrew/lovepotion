@@ -37,7 +37,7 @@ dkp_track_assets(${PROJECT_NAME}_hac_romfs
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     deko3d$<$<CONFIG:Debug>:d>
-    freetype bz2 png turbojpeg ddsparse
+    freetype bz2 ddsparse
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE

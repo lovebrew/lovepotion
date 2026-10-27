@@ -3,16 +3,14 @@
 #if defined(__3DS__)
     #include "modules/image/magpie/T3XHandler.hpp"
 #else
-    #include "modules/image/magpie/JPGHandler.hpp"
-    #include "modules/image/magpie/PNGHandler.hpp"
-    #include "modules/image/magpie/QOIHandler.hpp"
-    #include "modules/image/magpie/STBHandler.hpp"
-    #include "modules/image/magpie/WEBPHandler.hpp"
-
     #include "modules/image/magpie/ASTCHandler.hpp"
     #include "modules/image/magpie/KTXHandler.hpp"
-    #include "modules/image/magpie/ddsHandler.hpp"
+    #include "modules/image/magpie/DDSHandler.hpp"
 #endif
+    #include "modules/image/magpie/PNGHandler.hpp"
+    #include "modules/image/magpie/STBHandler.hpp"
+    #include "modules/image/magpie/QOIHandler.hpp"
+    #include "modules/image/magpie/WEBPHandler.hpp"
 
 namespace love
 {
@@ -20,21 +18,21 @@ namespace love
     {
         float16Init();
 
-#if defined(__3DS__)
-        this->formatHandlers = { new T3XHandler };
-#else
         // clang-format off
         this->formatHandlers = {
-    		new PNGHandler,
-    		new STBHandler,
+#if defined(__3DS__)
+            new T3XHandler,
+#else
+            new KTXHandler,
+            new ASTCHandler,
+            new DDSHandler,
+#endif
+            new PNGHandler,
+            new STBHandler,
+            new QOIHandler,
     		new WEBPHandler,
-    		new DDSHandler,
-    		new KTXHandler,
-    		new ASTCHandler,
-    		new QOIHandler,
     	};
         // clang-format on
-#endif
     }
 
     Image::~Image()

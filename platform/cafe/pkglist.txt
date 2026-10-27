@@ -3,11 +3,9 @@ ppc-freetype
 ppc-glm
 ppc-harfbuzz
 ppc-libconfig
-ppc-libjpeg-turbo
 ppc-liblua51
 ppc-libmodplug
 ppc-libogg
-ppc-libpng
 ppc-libtheora
 ppc-libvorbis
 ppc-libvorbisidec

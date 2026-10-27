@@ -1,7 +1,7 @@
 #include "common/Exception.hpp"
 
 #include "modules/image/ImageData.hpp"
-#include "modules/image/magpie/ddsHandler.hpp"
+#include "modules/image/magpie/DDSHandler.hpp"
 
 #include <ddsparse.h>
 using namespace dds::dxinfo;

@@ -24,14 +24,12 @@ static std::filesystem::path translatePath(const std::filesystem::path& input)
     if (!Console::is(Console::CTR))
         return input;
 
-    static constexpr auto textures = { ".png", ".jpg", ".jpeg" };
     static constexpr auto fonts    = { ".ttf", ".otf" };
 
     auto path = std::filesystem::path(input);
 
-    if (std::find(textures.begin(), textures.end(), input.extension()) != textures.end())
-        return path.replace_extension(".t3x");
-    else if (std::find(fonts.begin(), fonts.end(), input.extension()) != fonts.end())
+    // replace font ext
+    if (std::find(fonts.begin(), fonts.end(), input.extension()) != fonts.end())
         return path.replace_extension(".bcfnt");
 
     return path;

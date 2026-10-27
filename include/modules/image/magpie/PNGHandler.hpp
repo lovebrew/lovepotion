@@ -17,5 +17,9 @@ namespace love
         DecodedImage decode(Data* data) const override;
 
         EncodedImage encode(const DecodedImage& image, EncodedFormat format) const override;
+
+        void freeRawPixels(uint8_t* memory) override;
+
+        void freeEncodedImage(uint8_t* memory) override;
     };
 } // namespace love
