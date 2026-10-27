@@ -50,12 +50,22 @@ bool ProController::Open(int index)
 {
     this->Close();
 
+    WPADExtensionType extension = (WPADExtensionType)0xFF;
+
+    // WPAD channels are 0..3; the Pro Controller joystick id starts at 1.
+    if (WPADProbe((WPADChan)(index - 1), &extension) != KPAD_ERROR_OK)
+        return false;
+
+    if (extension != WPAD_EXT_PRO_CONTROLLER)
+        return false;
+
     this->name = guid::GetGamepadName(this->GetGamepadType());
     this->guid = guid::GetGamepadGUID(this->GetGamepadType());
 
     this->instanceId = index;
+    this->connected  = true;
 
-    return this->IsConnected();
+    return true;
 }
 
 void ProController::Update()
@@ -68,11 +78,12 @@ void ProController::Update()
     if (error == KPAD_ERROR_NO_SAMPLES)
         return;
 
-    this->buttonStates.pressed  = this->state.trigger;
-    this->buttonStates.released = this->state.release;
-    this->buttonStates.held     = this->state.hold;
+    this->buttonStates.pressed  = this->state.pro.trigger;
+    this->buttonStates.released = this->state.pro.release;
+    this->buttonStates.held     = this->state.pro.hold;
 
-    this->leftStick  = { this->state.pro.leftStick.x, this->state.pro.leftStick.y };
+    /* KPAD/Pro Controller: same mapping fix as GamePad */
+    this->leftStick  = { this->state.pro.leftStick.x,  this->state.pro.leftStick.y };
     this->rightStick = { this->state.pro.rightStick.x, this->state.pro.rightStick.y };
 
     if (this->buttonStates.held & WPAD_PRO_TRIGGER_ZL)
@@ -180,10 +191,15 @@ bool ProController::IsUp(JoystickInput& result)
 
 float ProController::GetAxis(int index)
 {
-    if (index == 0 || index == 1)
-        return (index == 1) ? this->leftStick.dx : this->leftStick.dy;
-    else if (index == 2 || index == 3)
-        return (index == 3) ? this->rightStick.dx : this->rightStick.dy;
+    // LÖVE enum: LEFTX=0, LEFTY=1, RIGHTX=2, RIGHTY=3
+    if (index == 0) // LEFTX
+        return this->leftStick.dx;
+    else if (index == 1) // LEFTY (negated: KPAD Y is positive up)
+        return -this->leftStick.dy;
+    else if (index == 2) // RIGHTX
+        return this->rightStick.dx;
+    else if (index == 3) // RIGHTY (negated)
+        return -this->rightStick.dy;
     else if (index == 4)
         return this->triggers[0x0].down;
     else if (index == 5)
@@ -217,7 +233,7 @@ float ProController::GetGamepadAxis(GamepadAxis axis)
     if (!this->IsConnected())
         return 0.0f;
 
-    return this->GetAxis(axis);
+    return this->GetAxis((int)axis);
 }
 
 std::vector<float> ProController::GetAxes()

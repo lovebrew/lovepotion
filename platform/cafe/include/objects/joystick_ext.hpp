@@ -28,6 +28,7 @@ namespace love
 
         void Close()
         {
+            this->connected  = false;
             this->instanceId = -1;
         }
 
