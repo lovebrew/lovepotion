@@ -25,7 +25,7 @@ namespace love
 #else
             new KTXHandler,
             new ASTCHandler,
-            new DDSHandler
+            new DDSHandler,
 #endif
             new PNGHandler,
             new STBHandler,
