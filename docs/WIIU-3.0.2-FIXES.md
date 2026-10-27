@@ -3,8 +3,10 @@
 **Date:** October 26, 2026  
 **Base:** `lovebrew/lovepotion` tag `3.0.2` (commit `7f2b36a4`), rebased onto `main` (`906511d4`)  
 **Branch:** `fix/3.0.2-wiiu`  
-**Toolchain:** current devkitPro (GCC 16.2.0) via `devkitpro/devkitppc:latest` — required after rebasing onto `main`; console validation was performed with `devkitpro/devkitppc:20230911` (GCC 13.2.0)  
-**Build Type:** Debug (`-DCMAKE_BUILD_TYPE=Debug` → `-Og`) — **Release (`-O2`) does not render**
+**Toolchain:** current devkitPro (GCC 16.2.0) via `devkitpro/devkitppc:latest` — required after rebasing onto `main`; console validation was performed both with `devkitpro/devkitppc:20230911` (GCC 13.2.0) and with the rebased build from the current image (GCC 16.2.0)  
+**Build Type:** Debug (`-DCMAKE_BUILD_TYPE=Debug` → `-Og`) — **Release (`-O2`) does not render**  
+**Console:** Nintendo Wii U (EUR, firmware 5.5.5E) with Aroma  
+**AI assistance:** the code analysis, the patches and this report were produced and reviewed with AI assistance (OpenCode agent); every item in the validation checklist was executed on real hardware by the branch author
 
 ---
 
@@ -228,7 +230,10 @@ The `t.console = { "IP", 3000 }` in `conf.lua` now works again (was missing in 3
 | `build-302-bundle/lovepotion-fused.wuhb` | ~7.2 MB | **Test bundle** with game in `content/game/` |
 
 Rebased branch, rebuilt with `devkitpro/devkitppc:latest` in Debug mode
-(`build-302-latest/`): `lovepotion.rpx` 4.2 MB, `lovepotion.wuhb` 4.3 MB.
+(`build-302-latest/`): `lovepotion.rpx` 4.2 MB, `lovepotion.wuhb` 4.3 MB, plus
+the fused test bundle `build-302-latest-bundle/lovepotion-fused-pong.wuhb`
+(~7.2 MB) carrying the same game content used for the earlier validation. This
+rebuilt bundle was exercised on hardware on 2026-10-26 and behaved as expected.
 
 ---
 
@@ -271,25 +276,26 @@ Includes:
 
 ## Validation Checklist (Console Testing)
 
-Status reflects console tests performed on 2026-10-25 (Wii U EUR 5.5.3,
-Aroma). Items validated on pre5/pre6 but not retested on 3.0.2 are marked
-accordingly.
+Status reflects console tests performed on 2026-10-25 and 2026-10-26 (Wii U
+EUR 5.5.5E, Aroma). Items validated on pre5/pre6 but not retested on 3.0.2 are
+marked accordingly.
 
 | Feature | Expected | Status |
 |---------|----------|--------|
 | Background renders (not cyan) | ✅ | OK (console) |
 | GamePad left stick X/Y | ✅ correct, no swap/invert | OK (console) |
 | GamePad right stick X/Y | ✅ correct, no swap/invert | OK (console) |
-| Pro Controller detection | ✅ appears on connect | Pending on 3.0.2 (OK on pre5) |
-| Pro Controller buttons | ✅ all mapped | Pending on 3.0.2 (OK on pre5) |
-| Pro Controller sticks | ✅ Y not inverted | Pending on 3.0.2 (OK on pre5) |
-| Pro Controller hotplug | ✅ joystickadded/removed | Pending on 3.0.2 (OK on pre5) |
+| Pro Controller detection | ✅ appears on connect | OK (console) |
+| Pro Controller buttons | ✅ all mapped | OK (console) |
+| Pro Controller sticks | ✅ Y not inverted | OK (console) |
+| Pro Controller hotplug | ✅ joystickadded/removed | OK (console) |
 | Font rendering | ✅ no FT_New_Face error | OK (console) |
 | External `game/` folder | ✅ loads from SD | OK (console) |
 | Embedded game loads | ✅ from `/vol/content/game` | OK (console) |
 | No-game fallback (cyan screen) | ✅ no freeze | OK (console) |
 | Save directory created | ✅ `sd:/wiiu/apps/.../save/...` | OK (console) |
 | nestlink logs | ✅ real-time TCP | OK (console) |
+| Rebased build (GCC 16.2.0, `main` + `TempTransform` fix) | ✅ same behavior as the 2023 toolchain build | OK (console, 2026-10-26) |
 | On-screen diagnostics | ✅ on error | Pending (not triggered in tests) |
 
 ---
@@ -349,9 +355,9 @@ docker run --rm \
 > Those libraries only exist in recent devkitPro images, so building the
 > rebased branch with `devkitpro/devkitppc:20230911` fails at link time with
 > `cannot find -lbrotlidec`. The original hardware validation used the 2023
-> image; the rebased branch was verified to compile and produce
-> `lovepotion.rpx`/`lovepotion.wuhb` with `devkitpro/devkitppc:latest`
-> (GCC 16.2.0) in Debug mode.
+> image; the rebased branch was built with `devkitpro/devkitppc:latest`
+> (GCC 16.2.0) in Debug mode and the resulting
+> `lovepotion-fused-pong.wuhb` was validated on hardware.
 
 ---
 
