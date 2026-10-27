@@ -80,6 +80,5 @@ namespace love
         // clang-format on
 
       private:
-        FT_Library library;
     };
 } // namespace love
