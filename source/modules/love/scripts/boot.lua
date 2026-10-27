@@ -39,6 +39,11 @@ local no_game_code = false
 local invalid_game_path = nil
 local main_file = "main.lua"
 
+local is_debug, log = pcall(require, "love.log")
+local file          = nil
+-- boot.log is created AFTER love.filesystem.init (see love.boot); otherwise
+-- the path stays relative and Wii U's fopen does not work.
+
 -- This can't be overridden.
 function love.boot()
     -- This is absolutely needed.
@@ -48,6 +53,11 @@ function love.boot()
 
     local arg0 = love.arg.getLow(love.rawGameArguments)
     love.filesystem.init(arg0)
+
+    -- The filesystem is now initialized, so the log path is absolute.
+    if is_debug and not file then
+        file = log.new("boot.log")
+    end
 
     local exepath = love.filesystem.getExecutablePath()
     if #exepath == 0 then
@@ -61,12 +71,7 @@ function love.boot()
     -- Is this one of those fancy "fused" games?
     local can_has_game = pcall(love.filesystem.setSource, exepath)
 
-    -- It's a fused game, don't parse --game argument
-    if can_has_game then
-        love.arg.options.game.set = true
-    end
-
-    -- Parse options now that we know which options we're looking for.
+    -- Parse options first (needed for --game argument)
     love.arg.parseOptions(love.rawGameArguments)
 
     -- parseGameArguments can only be called after parseOptions.
@@ -74,7 +79,24 @@ function love.boot()
 
     local o = love.arg.options
 
-    local is_fused_game = can_has_game or love.arg.options.fused.set
+    -- Determine if fused: only if WUHB has game inside AND no --game override
+    local is_fused_game = false
+    if can_has_game then
+        -- WUHB mounted, but check if it actually contains a game
+        if love.filesystem.getInfo("main.lua") or love.filesystem.getInfo("conf.lua") then
+            is_fused_game = true
+        else
+            -- WUHB mounted but no game inside -> treat as non-fused
+            -- Will fall through to external game folder detection below
+            can_has_game = false
+        end
+    end
+
+    if can_has_game then
+        love.arg.options.game.set = true
+    end
+
+    is_fused_game = is_fused_game or love.arg.options.fused.set
 
     love.filesystem.setFused(is_fused_game)
 
@@ -84,7 +106,8 @@ function love.boot()
     local custom_main_file = false
 
     local identity = ""
-    if not can_has_game and o.game.set and o.game.arg[1] then
+    -- If not fused (or fused but no game inside), check --game argument
+    if not is_fused_game and o.game.set and o.game.arg[1] then
         local nouri = o.game.arg[1]
 
         if nouri:sub(1, 7) == "file://" then
@@ -202,6 +225,7 @@ function love.init()
     }
 
     local openedconsole = false
+    local nestlink = nil
     if love.arg.options.console.set and love._openConsole then
         love._openConsole()
         openedconsole = true
@@ -221,9 +245,14 @@ function love.init()
         -- the error message can be displayed in the window.
     end
 
-    -- Open the console
+    -- Open the nestlink client (for t.console = {host, port})
     local console_ok, console_error
-    if c.console and love._openConsole and not openedconsole then
+    if c.console and type(c.console) == "table" and love._openNestlink then
+        console_ok, nestlink = pcall(require, "love.nestlink")
+        if console_ok and nestlink then
+            console_ok, console_error = pcall(function() nestlink.connect(unpack(c.console)) end)
+        end
+    elseif c.console and love._openConsole and not openedconsole then
         love._openConsole(c.console)
     end
 
@@ -402,16 +431,77 @@ function love.init()
         end
     end
 
+    -- Diagnostics shown on the error screen itself (no file I/O required).
+    -- Keep the "DIAG build=..." prefix so we know which binary ran.
+    local function buildDiagnostics()
+        local lines = {}
+
+        local function add(key, value)
+            table.insert(lines, key .. "=" .. tostring(value))
+        end
+
+        table.insert(lines, "DIAG build=3.0.2-fixed")
+
+        local okcwd, cwd = pcall(love.filesystem.getWorkingDirectory)
+        cwd = okcwd and cwd or "?"
+        add("cwd", cwd)
+
+        local okexec, exec = pcall(love.filesystem.getExecutablePath)
+        exec = okexec and exec or "?"
+        add("exepath", exec)
+
+        local oksrc, src = pcall(love.filesystem.getSource)
+        add("source", oksrc and src or "?")
+        add("fused", love.filesystem.isFused())
+
+        local okid, identity = pcall(love.filesystem.getIdentity)
+        add("identity", okid and identity or "?")
+
+        local function testRead(path)
+            local file = io.open(path, "rb")
+            if not file then
+                return path .. " = FAILED"
+            end
+
+            local size = file:seek("end")
+            file:close()
+
+            return path .. " = OK (" .. tostring(size) .. ")"
+        end
+
+        for _, path in ipairs {
+            "/vol/content/game",
+            "/vol/content/game/main.lua",
+            "/vol/content/game.love",
+            "/vol/content/shaders/color.gsh",
+            tostring(exec),
+            tostring(cwd) .. "/lovepotion.wuhb",
+        } do
+            table.insert(lines, testRead(path))
+        end
+
+        local writePath = tostring(cwd) .. "/write-test.txt"
+        local writeFile, writeError = io.open(writePath, "w")
+        if writeFile then
+            writeFile:write("ok\n")
+            writeFile:close()
+            table.insert(lines, "write " .. writePath .. " = OK")
+        else
+            table.insert(lines, "write " .. writePath .. " = FAILED (" .. tostring(writeError) .. ")")
+        end
+
+        return table.concat(lines, "\n")
+    end
+
     if no_game_code then
         local opts = love.arg.options
         local gamepath = opts.game.set and opts.game.arg[1] or ""
         local gamestr = gamepath == "" and "" or " at " .. '"' .. gamepath .. '"'
 
-        error(("No code to run %s\nYour game might be packaged incorrectly.\nMake sure %s is at the top level of the zip or folder.")
-            :format(gamestr, main_file))
+        error(("No code to run %s\nYour game might be packaged incorrectly.\nMake sure %s is at the top level of the zip or folder.\n\n%s"):format(gamestr, main_file, buildDiagnostics()))
     elseif invalid_game_path then
-        error(("Cannot load game at path '%s'.\nMake sure a folder exists at the specified path."):format(
-            invalid_game_path))
+        error(("Cannot load game at path '%s'.\nMake sure a folder exists at the specified path.\n\n%s"):format(
+            invalid_game_path, buildDiagnostics()))
     end
 end
 
@@ -463,6 +553,11 @@ return function()
             return retval, restartvalue
         end
         coroutine.yield()
+    end
+
+    -- Disconnect nestlink if connected
+    if nestlink and nestlink.disconnect then
+        nestlink.disconnect()
     end
 
     return 1

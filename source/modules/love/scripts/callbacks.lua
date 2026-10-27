@@ -24,7 +24,19 @@ freely, subject to the following restrictions:
 
 local love = require("love")
 
+local is_debug, log = pcall(require, "love.log")
+local file          = nil
+-- callbacks.lua is loaded before love.filesystem.init, so the log can only be
+-- opened afterwards (absolute path). See ensureLogFile().
+local function ensureLogFile()
+    if is_debug and not file then
+        file = log.new("callbacks.log")
+    end
+end
+
 function love.createhandlers()
+
+    ensureLogFile()
     -- Standard callback handlers.
     love.handlers = setmetatable({
         --#region unused

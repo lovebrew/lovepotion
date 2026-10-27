@@ -33,14 +33,29 @@ function love.nogame()
             path = "romfs:/"
         end
 
-        local success = love.filesystem.mountFullPath(path, mount_path, "read", true)
-        
-        if not success then
-            error("Failed to mount nogame romfs")
+        -- Safe mount with fallback: if /vol/content/ not available (runner WUHB
+        -- without content/nogame/), fall back to simple cyan screen
+        local success = false
+        if pcall(function()
+            success = love.filesystem.mountFullPath(path, mount_path, "read", true)
+        end) and success then
+            no_game_path = mount_path .. "/nogame/nogame.png"
+            cartridge_path = mount_path .. "/nogame/cartridge.png"
+        else
+            -- Fallback: simple cyan screen without assets/threads
+            love.nogame = function()
+                love.graphics.setBackgroundColor(0.35, 0.62, 0.86)
+                function love.draw()
+                    love.graphics.clear(love.graphics.getBackgroundColor())
+                    love.graphics.setColor(1, 1, 1)
+                    love.graphics.print("No game found\nPress START to exit", 50, 50)
+                end
+                function love.gamepadpressed(_, button)
+                    if button == "start" then love.event.quit() end
+                end
+            end
+            return love.nogame()
         end
-
-        no_game_path = mount_path .. "/nogame/nogame.png"
-        cartridge_path = mount_path .. "/nogame/cartridge.png"
     end
 
     local wave_thread_code =

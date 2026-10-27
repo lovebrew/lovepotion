@@ -30,6 +30,8 @@ namespace love
 
     int OpenConsole(lua_State* L);
 
+    int OpenNestlink(lua_State* L);
+
     template<Console::Platform T>
     bool MainLoop(lua_State* L, int numArgs);
 
